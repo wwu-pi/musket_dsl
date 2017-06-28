@@ -1,0 +1,89 @@
+grammar de.wwu.musket.Musket with org.eclipse.xtext.common.Terminals
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate muesli "http://www.wwu.de/musket/Musket"
+
+Model:
+	functions+=Function*
+	data+=Data*
+	logic=LogicBlock
+;
+	
+//-----------------------------------------------------------
+Function:
+	returnType=Type name=ID '(' (params+=ParameterDef (',' params+=ParameterDef)*)? ')' '{'
+		statement=STRING //TODO
+	'}'
+;
+	
+ParameterDef:
+	type=Type name=ID
+;
+
+//-----------------------------------------------------------	
+Data:
+	Array;
+
+Array:
+	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
+	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
+	{BoolArray} 'bool' var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
+;
+
+Variable:
+	name=ID
+;
+	
+//-----------------------------------------------------------
+LogicBlock:
+	'main' '{' content+=Logic+ '}'
+;
+
+Logic:
+	ControlStructure | Statement;
+	
+ControlStructure:
+	ForLoop | IfClause;
+	
+ForLoop:
+	'for' '(' condition=STRING ')' '{'
+		statements+=Statement+
+	'}'
+;
+
+IfClause:
+	'if' '(' condition=STRING ')' '{'
+		statements+=Statement+
+	'}'
+;
+
+Statement:
+	{Statement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';'
+;
+
+Parameter:
+	{FunctionCall} value=[Function] '(' param=Parameter ')' | //TODO multiple params
+	{VariableRef} value=[Variable] |
+	{IntVal} value = INT |
+	{DoubleVal} value = DOUBLE |
+	{BoolVal} value = BOOL
+;
+	
+//-----------------------------------------------------------
+enum Type:
+	int | double | bool 
+;
+
+enum Skeleton:
+	map | mapInPlace
+;
+
+//-----------------------------------------------------------
+DOUBLE returns ecore::EDouble:
+	INT '.' INT
+;
+	
+BOOL returns ecore::EBoolean:
+	'true' | 'false'
+;
