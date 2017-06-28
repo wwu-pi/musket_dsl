@@ -1,0 +1,22 @@
+int f(int i, int j){
+	'return i+1;'
+}
+
+bool g(double p){
+	'return p*2'
+}
+
+
+int a[5] = {1 , 2, 3, 4, 5};
+double b[3];
+
+main{
+	for('something'){
+		a.mapInPlace(f(1));
+		a = b.map(f(42));
+	}
+	
+	if('condition'){
+		a.map(g(1.23));
+	}
+}
