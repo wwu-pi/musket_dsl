@@ -4,13 +4,13 @@
 package de.wwu.musket.tests
 
 import com.google.inject.Inject
-import de.wwu.musket.muesli.Model
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import de.wwu.musket.musket.Model
 
 @RunWith(XtextRunner)
 @InjectWith(MusketInjectorProvider)
