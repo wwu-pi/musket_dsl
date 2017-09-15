@@ -47,13 +47,9 @@ ControlStructure:
 	ForLoop | IfClause;
 	
 ForLoop:
-	'for' '(' init=InitStatement ';' condition=CompareExpression ';' increment=ArithmeticExpression ')' '{'
+	'for' '(' init=Assignment ';' condition=CompareExpression ';' increment=ArithmeticExpression ')' '{'
 		statements+=MusketStatement+
 	'}'
-;
-
-InitStatement:
-	(var=[Variable] '=')? value=INT
 ;
 
 IfClause:
@@ -63,19 +59,29 @@ IfClause:
 ;
 
 MusketStatement:
-	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';'
+	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';' |
+	Assignment ';'
 ;
 
 Parameter:
 	{FunctionCall} value=[Function] '(' param=Parameter ')' | //TODO multiple params
-	{VariableRef} value=[Variable] |
-	{IntVal} value = INT |
-	{DoubleVal} value = DOUBLE |
-	{BoolVal} value = BOOL
+	VariableRef |
+	IntVal |
+	DoubleVal |
+	BoolVal
+;
+
+
+Assignment:
+	var=[Variable] '=' value=Expression
+;
+
+Expression:
+	CompareExpression // any boolean or arithmetic expression 
 ;
 
 // Boolean expressions
-CompareExpression returns BooleanExpression:
+CompareExpression returns BooleanExpression: // Top-level boolean expression
 	Condition {CompareExpression.eqLeft=current} (op = BooleanOperator eqRight = Condition)?
 ;
 
@@ -92,17 +98,48 @@ And returns BooleanExpression:
 ;
 
 BooleanExpression:
-	('(' Or ')') |
+	=> ('(' Or ')') |
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
-	{BooleanValue} value = BOOL |
-	{VariableValue} value = [Variable]
+	BoolVal |
+	AdditionSubtraction
+;
+
+// Arithmetic expressions
+AdditionSubtraction returns ArithmeticExpression: // Top-Level arithmetic expression
+	=> MultiplicationDivision ({Addition.left=current} OP_MATH_PLUS right=MultiplicationDivision)* |
+	MultiplicationDivision ({Subtraction.left=current} OP_MATH_MINUS right=MultiplicationDivision)*
+;
+
+MultiplicationDivision returns ArithmeticExpression:
+	=> ArithmeticExpression ({Multiplication.left=current} OP_MATH_MULT right=ArithmeticExpression)* |
+	ArithmeticExpression ({Division.left=current} OP_MATH_DIV right=ArithmeticExpression)*
 ;
 
 ArithmeticExpression:
-	// TODO some more
-	{IncrementOperation} '++' |
-	{DecrementOperation} '--' 
+	{IncrementOperation} value = [Variable] '++' |
+	{DecrementOperation} value = [Variable] '--' |
+	'(' AdditionSubtraction ')' |
+	VariableRef |
+	IntVal |
+	DoubleVal
 ;
+
+VariableRef: 
+	value= [Variable]
+;
+
+BoolVal:
+	value = BOOL
+;
+
+IntVal:
+	value=INT
+;
+
+DoubleVal:
+	value=DOUBLE
+;
+      
 	
 //-----------------------------------------------------------
 enum Type:
@@ -114,7 +151,7 @@ enum Skeleton:
 ;
 
 BooleanOperator:
-	OP_BOOL_LT | OP_BOOL_LTE | OP_BOOL_EQUALS | OP_BOOL_GTE | OP_BOOL_GT | OP_BOOL_GT
+	OP_BOOL_LT | OP_BOOL_LTE | OP_BOOL_EQUALS | OP_BOOL_GTE | OP_BOOL_GT
 ;
 
 OP_BOOL_LT:
@@ -126,7 +163,7 @@ OP_BOOL_LTE:
 ;
 
 OP_BOOL_EQUALS:
-	'='
+	'=='
 ;
 
 OP_BOOL_GTE:

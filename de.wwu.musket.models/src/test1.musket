@@ -11,12 +11,14 @@ int a[5] = {1 , 2, 3, 4, 5};
 double b[3];
 
 main{
-	for('something'){
+	for(a = 1; a < b; a++){
 		a.mapInPlace(f(1));
 		a = b.map(f(42));
 	}
 	
-	if('condition'){
+	if(a < 5 || b * 2){
 		a.map(g(1.23));
 	}
+
+	a = (9 + 3) * 6;
 }
