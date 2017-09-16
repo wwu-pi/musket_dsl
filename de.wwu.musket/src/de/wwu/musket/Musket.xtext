@@ -13,12 +13,12 @@ Model:
 //-----------------------------------------------------------
 Function:
 	returnType=Type name=ID '(' (params+=ParameterDef (',' params+=ParameterDef)*)? ')' '{'
-		statement=STRING //TODO
+		(statement+=Statement ';')*
 	'}'
 ;
 	
 ParameterDef:
-	type=Type name=ID
+	type=Type var=Variable
 ;
 
 //-----------------------------------------------------------	
@@ -49,6 +49,7 @@ ControlStructure:
 ForLoop:
 	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')' '{'
 		statements+=MusketStatement+
+		//TODO break/continue
 	'}'
 ;
 
@@ -59,7 +60,8 @@ IfClause:
 ;
 
 MusketStatement:
-	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';'
+	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';' |
+	Assignment ';'
 ;
 
 Parameter:
@@ -70,9 +72,17 @@ Parameter:
 	BoolVal
 ;
 
+Statement:
+	Assignment |
+	ReturnStatement
+;
 
 Assignment:
 	var=[Variable] '=' value=Expression
+;
+
+ReturnStatement:
+	'return' Expression
 ;
 
 // Expression tree
@@ -124,7 +134,7 @@ ArithmeticExpression returns Expression:
 ;
 
 VariableRef: 
-	value= [Variable]
+	value = [Variable]
 ;
 
 BoolVal:

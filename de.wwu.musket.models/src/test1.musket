@@ -1,9 +1,9 @@
 int f(int i, int j){
-	'return i+1;'
+	return i+1;
 }
 
 bool g(double p){
-	'return p*2'
+	return p*2;
 }
 
 
@@ -18,8 +18,8 @@ main{
 	
 	if(a < 5 || b * 2){
 		a.map(g(1.23));
+		
+		a = ( 9 + 3) * 6 + 4;
+		a = a && (b || a + 2);
 	}
-
-	a = (9 + 3) * 6 + 4;
-	a = a && (b || a + 2);
 }
