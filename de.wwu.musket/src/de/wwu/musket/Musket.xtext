@@ -47,7 +47,7 @@ ControlStructure:
 	ForLoop | IfClause;
 	
 ForLoop:
-	'for' '(' init=Assignment ';' condition=CompareExpression ';' increment=ArithmeticExpression ')' '{'
+	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')' '{'
 		statements+=MusketStatement+
 	'}'
 ;
@@ -59,8 +59,7 @@ IfClause:
 ;
 
 MusketStatement:
-	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';' |
-	Assignment ';'
+	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';'
 ;
 
 Parameter:
@@ -76,49 +75,49 @@ Assignment:
 	var=[Variable] '=' value=Expression
 ;
 
+// Expression tree
 Expression:
 	CompareExpression // any boolean or arithmetic expression 
 ;
 
 // Boolean expressions
-CompareExpression returns BooleanExpression: // Top-level boolean expression
+CompareExpression returns Expression: // Top-level boolean expression
 	Condition {CompareExpression.eqLeft=current} (op = BooleanOperator eqRight = Condition)?
 ;
 
-Condition returns BooleanExpression:
+Condition returns Expression:
 	Or
 ;
 
-Or returns BooleanExpression:
+Or returns Expression:
 	And ({Or.leftExpression=current} OP_CONDITION_OR rightExpression=And)*
 ;
 
-And returns BooleanExpression:
+And returns Expression:
 	BooleanExpression ({And.leftExpression=current} OP_CONDITION_AND rightExpression=BooleanExpression)*
 ;
 
-BooleanExpression:
-	=> ('(' Or ')') |
+BooleanExpression returns Expression:
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
 	BoolVal |
 	AdditionSubtraction
 ;
 
 // Arithmetic expressions
-AdditionSubtraction returns ArithmeticExpression: // Top-Level arithmetic expression
+AdditionSubtraction returns Expression: // Top-Level arithmetic expression
 	=> MultiplicationDivision ({Addition.left=current} OP_MATH_PLUS right=MultiplicationDivision)* |
 	MultiplicationDivision ({Subtraction.left=current} OP_MATH_MINUS right=MultiplicationDivision)*
 ;
 
-MultiplicationDivision returns ArithmeticExpression:
+MultiplicationDivision returns Expression:
 	=> ArithmeticExpression ({Multiplication.left=current} OP_MATH_MULT right=ArithmeticExpression)* |
 	ArithmeticExpression ({Division.left=current} OP_MATH_DIV right=ArithmeticExpression)*
 ;
 
-ArithmeticExpression:
+ArithmeticExpression returns Expression:
 	{IncrementOperation} value = [Variable] '++' |
 	{DecrementOperation} value = [Variable] '--' |
-	'(' AdditionSubtraction ')' |
+	'(' Or ')' | // AdditionSubtraction
 	VariableRef |
 	IntVal |
 	DoubleVal
