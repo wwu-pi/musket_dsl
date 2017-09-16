@@ -75,7 +75,7 @@ MusketStatement:
 ;
 
 Parameter:
-	{FunctionCall} value=[Function] '(' param=Parameter ')' | //TODO multiple params
+	FunctionCall |
 	VariableRef |
 	IntVal |
 	DoubleVal |
@@ -84,15 +84,30 @@ Parameter:
 
 Statement:
 	Assignment |
-	ReturnStatement
+	ReturnStatement |
+	VariableDef |
+	FunctionCall
 ;
 
 Assignment:
-	var=[Variable] '=' value=Expression
+	{VariableAssignment} var=[Variable] '=' value=Expression |
+	{IncrementAssignment} var=[Variable] '+=' value=Expression |
+	{DecrementAssignment} var=[Variable] '-=' value=Expression |
+	{MultiplyAssignment} var=[Variable] '*=' value=Expression |
+	{DivideAssignment} var=[Variable] '/=' value=Expression
+;
+
+VariableDef:
+	type=Type var=Variable ('=' initValue=Expression)?
 ;
 
 ReturnStatement:
 	'return' Expression
+;
+
+FunctionCall:
+	{InternalFunctionCall} value=[Function] '(' params+=Parameter (',' params+=Parameter)* ')' |
+	{ExternalFunctionCall} namespace=ID '::' function=ID '(' params+=Parameter (',' params+=Parameter)* ')'
 ;
 
 // Expression tree
@@ -130,17 +145,25 @@ AdditionSubtraction returns Expression: // Top-Level arithmetic expression
 ;
 
 MultiplicationDivision returns Expression:
-	=> ArithmeticExpression ({Multiplication.left=current} OP_MATH_MULT right=ArithmeticExpression)* |
-	ArithmeticExpression ({Division.left=current} OP_MATH_DIV right=ArithmeticExpression)*
+	=> PrefixedExpression ({Multiplication.left=current} OP_MATH_MULT right=PrefixedExpression)* |
+	PrefixedExpression ({Division.left=current} OP_MATH_DIV right=PrefixedExpression)*
+;
+
+PrefixedExpression returns Expression:
+	{SignedArithmetic} '-' expression=ArithmeticExpression |
+	ArithmeticExpression
 ;
 
 ArithmeticExpression returns Expression:
-	{IncrementOperation} value = [Variable] '++' |
-	{DecrementOperation} value = [Variable] '--' |
+	{PostIncrement} value = [Variable] '++' |
+	{PostDecrement} value = [Variable] '--' |
+	{PreIncrement} '++' value = [Variable] |
+	{PreDecrement} '--' value = [Variable] |
 	'(' Or ')' | // AdditionSubtraction
 	VariableRef |
 	IntVal |
-	DoubleVal
+	DoubleVal |
+	FunctionCall
 ;
 
 VariableRef: 
