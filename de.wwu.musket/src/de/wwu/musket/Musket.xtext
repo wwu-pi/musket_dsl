@@ -26,9 +26,9 @@ Data:
 	Array;
 
 Array:
-	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
-	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
-	{BoolArray} 'bool' var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
+	{IntArray} ('int' | byReference?='int&') var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
+	{DoubleArray} ('double' | byReference?='double&') var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
+	{BoolArray} ('bool' | byReference?='bool&') var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
 ;
 
 Variable:
@@ -47,10 +47,20 @@ ControlStructure:
 	ForLoop | IfClause;
 	
 ForLoop:
-	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')' '{'
-		statements+=MusketStatement+
-		//TODO break/continue
-	'}'
+	ConditionalForLoop | IteratorForLoop
+;
+
+ConditionalForLoop:
+	{ConditionalForLoop} 
+	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	//TODO break/continue 
+	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
+;
+
+IteratorForLoop:
+	'for' '(' iter=ParameterDef ':' dataStructure=[Variable] ')'
+	//TODO break/continue
+	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
 ;
 
 IfClause:
