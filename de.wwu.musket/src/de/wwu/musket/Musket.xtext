@@ -22,9 +22,9 @@ Data:
 	Array | Global | Const;
 
 Array:
-	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
-	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
-	{BoolArray} 'bool' var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
+	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' ('{' values+=INT (',' values+=INT)* '}' | functionRef=FunctionCall))? ';' |
+	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' ('{' values+=DOUBLE (',' values+=DOUBLE)* '}' | functionRef=FunctionCall))? ';' | 
+	{BoolArray} 'bool' var=Variable '[' size=INT ']' ('=' ('{' values+=BOOL (',' values+=BOOL)* '}' | functionRef=FunctionCall))? ';'
 ;
 
 Variable:
@@ -125,8 +125,8 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	{InternalFunctionCall} value=[Function] '(' params+=Parameter (',' params+=Parameter)* ')' |
-	{ExternalFunctionCall} namespace=ID '::' function=ID '(' params+=Parameter (',' params+=Parameter)* ')'
+	{InternalFunctionCall} value=[Function] '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
+	{ExternalFunctionCall} namespace=ID '::' function=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')'
 ;
 
 // Expression tree
