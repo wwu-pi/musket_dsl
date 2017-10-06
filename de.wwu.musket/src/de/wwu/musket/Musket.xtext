@@ -5,9 +5,42 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate musket "http://www.wwu.de/musket/Musket"
 
 Model:
-	functions+=Function*
+	config=ConfigBlock
 	data+=Data*
+	functions+=Function*
 	logic=LogicBlock
+;
+
+//-----------------------------------------------------------
+ConfigBlock:
+	('#config' 'PLATFORM' (platformCPU?='CPU' & platformGPU?='GPU')) &
+	('#config' 'PROCESSES' processes=INT)
+;
+
+//-----------------------------------------------------------	
+Data:
+	Array | Global | Const;
+
+Array:
+	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
+	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
+	{BoolArray} 'bool' var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
+;
+
+Variable:
+	name=ID
+;
+
+Global:
+	{IntGlobal} 'int' var=Variable '=' value=INT ';' |
+	{DoubleGlobal} 'double' var=Variable '=' value=DOUBLE ';' | 
+	{BoolGlobal} 'bool' var=Variable '=' values=BOOL ';'
+;
+
+Const:
+	{IntConst} 'const' 'int' var=Variable '=' value=INT ';' |
+	{DoubleConst} 'const' 'double' var=Variable '=' value=DOUBLE ';' | 
+	{BoolConst} 'const' 'bool' var=Variable '=' values=BOOL ';'
 ;
 	
 //-----------------------------------------------------------
@@ -19,20 +52,6 @@ Function:
 	
 ParameterDef:
 	type=Type var=Variable
-;
-
-//-----------------------------------------------------------	
-Data:
-	Array;
-
-Array:
-	{IntArray} ('int' | byReference?='int&') var=Variable '[' size=INT ']' ('=' '{' values+=INT (',' values+=INT)* '}')? ';' |
-	{DoubleArray} ('double' | byReference?='double&') var=Variable '[' size=INT ']' ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? ';' | 
-	{BoolArray} ('bool' | byReference?='bool&') var=Variable '[' size=BOOL ']' ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? ';'
-;
-
-Variable:
-	name=ID
 ;
 	
 //-----------------------------------------------------------

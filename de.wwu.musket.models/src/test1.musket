@@ -1,3 +1,13 @@
+#config PLATFORM CPU GPU
+#config PROCESSES 4
+
+const bool myConst = true;
+
+int a[5] = {1 , 2, 3, 4, 5};
+double b[3];
+double globalVar = 123.2;
+
+
 int f(int i, int j){
 	double sum1 = 0;
  	double sum2 = 0;
@@ -9,10 +19,6 @@ int f(int i, int j){
 bool g(double p){
 	return p*2;
 }
-
-
-int a[5] = {1 , 2, 3, 4, 5};
-double b[3];
 
 main{
 	for(a = 1; a < b; a++){
