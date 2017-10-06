@@ -52,22 +52,14 @@ Const:
 //-----------------------------------------------------------
 Function:
 	returnType=Type name=ID '(' (params+=ParameterDef (',' params+=ParameterDef)*)? ')' '{'
-		(statement+=Statement ';')*
+		(statement+=FunctionStatement)*
 	'}'
 ;
-	
-ParameterDef:
-	type=Type var=Variable
-;
-	
-//-----------------------------------------------------------
-LogicBlock:
-	'main' '{' content+=Logic+ '}'
+
+FunctionStatement:
+	ControlStructure | Statement ';'
 ;
 
-Logic:
-	ControlStructure | MusketStatement;
-	
 ControlStructure:
 	ForLoop | IfClause;
 	
@@ -79,24 +71,64 @@ ConditionalForLoop:
 	{ConditionalForLoop} 
 	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
-	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
+	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
 ;
 
 IteratorForLoop:
 	'for' '(' iter=ParameterDef ':' dataStructure=[Variable] ')'
 	//TODO break/continue
-	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
+	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
 ;
 
 IfClause:
+	'if' '(' condition=CompareExpression ')' '{'
+		statements+=FunctionStatement+
+	'}'
+;
+	
+ParameterDef:
+	type=Type var=Variable
+;
+	
+//-----------------------------------------------------------
+LogicBlock:
+	'main' '{' content+=MusketStatement+ '}'
+;
+
+MusketStatement:
+	MusketControlStructure | BasicMusketStatement ';'
+;
+	
+MusketControlStructure:
+	MusketForLoop | MusketIfClause;
+	
+MusketForLoop:
+	MusketConditionalForLoop | MusketIteratorForLoop
+;
+
+MusketConditionalForLoop:
+	{MusketConditionalForLoop} 
+	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	//TODO break/continue 
+	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
+;
+
+MusketIteratorForLoop:
+	'for' '(' iter=ParameterDef ':' dataStructure=[Variable] ')'
+	//TODO break/continue
+	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
+;
+
+MusketIfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=MusketStatement+
 	'}'
 ;
 
-MusketStatement:
-	{MusketStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' ';' |
-	Assignment ';'
+BasicMusketStatement:
+	{SkeletonStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' |
+	Assignment |
+	FunctionCall
 ;
 
 Parameter:

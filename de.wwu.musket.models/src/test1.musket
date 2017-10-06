@@ -13,6 +13,10 @@ double globalVar = 123.2;
 int f(int i, int j){
 	double sum1 = 0;
  	double sum2 = 0;
+	if(1 + 2){
+		sum1 += 333;
+		f(2);
+	}
 	sum1 += 333; 
 	sum1 /= std::pow(sum1, 2);
 	return i+1;
@@ -29,7 +33,9 @@ main{
 	}
 	
 	if(a < 5 || b * 2){
-		a.map(g(1.23));
+		if(a < 5 || b * 2){
+			a.map(g(1.23));
+		}
 		
 		a = ( 9 + 3) * 6 + 4;
 		a = a && (b || a + 2);
