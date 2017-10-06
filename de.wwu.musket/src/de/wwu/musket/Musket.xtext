@@ -148,6 +148,7 @@ Statement:
 
 Assignment:
 	{VariableAssignment} var=[Variable] '=' value=Expression |
+	{ArrayAssignment} var=[Variable] '[' index=INT ']' '=' value=Expression |
 	{IncrementAssignment} var=[Variable] '+=' value=Expression |
 	{DecrementAssignment} var=[Variable] '-=' value=Expression |
 	{MultiplyAssignment} var=[Variable] '*=' value=Expression |

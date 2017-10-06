@@ -17,6 +17,7 @@ int f(int i, int j){
 		sum1 += 333;
 		f(2);
 	}
+	a[0] = 42;
 	sum1 += 333; 
 	sum1 /= std::pow(sum1, 2);
 	return i+1;
