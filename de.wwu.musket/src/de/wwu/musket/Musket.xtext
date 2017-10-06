@@ -6,9 +6,15 @@ generate musket "http://www.wwu.de/musket/Musket"
 
 Model:
 	config=ConfigBlock
+	includes+=Include*
 	data+=Data*
 	functions+=Function*
 	logic=LogicBlock
+;
+
+//-----------------------------------------------------------
+Include:
+	'#include' name=HEADERFILE
 ;
 
 //-----------------------------------------------------------
@@ -270,4 +276,8 @@ DOUBLE returns ecore::EDouble:
 	
 BOOL returns ecore::EBoolean:
 	'true' | 'false'
+;
+
+HEADERFILE returns ecore::EString:
+	ID '.h'
 ;
