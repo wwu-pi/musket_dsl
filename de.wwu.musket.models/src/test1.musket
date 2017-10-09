@@ -5,9 +5,9 @@
 
 const bool myConst = true;
 
-int a[5] = {1 , 2, 3, 4, 5};
-double b[3];
-int c[5] = f();
+int a[4] = {1 , 2, 3, 4};
+double b[4];
+bool c[4];
 double globalVar = 123.2;
 
 int f(int i, int j){
@@ -24,21 +24,14 @@ int f(int i, int j){
 }
 
 bool g(double p){
-	return p*2;
+	return p > 2;
 }
 
 main{
-	for(a = 1; a < b; a++){
-		a.mapInPlace(f(1));
-		a = b.map(f(42));
-	}
+	a.mapInPlace(f(1));
+	b = a.map(f(42));
 	
-	if(a < 5 || b * 2){
-		if(a < 5 || b * 2){
-			a.map(g(1.23));
-		}
-		atoi(11);
-		a = ( 9 + 3) * 6 + 4;
-		a = a && (b || a + 2);
+	if(2 < 5){
+		c = a.map(g());
 	}
 }
