@@ -25,28 +25,29 @@ ConfigBlock:
 
 //-----------------------------------------------------------	
 Data:
-	Array | Global | Const;
+	ArrayDef ';' | VariableDef ';' | Const ';'
+;
 
-Array:
-	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' ('{' values+=INT (',' values+=INT)* '}' | functionRef=FunctionCall))? ';' |
-	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' ('{' values+=DOUBLE (',' values+=DOUBLE)* '}' | functionRef=FunctionCall))? ';' | 
-	{BoolArray} 'bool' var=Variable '[' size=INT ']' ('=' ('{' values+=BOOL (',' values+=BOOL)* '}' | functionRef=FunctionCall))? ';'
+ArrayDef:
+	{IntArray} 'int' var=Variable '[' size=INT ']' ('=' ('{' values+=INT (',' values+=INT)* '}' | functionRef=FunctionCall))? |
+	{DoubleArray} 'double' var=Variable '[' size=INT ']' ('=' ('{' values+=DOUBLE (',' values+=DOUBLE)* '}' | functionRef=FunctionCall))? | 
+	{BoolArray} 'bool' var=Variable '[' size=INT ']' ('=' ('{' values+=BOOL (',' values+=BOOL)* '}' | functionRef=FunctionCall))?
 ;
 
 Variable:
 	name=ID
 ;
 
-Global:
-	{IntGlobal} 'int' var=Variable '=' value=INT ';' |
-	{DoubleGlobal} 'double' var=Variable '=' value=DOUBLE ';' | 
-	{BoolGlobal} 'bool' var=Variable '=' values=BOOL ';'
+VariableDef:
+	{IntVariable} 'int' var=Variable ('=' (=> initValue=INT | initExpression=Expression))? |
+	{DoubleVariable} 'double' var=Variable ('=' (=> initValue=DOUBLE | initExpression=Expression))? | 
+	{BoolVariable} 'bool' var=Variable ('=' (=> initValue=BOOL | initExpression=Expression))?
 ;
 
 Const:
-	{IntConst} 'const' 'int' var=Variable '=' value=INT ';' |
-	{DoubleConst} 'const' 'double' var=Variable '=' value=DOUBLE ';' | 
-	{BoolConst} 'const' 'bool' var=Variable '=' values=BOOL ';'
+	{IntConst} 'const' 'int' var=Variable '=' value=INT |
+	{DoubleConst} 'const' 'double' var=Variable '=' value=DOUBLE | 
+	{BoolConst} 'const' 'bool' var=Variable '=' values=BOOL
 ;
 	
 //-----------------------------------------------------------
@@ -69,7 +70,7 @@ ForLoop:
 
 ConditionalForLoop:
 	{ConditionalForLoop} 
-	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	'for' '(' (init=VariableDef)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
 	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
 ;
@@ -108,7 +109,7 @@ MusketForLoop:
 
 MusketConditionalForLoop:
 	{MusketConditionalForLoop} 
-	'for' '(' (init=Assignment)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	'for' '(' (init=VariableDef)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
 	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
 ;
@@ -153,10 +154,6 @@ Assignment:
 	{DecrementAssignment} var=[Variable] '-=' value=Expression |
 	{MultiplyAssignment} var=[Variable] '*=' value=Expression |
 	{DivideAssignment} var=[Variable] '/=' value=Expression
-;
-
-VariableDef:
-	type=Type var=Variable ('=' initValue=Expression)?
 ;
 
 ReturnStatement:
