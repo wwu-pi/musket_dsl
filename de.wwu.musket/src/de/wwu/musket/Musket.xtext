@@ -148,12 +148,7 @@ Statement:
 ;
 
 Assignment:
-	{VariableAssignment} var=[Variable] '=' value=Expression |
-	{ArrayAssignment} var=[Variable] '[' index=INT ']' '=' value=Expression |
-	{IncrementAssignment} var=[Variable] '+=' value=Expression |
-	{DecrementAssignment} var=[Variable] '-=' value=Expression |
-	{MultiplyAssignment} var=[Variable] '*=' value=Expression |
-	{DivideAssignment} var=[Variable] '/=' value=Expression
+	var=[Variable] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE)? operator=AssignmentOperator value=Expression
 ;
 
 ReturnStatement:
@@ -260,7 +255,7 @@ ArithmeticExpression returns Expression:
 ;
 
 VariableRef: 
-	value = [Variable]
+	value = [Variable] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE)?
 ;
 
 BoolVal:
@@ -287,6 +282,30 @@ enum Type:
 
 enum Skeleton:
 	map | mapInPlace | mapIndex | mapIndexInPlace | fold | foldIndex | gather
+;
+
+AssignmentOperator:
+	OP_ASSIGN_EQUALS | OP_ASSIGN_ADD | OP_ASSIGN_SUB | OP_ASSIGN_MULT | OP_ASSIGN_DIV 
+;
+
+OP_ASSIGN_EQUALS:
+	'='
+;
+
+OP_ASSIGN_ADD:
+	'+='
+;
+
+OP_ASSIGN_SUB:
+	'-='
+;
+
+OP_ASSIGN_MULT:
+	'*='
+;
+
+OP_ASSIGN_DIV:
+	'/='
 ;
 
 BooleanOperator:
@@ -391,4 +410,20 @@ FunctionWhitelist:
 	'memcmp' | 'strcmp' | 'strcoll' | 'strncmp' | 'strxfrm' |
 	'memchr' | 'strchr' | 'strcspn' | 'strpbrk' | 'strrchr' | 'strspn' | 'strstr' | 'strtok' |
 	'memset' | 'strerror' | 'strlen'
+;
+
+terminal ARR_GLOBAL_OPEN: 
+	'['
+;
+
+terminal ARR_GLOBAL_CLOSE: 
+	']'
+;
+
+terminal ARR_LOCAL_OPEN: 
+	'[['
+;
+
+terminal ARR_LOCAL_CLOSE: 
+	']]'
 ;
