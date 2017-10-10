@@ -20,6 +20,7 @@ int f(int i , int j){
 	for(int i : a ){
 		a[0] = 42;
 	}
+	a.size();
 	sum1 += 333; 
 	sum1 /= std::pow(sum1, 2);
 	return i+1;

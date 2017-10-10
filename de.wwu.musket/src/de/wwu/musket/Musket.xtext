@@ -169,7 +169,8 @@ ReturnStatement:
 FunctionCall:
 	{InternalFunctionCall} value=[Function] '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
 	{StandardFunctionCall} value=StandardFunctionName '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
-	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=Parameter (',' params+=Parameter)*)? ')'
+	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
+	{ArrayFunctionCall} var=[Array] '.' function=ArrayFunctionName '(' ')'
 ;
 
 enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
@@ -207,6 +208,10 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 	memcmp | strcmp | strcoll | strncmp | strxfrm | 
 	memchr | strchr | strcspn | strpbrk | strrchr | strspn | strstr | strtok | 
 	memset | strerror | strlen 
+;
+
+enum ArrayFunctionName:
+	size | sizeLocal
 ;
 
 // Expression tree
