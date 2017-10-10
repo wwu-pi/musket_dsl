@@ -30,8 +30,8 @@ Data:
 
 ArrayDef:
 	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' ('{' values+=DOUBLE (',' values+=DOUBLE)* '}' | functionRef=FunctionCall))? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' ('{' values+=BOOL (',' values+=BOOL)* '}' | functionRef=FunctionCall))?
+	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
 ;
 
 Variable:
