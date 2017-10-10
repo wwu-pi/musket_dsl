@@ -5,9 +5,9 @@
 
 const bool myConst = true;
 
-int a[4] = {1 , 2, 3, 4};
-double  b[4];
-bool c[4];
+array<int,4,copy> a = {1 , 2, 3, 4};
+array<double,4,copy> b;
+array<bool,4,copy> c;
 double globalVar = 123.2;
 
 int f(int i, int j){
