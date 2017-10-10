@@ -10,14 +10,16 @@ array<double,4,copy> b;
 array<bool,4,copy> c;
 double globalVar = 123.2;
 
-int f(int i, int j){
+int f(int i , int j){
 	double sum1 = 0;
  	double sum2 = 0;
 	if(1 + 2){
 		sum1 += 333;
 		f(2);
 	}
-	a[0] = 42;
+	for(int i : a ){
+		a[0] = 42;
+	}
 	sum1 += 333; 
 	sum1 /= std::pow(sum1, 2);
 	return i+1;
@@ -28,10 +30,15 @@ bool g(double p){
 }
 
 main{
-	a.mapInPlace(f(1));
+	a.mapInPlace(f(1, a[2]));
 	for(int i = 0; i < 42; i++){
 		b = a.map(f(42));
 		b = a[[42]];
+		b[2] = 5;
+	}
+	
+	for(int i : a ){
+		a[0] = 42;
 	}
 	
 	if(2 < 5){

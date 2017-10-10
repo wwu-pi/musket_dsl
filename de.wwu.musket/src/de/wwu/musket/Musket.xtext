@@ -7,9 +7,9 @@ generate musket "http://www.wwu.de/musket/Musket"
 Model:
 	config=ConfigBlock
 	includes+=Include*
-	data+=Data*
+	data+=Object*
 	functions+=Function*
-	logic=LogicBlock
+	main=MainBlock
 ;
 
 //-----------------------------------------------------------
@@ -24,30 +24,32 @@ ConfigBlock:
 ;
 
 //-----------------------------------------------------------	
-Data:
-	ArrayDef ';' | VariableDef ';' | Const ';'
+Object:
+	CollectionObject | IndividualObject | ParameterDef;
+	
+CollectionObject:
+	Array ';';
+	
+IndividualObject:
+	Variable ';' | Constant ';'
 ;
 
-ArrayDef:
-	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' var=Variable ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+Array:
+	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
+	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
 ;
 
 Variable:
-	name=ID
+	{IntVariable} 'int' name=ID ('=' (=> initValue=INT | initExpression=Expression))? |
+	{DoubleVariable} 'double' name=ID ('=' (=> initValue=DOUBLE | initExpression=Expression))? | 
+	{BoolVariable} 'bool' name=ID ('=' (=> initValue=BOOL | initExpression=Expression))?
 ;
 
-VariableDef:
-	{IntVariable} 'int' var=Variable ('=' (=> initValue=INT | initExpression=Expression))? |
-	{DoubleVariable} 'double' var=Variable ('=' (=> initValue=DOUBLE | initExpression=Expression))? | 
-	{BoolVariable} 'bool' var=Variable ('=' (=> initValue=BOOL | initExpression=Expression))?
-;
-
-Const:
-	{IntConst} 'const' 'int' var=Variable '=' value=INT |
-	{DoubleConst} 'const' 'double' var=Variable '=' value=DOUBLE | 
-	{BoolConst} 'const' 'bool' var=Variable '=' values=BOOL
+Constant:
+	{IntConstant} 'const' 'int' name=ID '=' value=INT |
+	{DoubleConstant} 'const' 'double' name=ID '=' value=DOUBLE | 
+	{BoolConstant} 'const' 'bool' name=ID '=' values=BOOL
 ;
 	
 //-----------------------------------------------------------
@@ -70,13 +72,13 @@ ForLoop:
 
 ConditionalForLoop:
 	{ConditionalForLoop} 
-	'for' '(' (init=VariableDef)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
 	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
 ;
 
 IteratorForLoop:
-	'for' '(' iter=ParameterDef ':' dataStructure=[Variable] ')'
+	'for' '(' iter=ParameterDef ':' dataStructure=[CollectionObject] ')'
 	//TODO break/continue
 	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
 ;
@@ -87,12 +89,15 @@ IfClause:
 	'}'
 ;
 	
+// TODO extract type (and replace type enum)
 ParameterDef:
-	type=Type var=Variable
+	{IntParameter} 'int' name=ID |
+	{DoubleParameter} 'double' name=ID | 
+	{BoolParameter} 'bool' name=ID
 ;
 	
 //-----------------------------------------------------------
-LogicBlock:
+MainBlock:
 	'main' '{' content+=MusketStatement+ '}'
 ;
 
@@ -109,13 +114,13 @@ MusketForLoop:
 
 MusketConditionalForLoop:
 	{MusketConditionalForLoop} 
-	'for' '(' (init=VariableDef)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
 	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
 ;
 
 MusketIteratorForLoop:
-	'for' '(' iter=ParameterDef ':' dataStructure=[Variable] ')'
+	'for' '(' iter=ParameterDef ':' dataStructure=[Array] ')'
 	//TODO break/continue
 	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
 ;
@@ -127,14 +132,14 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Variable] '=')? (obj=[Variable] '.')? function=Skeleton '(' param=Parameter ')' |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=Parameter ')' |
 	Assignment |
 	FunctionCall
 ;
 
 Parameter:
 	FunctionCall |
-	VariableRef |
+	ObjectRef |
 	IntVal |
 	DoubleVal |
 	BoolVal
@@ -143,12 +148,18 @@ Parameter:
 Statement:
 	Assignment |
 	ReturnStatement |
-	VariableDef |
+	Variable |
 	FunctionCall
 ;
 
+// TODO check not to assign to Constants
 Assignment:
-	var=[Variable] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE)? operator=AssignmentOperator value=Expression
+	var=ObjectRef operator=AssignmentOperator value=Expression
+;
+
+ObjectRef:
+	{CollectionElementRef} value=[CollectionObject] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE) |
+	=> value=[Object]
 ;
 
 ReturnStatement:
@@ -243,19 +254,15 @@ PrefixedExpression returns Expression:
 ;
 
 ArithmeticExpression returns Expression:
-	{PostIncrement} value = [Variable] '++' |
-	{PostDecrement} value = [Variable] '--' |
-	{PreIncrement} '++' value = [Variable] |
-	{PreDecrement} '--' value = [Variable] |
+	{PostIncrement} value = [IndividualObject] '++' |
+	{PostDecrement} value = [IndividualObject] '--' |
+	{PreIncrement} '++' value = [IndividualObject] |
+	{PreDecrement} '--' value = [IndividualObject] |
 	'(' Or ')' | // AdditionSubtraction
-	VariableRef |
+	ObjectRef |
 	IntVal |
 	DoubleVal |
 	FunctionCall
-;
-
-VariableRef: 
-	value = [Variable] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE)?
 ;
 
 BoolVal:
