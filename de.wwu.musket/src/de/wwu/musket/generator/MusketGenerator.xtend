@@ -8,6 +8,10 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
+import de.wwu.musket.musket.*
+
+import de.wwu.musket.generator.cpu.MusketCPUGenerator
+
 /**
  * Generates code from your model files on save.
  * 
@@ -16,10 +20,9 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class MusketGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(Greeting)
-//				.map[name]
-//				.join(', '))
+		val configBlock = resource.allContents.filter(ConfigBlock).head
+		if (configBlock.platformCPU) {
+			MusketCPUGenerator.doGenerate(resource, fsa, context)
+		}
 	}
 }
