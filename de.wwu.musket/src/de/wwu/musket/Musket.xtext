@@ -25,7 +25,7 @@ ConfigBlock:
 
 //-----------------------------------------------------------	
 Object:
-	CollectionObject | IndividualObject | ParameterDef;
+	CollectionObject | IndividualObject | Parameter;
 	
 CollectionObject:
 	Array ';';
@@ -54,7 +54,7 @@ Constant:
 	
 //-----------------------------------------------------------
 Function:
-	returnType=Type name=ID '(' (params+=ParameterDef (',' params+=ParameterDef)*)? ')' '{'
+	returnType=Type name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
@@ -78,7 +78,7 @@ ConditionalForLoop:
 ;
 
 IteratorForLoop:
-	'for' '(' iter=ParameterDef ':' dataStructure=[CollectionObject] ')'
+	'for' '(' iter=Parameter ':' dataStructure=[CollectionObjectOrParam] ')'
 	//TODO break/continue
 	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
 ;
@@ -88,9 +88,22 @@ IfClause:
 		statements+=FunctionStatement+
 	'}'
 ;
+
+CollectionObjectOrParam:
+	CollectionObject | CollectionParameter
+;
 	
-// TODO extract type (and replace type enum)
-ParameterDef:
+Parameter:
+	CollectionParameter | IndividualParameter
+;
+
+CollectionParameter:
+	{IntArrayParameter} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
+	{DoubleArrayParameter} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
+	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID
+;
+
+IndividualParameter:
 	{IntParameter} 'int' name=ID |
 	{DoubleParameter} 'double' name=ID | 
 	{BoolParameter} 'bool' name=ID
@@ -120,7 +133,7 @@ MusketConditionalForLoop:
 ;
 
 MusketIteratorForLoop:
-	'for' '(' iter=ParameterDef ':' dataStructure=[Array] ')'
+	'for' '(' iter=Parameter ':' dataStructure=[Array] ')'
 	//TODO break/continue
 	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
 ;
@@ -132,12 +145,12 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=Parameter ')' |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=ParameterInput ')' |
 	Assignment |
 	FunctionCall
 ;
 
-Parameter:
+ParameterInput:
 	FunctionCall |
 	ObjectRef |
 	IntVal |
@@ -167,9 +180,9 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	{InternalFunctionCall} value=[Function] '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
-	{StandardFunctionCall} value=StandardFunctionName '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
-	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=Parameter (',' params+=Parameter)*)? ')' |
+	{InternalFunctionCall} value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
+	{StandardFunctionCall} value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
+	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{ArrayFunctionCall} var=[Array] '.' function=ArrayFunctionName '(' ')'
 ;
 
