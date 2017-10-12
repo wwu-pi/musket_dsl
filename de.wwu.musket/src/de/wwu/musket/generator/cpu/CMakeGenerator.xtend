@@ -6,8 +6,6 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
-import de.wwu.musket.generator.cpu.MusketCPUGenerator
-
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
 class CMakeGenerator {
@@ -20,7 +18,7 @@ class CMakeGenerator {
 	}
 
 	def static void generateCMakeListstxt(Resource resource, IFileSystemAccess2 fsa) {
-		fsa.generateFile(MusketCPUGenerator.base_path + "CMakeLists.txt", CMakeListstxtContent(resource))
+		fsa.generateFile(Config.base_path + "CMakeLists.txt", CMakeListstxtContent(resource))
 	}
 
 	def static CMakeListstxtContent(Resource resource) '''

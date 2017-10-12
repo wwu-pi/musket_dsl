@@ -10,6 +10,10 @@ class ModelElementAccess {
 	def static ProjectName(Resource resource) {
 		resource.URI.trimFileExtension.trimFragment.trimQuery.segment(resource.URI.segmentCount - 1)
 	}
+	
+	def static Processes(Resource resource) {
+		resource.ConfigBlock.processes
+	}
 
 	// getter for certain elements
 	def static Model(Resource resource) {
@@ -18,6 +22,14 @@ class ModelElementAccess {
 
 	def static ConfigBlock(Resource resource) {
 		resource.allContents.filter(ConfigBlock).head
+	}
+	
+	def static Functions(Resource resource) {
+		resource.Model.functions
+	}
+	
+	def static Data(Resource resource) {
+		resource.Model.data
 	}
 
 	def static isPlatformCPU(Resource resource) {
