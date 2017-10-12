@@ -15,7 +15,7 @@ class FunctorGenerator {
 	'''
 
 	def static dispatch generateParameter(IndividualParameter p)
-	 '''«p.CppPrimitiveTypeAsSting» «p.name»'''
+	 '''«p.CppPrimitiveTypeAsString» «p.name»'''
 
 	def static dispatch generateParameter(CollectionParameter p) '''
 	

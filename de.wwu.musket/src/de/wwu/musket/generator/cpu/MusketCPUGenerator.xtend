@@ -6,6 +6,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.wwu.musket.generator.cpu.CMakeGenerator.generateCMake
 import static de.wwu.musket.generator.cpu.HeaderFileGenerator.generateHeaderFile
+import static de.wwu.musket.generator.cpu.SourceFileGenerator.generateSourceFile
 
 import org.apache.log4j.Logger
 import org.apache.log4j.LogManager
@@ -29,6 +30,8 @@ class MusketCPUGenerator {
 		generateCMake(resource, fsa, context)
 		
 		generateHeaderFile(resource, fsa, context)
+		
+		generateSourceFile(resource, fsa, context)
 
 		logger.info("Generation for CPU platform done.")
 	}

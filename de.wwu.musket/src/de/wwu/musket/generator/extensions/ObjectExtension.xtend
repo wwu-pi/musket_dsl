@@ -16,65 +16,106 @@ import de.wwu.musket.musket.IntConstant
 import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVariable
 
+import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
+
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
-	def static dispatch CppPrimitiveTypeAsSting(IntArray o) {
+	def static dispatch CppPrimitiveTypeAsString(IntArray o) {
 		'int'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(DoubleArray o) {
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleArray o) {
 		'double'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(BoolArray o) {
+
+	def static dispatch CppPrimitiveTypeAsString(BoolArray o) {
 		'bool'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(IntVariable o) {
+
+	def static dispatch CppPrimitiveTypeAsString(IntVariable o) {
 		'int'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(DoubleVariable o) {
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleVariable o) {
 		'double'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(BoolVariable o) {
+
+	def static dispatch CppPrimitiveTypeAsString(BoolVariable o) {
 		'bool'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(IntConstant o) {
+
+	def static dispatch CppPrimitiveTypeAsString(IntConstant o) {
 		'int'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(DoubleConstant o) {
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleConstant o) {
 		'double'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(BoolConstant o) {
+
+	def static dispatch CppPrimitiveTypeAsString(BoolConstant o) {
 		'bool'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(IntArrayParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(IntArrayParameter o) {
 		'int'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(DoubleArrayParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleArrayParameter o) {
 		'double'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(BoolArrayParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(BoolArrayParameter o) {
 		'bool'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(IntParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(IntParameter o) {
 		'int'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(DoubleParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleParameter o) {
 		'double'
 	}
-	
-	def static dispatch CppPrimitiveTypeAsSting(BoolParameter o) {
+
+	def static dispatch CppPrimitiveTypeAsString(BoolParameter o) {
 		'bool'
+	}
+
+	// Value
+	// Variable
+	def static dispatch ValueAsString(IntVariable o) {
+		if (o.initExpression !== null) {
+			o.initExpression.generateString
+		} else {
+			o.initValue.toString
+		}
+	}
+
+	def static dispatch ValueAsString(DoubleVariable o) {
+		if (o.initExpression !== null) {
+			o.initExpression.generateString
+		} else {
+			o.initValue.toString
+		}
+	}
+
+	def static dispatch ValueAsString(BoolVariable o) {
+		if (o.initExpression !== null) {
+			o.initExpression.generateString
+		} else {
+			o.initValue.toString
+		}
+	}
+
+	// Constants
+	def static dispatch ValueAsString(IntConstant o) {
+		o.value.toString
+	}
+
+	def static dispatch ValueAsString(DoubleConstant o) {
+		o.value.toString
+	}
+
+	def static dispatch ValueAsString(BoolConstant o) {
+		o.value.toString
 	}
 }
