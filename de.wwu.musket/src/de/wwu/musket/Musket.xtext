@@ -41,9 +41,9 @@ Array:
 ;
 
 Variable:
-	{IntVariable} 'int' name=ID ('=' (=> initValue=INT | initExpression=Expression))? |
-	{DoubleVariable} 'double' name=ID ('=' (=> initValue=DOUBLE | initExpression=Expression))? | 
-	{BoolVariable} 'bool' name=ID ('=' (=> initValue=BOOL | initExpression=Expression))?
+	{IntVariable} 'int' name=ID ('=' initExpression=Expression)? |
+	{DoubleVariable} 'double' name=ID ('=' initExpression=Expression)? | 
+	{BoolVariable} 'bool' name=ID ('=' initExpression=Expression)?
 ;
 
 Constant:
