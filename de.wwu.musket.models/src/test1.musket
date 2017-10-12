@@ -1,4 +1,4 @@
-#config PLATFORM SEQ
+#config PLATFORM CPU
 #config PROCESSES 4
 
 #include test.h

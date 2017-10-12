@@ -1,0 +1,12 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+array<int,4,dist> a = {1, 2, 3, 4};
+
+int double_values(int i){
+	return i + i;
+}
+
+main{
+	a.mapInPlace(double_values());
+}

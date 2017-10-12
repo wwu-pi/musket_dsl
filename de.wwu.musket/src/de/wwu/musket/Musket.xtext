@@ -49,7 +49,7 @@ Variable:
 Constant:
 	{IntConstant} 'const' 'int' name=ID '=' value=INT |
 	{DoubleConstant} 'const' 'double' name=ID '=' value=DOUBLE | 
-	{BoolConstant} 'const' 'bool' name=ID '=' values=BOOL
+	{BoolConstant} 'const' 'bool' name=ID '=' value=BOOL
 ;
 	
 //-----------------------------------------------------------
