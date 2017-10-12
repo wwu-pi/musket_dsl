@@ -17,7 +17,7 @@ class HeaderFileGenerator {
 
 	def static void generateHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		logger.info("Generate Header file.")
-		fsa.generateFile(Config.base_path + Config.include_path + resource.ProjectName + ".hpp",
+		fsa.generateFile(Config.base_path + Config.include_path + resource.ProjectName + Config.header_extension,
 			headerFileContent(resource))
 		logger.info("Generation of header file done.")
 	}
