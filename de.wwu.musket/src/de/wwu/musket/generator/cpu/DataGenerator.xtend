@@ -47,8 +47,7 @@ class DataGenerator {
 			«FOR v : values»
 				«a.name»[«value_id++»] = «v»;
 			«ENDFOR»
-		}
-	'''
+		}«IF p != Config.processes - 1» else«ENDIF» '''
 
 	// Helper
 	def static sizeLocal(Array a) {
