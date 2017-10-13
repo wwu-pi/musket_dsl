@@ -73,9 +73,10 @@ class SourceFileGenerator {
 	'''
 	
 	def static generateInitializeDataStructures(Resource resource)'''
-		«FOR d : resource.Data»
-«««			«d.generateArrayInitialization»
+		«FOR d : resource.Arrays»
+			«d.generateArrayInitialization»
 		«ENDFOR»
 	'''
+
 	
 }

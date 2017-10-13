@@ -3,6 +3,7 @@ package de.wwu.musket.generator.extensions
 import de.wwu.musket.musket.ConfigBlock
 import de.wwu.musket.musket.Model
 import org.eclipse.emf.ecore.resource.Resource
+import de.wwu.musket.musket.Array
 
 class ModelElementAccess {
 
@@ -30,6 +31,10 @@ class ModelElementAccess {
 	
 	def static Data(Resource resource) {
 		resource.Model.data
+	}
+	
+	def static Arrays(Resource resource) {
+		resource.Model.data.filter(Array)
 	}
 
 	def static isPlatformCPU(Resource resource) {

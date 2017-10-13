@@ -81,29 +81,30 @@ class ObjectExtension {
 	}
 
 	// Value
+	// Array
+	def static dispatch ValuesAsString(IntArray a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(DoubleArray a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(BoolArray a){
+		a.values.map[v|v.toString]
+	}
+	
 	// Variable
 	def static dispatch ValueAsString(IntVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	def static dispatch ValueAsString(DoubleVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	def static dispatch ValueAsString(BoolVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	// Constants

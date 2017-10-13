@@ -31,6 +31,7 @@ class MusketGenerator extends AbstractGenerator {
 		}
 		
 		logger.info("Musket generator done.")
+		logger.info("Done.")
 	}
 
 }
