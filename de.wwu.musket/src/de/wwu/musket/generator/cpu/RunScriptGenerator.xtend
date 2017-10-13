@@ -21,7 +21,7 @@ class RunScriptGenerator {
 		#!/bin/bash
 		
 		# remove files and create folder
-		rm -rf -- build && \		
+		rm -rf -- build && \
 		mkdir build && \
 		
 		# run cmake
