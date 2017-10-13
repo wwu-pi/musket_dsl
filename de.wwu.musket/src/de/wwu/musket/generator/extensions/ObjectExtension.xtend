@@ -17,6 +17,9 @@ import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVariable
 
 import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
+import de.wwu.musket.musket.Array
+import de.wwu.musket.generator.cpu.Config
+import de.wwu.musket.musket.CollectionObject
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -81,29 +84,30 @@ class ObjectExtension {
 	}
 
 	// Value
+	// Array
+	def static dispatch ValuesAsString(IntArray a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(DoubleArray a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(BoolArray a){
+		a.values.map[v|v.toString]
+	}
+	
 	// Variable
 	def static dispatch ValueAsString(IntVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	def static dispatch ValueAsString(DoubleVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	def static dispatch ValueAsString(BoolVariable o) {
-		if (o.initExpression !== null) {
-			o.initExpression.generateString
-		} else {
-			o.initValue.toString
-		}
+		o.initExpression.generateString
 	}
 
 	// Constants
@@ -117,5 +121,14 @@ class ObjectExtension {
 
 	def static dispatch ValueAsString(BoolConstant o) {
 		o.value.toString
+	}
+	
+	// for arrays
+	def static sizeLocal(Array a) {
+		switch a.distributionMode {
+			case DIST: a.size / Config.processes
+			case COPY: a.size
+			default: a.size
+		}
 	}
 }

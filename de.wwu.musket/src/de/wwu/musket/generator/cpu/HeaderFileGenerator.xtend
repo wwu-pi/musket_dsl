@@ -24,7 +24,7 @@ class HeaderFileGenerator {
 
 	def static headerFileContent(Resource resource) '''
 		#pragma once
-	
+		
 		«FOR d : resource.Data»
 			«d.generateObjectDeclaration»
 		«ENDFOR»

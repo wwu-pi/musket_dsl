@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.FunctorGenerator.*
+import static extension de.wwu.musket.generator.cpu.LogicGenerator.*
 
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
@@ -22,60 +23,75 @@ class SourceFileGenerator {
 	}
 
 	def static sourceFileContent(Resource resource) '''
+		«generateIncludes»
 		#include "../«Config.include_path + resource.ProjectName + Config.header_extension»"
-
+		
 		«generateGlobalConstants»
 		«generateGlobalVariables»
-
+		
 		«FOR d : resource.Data»
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-«««		«FOR f : resource.Functions»
-«««			«f.generateFunctorDefinition»
-«««		«ENDFOR»
+		«FOR f : resource.Functions»
+			«f.generateFunctorDefinition»
+		«ENDFOR»
 		«generateMainFunction(resource)»
 	'''
-	
-	def static generateGlobalConstants()'''
+
+	def static generateGlobalConstants() '''
 		const size_t «Config.var_np» = «Config.processes»;
 	'''
-	
-	def static generateGlobalVariables()'''
-		size_t «Config.var_pid»;
+
+	def static generateGlobalVariables() '''
+		int «Config.var_pid» = -1;
 	'''
-	
-	def static generateMainFunction(Resource resource)'''
+
+	def static generateMainFunction(Resource resource) '''
 		int main(int argc, char** argv) {
 			«generateInitialization»
+			
 			«generateInitializeDataStructures(resource)»
+			
+			«FOR f : resource.Functions»
+				«f.generateFunctorInstantiation»
+			«ENDFOR»
+			
+			«generateLogic(resource.Model.main)»
+			
 			«generateFinalization»
 		}
 	'''
-	
-	def static generateInitialization()'''
+
+	def static generateIncludes() '''
+		#include <mpi.h>
+		#include <omp.h>
+		#include <array>
+	'''
+
+	def static generateInitialization() '''
 		MPI_Init(&argc, &argv);
 		
-		size_t «Config.var_mpi_procs»;
-		MPI_Comm_size( MPI_COMM_WORLD, &«Config.var_mpi_procs» );
+		int «Config.var_mpi_procs» = 0;
+		MPI_Comm_size(MPI_COMM_WORLD, &«Config.var_mpi_procs»);
 		
-		if(«Config.var_mpi_procs» != «Config.processes»){
+		if(«Config.var_mpi_procs» != «Config.var_np»){
 			MPI_Finalize();
 			return EXIT_FAILURE;
 		}
 		
 		MPI_Comm_rank(MPI_COMM_WORLD, &«Config.var_pid»);
 	'''
-	
-	def static generateFinalization()'''
+
+	def static generateFinalization() '''
 		MPI_Finalize();
 		return EXIT_SUCCESS;
 	'''
-	
-	def static generateInitializeDataStructures(Resource resource)'''
-		«FOR d : resource.Data»
-«««			«d.generateArrayInitialization»
+
+	def static generateInitializeDataStructures(Resource resource) '''
+		«FOR d : resource.Arrays»
+			«d.generateArrayInitialization»
 		«ENDFOR»
 	'''
-	
+
 }

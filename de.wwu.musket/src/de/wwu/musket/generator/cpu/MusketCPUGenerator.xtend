@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
+import static de.wwu.musket.generator.cpu.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.CMakeGenerator.generateCMake
 import static de.wwu.musket.generator.cpu.HeaderFileGenerator.generateHeaderFile
 import static de.wwu.musket.generator.cpu.SourceFileGenerator.generateSourceFile
@@ -25,6 +26,8 @@ class MusketCPUGenerator {
 
 		// config
 		Config.init(resource)
+
+		generateRunScript(resource, fsa, context)
 
 		// CMake files
 		generateCMake(resource, fsa, context)
