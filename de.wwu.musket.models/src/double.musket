@@ -8,5 +8,7 @@ int double_values(int i){
 }
 
 main{
+	a.show();
 	a.mapInPlace(double_values());
+	a.show();
 }

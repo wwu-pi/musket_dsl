@@ -1,5 +1,7 @@
 package de.wwu.musket.generator.extensions
 
+import de.wwu.musket.generator.cpu.Config
+import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.BoolArrayParameter
 import de.wwu.musket.musket.BoolConstant
@@ -17,9 +19,6 @@ import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVariable
 
 import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
-import de.wwu.musket.musket.Array
-import de.wwu.musket.generator.cpu.Config
-import de.wwu.musket.musket.CollectionObject
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element

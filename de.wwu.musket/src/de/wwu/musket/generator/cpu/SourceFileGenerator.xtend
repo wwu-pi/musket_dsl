@@ -67,6 +67,7 @@ class SourceFileGenerator {
 		#include <mpi.h>
 		#include <omp.h>
 		#include <array>
+		#include <sstream>
 	'''
 
 	def static generateInitialization() '''
