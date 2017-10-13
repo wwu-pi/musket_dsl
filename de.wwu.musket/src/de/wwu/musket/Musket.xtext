@@ -224,7 +224,7 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 ;
 
 enum ArrayFunctionName:
-	size | sizeLocal
+	size | sizeLocal | show
 ;
 
 // Expression tree
