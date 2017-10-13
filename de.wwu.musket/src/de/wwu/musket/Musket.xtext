@@ -8,7 +8,7 @@ Model:
 	config=ConfigBlock
 	includes+=Include*
 	data+=Object*
-	functions+=Function*
+	functions+=RegularFunction*
 	main=MainBlock
 ;
 
@@ -54,7 +54,17 @@ Constant:
 	
 //-----------------------------------------------------------
 Function:
+	RegularFunction | LambdaFunction
+;
+
+RegularFunction:
 	returnType=Type name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
+		(statement+=FunctionStatement)*
+	'}'
+;
+
+LambdaFunction:
+	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' returnType=Type '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
@@ -145,9 +155,14 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=ParameterInput ')' |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=SkeletonParameterInput ')' |
 	Assignment |
 	FunctionCall
+;
+
+SkeletonParameterInput:
+	FunctionCall | 
+	LambdaFunction
 ;
 
 ParameterInput:
@@ -180,7 +195,7 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	{InternalFunctionCall} value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
+	{InternalFunctionCall} value=[RegularFunction] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{StandardFunctionCall} value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{ArrayFunctionCall} var=[Array] '.' function=ArrayFunctionName '(' ')'
