@@ -34,7 +34,7 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-«««		«FOR f : resource.Functions»
+		«««		«FOR f : resource.Functions»
 «««			«f.generateFunctorDefinition»
 «««		«ENDFOR»
 		«generateMainFunction(resource)»
@@ -47,7 +47,7 @@ class SourceFileGenerator {
 	def static generateGlobalVariables() '''
 		int «Config.var_pid» = -1;
 	'''
-	
+
 	def static generateTmpVariables() '''
 		size_t «Config.tmp_size_t» = 0;
 	'''
@@ -58,11 +58,16 @@ class SourceFileGenerator {
 			
 			«generateInitializeDataStructures(resource)»
 			
-«««			«FOR f : resource.Functions»
-«««				«f.generateFunctorInstantiation»
-«««			«ENDFOR»
+			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 			
 			«generateLogic(resource.Model.main)»
+			
+			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
+			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+
+			if(«Config.var_pid» == 0){
+				printf("Execution time: %.5fs\n", seconds);
+			}
 			
 			«generateFinalization»
 		}
@@ -73,6 +78,7 @@ class SourceFileGenerator {
 		#include <omp.h>
 		#include <array>
 		#include <sstream>
+		#include <chrono>
 	'''
 
 	def static generateInitialization() '''
