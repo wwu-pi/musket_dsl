@@ -3,12 +3,19 @@
 
 array<int,4,dist> a = {1, 2, 3, 4};
 
-int double_values(int i){
-	return i + i;
+int double_values(int j, int i){
+	return i + i + j;
 }
 
 main{
 	a.show();
-	a.mapInPlace(double_values());
+
+	a.mapInPlace(double_values(42));
+	
 	a.show();
 }
+
+
+
+
+

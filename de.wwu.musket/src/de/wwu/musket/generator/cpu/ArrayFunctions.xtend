@@ -63,29 +63,4 @@ class ArrayFunctions {
 			printf("%s", «streamName».str().c_str());
 		}
 	'''
-
-	def static generateArrayFunctionCalls(ArrayFunctionCall afc) '''
-		T* b = new T[n];
-		std::ostringstream s;
-		if (descr.size() > 0)
-		s << descr << ": " << std::endl;
-		
-		gather(b);
-		
-		if (msl::isRootProcess()) {
-		s << "[";
-		for (int i = 0; i < n - 1; i++) {
-		s << b[i];
-		s << " ";
-		}
-		s << b[n - 1] << "]" << std::endl;
-		s << std::endl;
-		}
-		
-		delete b;
-		
-		if (msl::isRootProcess()) {
-		printf("%s", s.str().c_str());
-		}
-	'''
 }

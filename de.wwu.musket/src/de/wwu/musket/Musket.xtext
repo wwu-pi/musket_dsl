@@ -191,11 +191,11 @@ ObjectRef:
 ;
 
 ReturnStatement:
-	'return' Expression
+	'return' value=Expression
 ;
 
 FunctionCall:
-	{InternalFunctionCall} value=[RegularFunction] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
+	{InternalFunctionCall} value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{StandardFunctionCall} value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
 	{ArrayFunctionCall} var=[Array] '.' function=ArrayFunctionName '(' ')'

@@ -34,9 +34,9 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-		«FOR f : resource.Functions»
-			«f.generateFunctorDefinition»
-		«ENDFOR»
+«««		«FOR f : resource.Functions»
+«««			«f.generateFunctorDefinition»
+«««		«ENDFOR»
 		«generateMainFunction(resource)»
 	'''
 
@@ -58,9 +58,9 @@ class SourceFileGenerator {
 			
 			«generateInitializeDataStructures(resource)»
 			
-			«FOR f : resource.Functions»
-				«f.generateFunctorInstantiation»
-			«ENDFOR»
+«««			«FOR f : resource.Functions»
+«««				«f.generateFunctorInstantiation»
+«««			«ENDFOR»
 			
 			«generateLogic(resource.Model.main)»
 			

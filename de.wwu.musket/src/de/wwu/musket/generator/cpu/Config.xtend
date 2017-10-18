@@ -21,6 +21,8 @@ class Config {
 	
 	public static final String tmp_size_t = "tmp_size_t"
 	
+	public static final String var_loop_counter = "counter"
+	
 	// project config
 	public static int processes;
 

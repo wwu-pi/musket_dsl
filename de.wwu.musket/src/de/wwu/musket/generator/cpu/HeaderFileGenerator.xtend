@@ -29,8 +29,8 @@ class HeaderFileGenerator {
 			«d.generateObjectDeclaration»
 		«ENDFOR»
 		
-		«FOR f : resource.Functions»
-			«f.generateFunctorDeclaration»
-		«ENDFOR»
+«««		«FOR f : resource.Functions»
+«««			«f.generateFunctorDeclaration»
+«««		«ENDFOR»
 	'''
 }
