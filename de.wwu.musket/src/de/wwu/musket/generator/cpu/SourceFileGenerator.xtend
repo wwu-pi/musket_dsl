@@ -6,10 +6,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
-import static extension de.wwu.musket.generator.cpu.DataGenerator.*
-import static extension de.wwu.musket.generator.cpu.FunctorGenerator.*
-import static extension de.wwu.musket.generator.cpu.LogicGenerator.*
+import static de.wwu.musket.generator.cpu.LogicGenerator.*
 
+import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
 class SourceFileGenerator {

@@ -1,18 +1,17 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.Variable
+import de.wwu.musket.musket.ControlStructure
 import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.FunctionStatement
+import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.Statement
-import de.wwu.musket.musket.ControlStructure
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.Variable
+import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
-import java.util.Map
-import de.wwu.musket.musket.ParameterInput
 
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Array a, Map<String, String> param_map)'''

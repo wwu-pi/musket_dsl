@@ -1,16 +1,16 @@
 package de.wwu.musket.generator.cpu
 
+import de.wwu.musket.musket.ArrayFunctionCall
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.MainBlock
 import de.wwu.musket.musket.MusketConditionalForLoop
 import de.wwu.musket.musket.MusketIfClause
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.SkeletonStatement
 
-import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
-import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.ArrayFunctionCall
-import de.wwu.musket.musket.ExternalFunctionCall
+import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''

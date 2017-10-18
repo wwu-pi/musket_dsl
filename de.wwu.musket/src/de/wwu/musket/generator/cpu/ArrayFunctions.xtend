@@ -1,9 +1,10 @@
 package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.ArrayFunctionCall
-import de.wwu.musket.musket.ArrayFunctionName
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
+
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class ArrayFunctions {
 

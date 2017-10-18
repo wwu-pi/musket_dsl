@@ -1,23 +1,22 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.SkeletonStatement
-
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.BoolVal
+import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.FunctionCall
+import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.ParameterInput
+import de.wwu.musket.musket.SkeletonStatement
+import java.util.HashMap
+import java.util.Map
+import java.util.Map.Entry
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
-import de.wwu.musket.musket.ParameterInput
-import de.wwu.musket.musket.FunctionCall
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.IntVal
-import de.wwu.musket.musket.DoubleVal
-import de.wwu.musket.musket.BoolVal
-import java.util.Map
-import de.wwu.musket.musket.Parameter
-import java.util.HashMap
-import java.util.Map.Entry
-import de.wwu.musket.musket.DoubleArray
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class SkeletonGenerator {
 	def static generateSkeletonStatement(SkeletonStatement s) {

@@ -1,7 +1,7 @@
 package de.wwu.musket.generator.cpu
 
-import org.apache.log4j.Logger
 import org.apache.log4j.LogManager
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
