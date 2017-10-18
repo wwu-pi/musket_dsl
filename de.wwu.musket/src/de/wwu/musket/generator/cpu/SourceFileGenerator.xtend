@@ -56,6 +56,10 @@ class SourceFileGenerator {
 		int main(int argc, char** argv) {
 			«generateInitialization»
 			
+			if(«Config.var_pid» == 0){
+				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
+			}
+			
 			«generateInitializeDataStructures(resource)»
 			
 			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
@@ -67,6 +71,8 @@ class SourceFileGenerator {
 
 			if(«Config.var_pid» == 0){
 				printf("Execution time: %.5fs\n", seconds);
+				printf("Threads: %i\n", omp_get_max_threads());
+				printf("Processes: %i\n", «Config.var_mpi_procs»);
 			}
 			
 			«generateFinalization»
