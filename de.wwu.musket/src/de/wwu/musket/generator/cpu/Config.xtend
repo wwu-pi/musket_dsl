@@ -19,6 +19,8 @@ class Config {
 	public static final String var_pid = "process_id"
 	public static final String var_mpi_procs = "mpi_world_size"
 	
+	public static final String tmp_size_t = "tmp_size_t"
+	
 	// project config
 	public static int processes;
 

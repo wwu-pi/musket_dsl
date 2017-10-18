@@ -28,6 +28,7 @@ class SourceFileGenerator {
 		
 		«generateGlobalConstants»
 		«generateGlobalVariables»
+		«generateTmpVariables»
 		
 		«FOR d : resource.Data»
 			«d.generateObjectDefinition»
@@ -45,6 +46,10 @@ class SourceFileGenerator {
 
 	def static generateGlobalVariables() '''
 		int «Config.var_pid» = -1;
+	'''
+	
+	def static generateTmpVariables() '''
+		size_t «Config.tmp_size_t» = 0;
 	'''
 
 	def static generateMainFunction(Resource resource) '''
