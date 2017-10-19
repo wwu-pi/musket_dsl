@@ -10,6 +10,7 @@ import static de.wwu.musket.generator.cpu.LogicGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class SourceFileGenerator {
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
@@ -67,11 +68,11 @@ class SourceFileGenerator {
 			
 			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
-
+		
 			if(«Config.var_pid» == 0){
-				printf("Execution time: %.5fs\n", seconds);
-				printf("Threads: %i\n", omp_get_max_threads());
-				printf("Processes: %i\n", «Config.var_mpi_procs»);
+			printf("Execution time: %.5fs\n", seconds);
+			printf("Threads: %i\n", omp_get_max_threads());
+			printf("Processes: %i\n", «Config.var_mpi_procs»);
 			}
 			
 			«generateFinalization»
@@ -105,10 +106,26 @@ class SourceFileGenerator {
 		return EXIT_SUCCESS;
 	'''
 
-	def static generateInitializeDataStructures(Resource resource) '''
-		«FOR d : resource.Arrays»
-			«d.generateArrayInitialization»
-		«ENDFOR»
-	'''
+	def static String generateInitializeDataStructures(Resource resource) {
+		var result = ""
+
+		for (var p = 0; p < Config.processes; p++) {
+			result += '''if(«Config.var_pid» == «p»){'''
+			for (a : resource.Arrays) {
+				if (a.ValuesAsString.size > 1) {
+					val sizeLocal = a.sizeLocal
+					result +=
+						a.generateArrayInitializationForProcess(p, a.ValuesAsString.drop(sizeLocal * p).take(sizeLocal))
+				}
+			}
+			result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
+		}
+
+		for (a : resource.Arrays.filter[a|a.ValuesAsString.size < 2]) {
+				result += a.generateArrayInitializationWithSingleValue
+		}
+
+		return result
+	}
 
 }

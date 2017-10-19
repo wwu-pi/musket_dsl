@@ -32,29 +32,17 @@ class DataGenerator {
 		Array a) '''std::array<«a.CppPrimitiveTypeAsString», «a.sizeLocal»> «a.name»{};'''
 
 // Generate initialization
-	def static generateArrayInitialization(Array a){
-		var result = ""
-		val sizeLocal = a.sizeLocal
-		for (var p = 0; p < Config.processes; p++) {
-			result += (generateArrayInitializationForProcess(p, a, a.ValuesAsString.drop(sizeLocal * p).take(sizeLocal)))
+	def static generateArrayInitializationForProcess(Array a, int p, Iterable<String> values) '''		
+		«var value_id = 0»
+		«FOR v : values»
+			«a.name»[«value_id++»] = «v»;
+		«ENDFOR»
+	'''
+	
+	def static generateArrayInitializationWithSingleValue(Array a) '''
+		#pragma omp parallel for
+		for(int i = 0; i < «a.sizeLocal»; i++){
+			«a.name»[i] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
 		}
-		return result
-	}
-
-	def static generateArrayInitializationForProcess(int p, Array a, Iterable<String> values) '''
-		if(«Config.var_pid» == «p»){
-			«var value_id = 0»
-			«FOR v : values»
-				«a.name»[«value_id++»] = «v»;
-			«ENDFOR»
-		}«IF p != Config.processes - 1» else«ENDIF» '''
-
-	// Helper
-	def static sizeLocal(Array a) {
-		switch a.distributionMode {
-			case DIST: a.size / Config.processes
-			case COPY: a.size
-			default: a.size
-		}
-	}
+	'''
 }
