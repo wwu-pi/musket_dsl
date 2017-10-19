@@ -41,8 +41,8 @@ class DataGenerator {
 	
 	def static generateArrayInitializationWithSingleValue(Array a) '''
 		#pragma omp parallel for
-		for(int i = 0; i < «a.sizeLocal»; i++){
-			«a.name»[i] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.sizeLocal»; «Config.var_loop_counter» ++){
+			«a.name»[«Config.var_loop_counter»] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
 		}
 	'''
 }

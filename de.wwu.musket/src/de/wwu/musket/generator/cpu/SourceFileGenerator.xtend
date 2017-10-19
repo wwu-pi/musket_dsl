@@ -110,7 +110,8 @@ class SourceFileGenerator {
 		var result = ""
 
 		for (var p = 0; p < Config.processes; p++) {
-			result += '''if(«Config.var_pid» == «p»){'''
+			result += '''if(«Config.var_pid» == «p»){
+			'''
 			for (a : resource.Arrays) {
 				if (a.ValuesAsString.size > 1) {
 					val sizeLocal = a.sizeLocal
@@ -122,7 +123,8 @@ class SourceFileGenerator {
 		}
 
 		for (a : resource.Arrays.filter[a|a.ValuesAsString.size < 2]) {
-				result += a.generateArrayInitializationWithSingleValue
+			result += "\n"
+			result += a.generateArrayInitializationWithSingleValue
 		}
 
 		return result
