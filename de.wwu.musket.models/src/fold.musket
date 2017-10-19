@@ -1,0 +1,19 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+array<int,16,dist> a = {7};
+array<int,16,dist> b;
+array<int,16,dist> c = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+int sum(int a, int b){
+	return a + b;
+}
+
+main{
+	f = c.fold(sum());
+}
+
+
+
+
+
