@@ -172,7 +172,7 @@ Skeleton:
 ;
 
 SkeletonParameterInput:
-	FunctionCall | 
+	InternalFunctionCall | 
 	LambdaFunction
 ;
 
@@ -204,10 +204,23 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	{InternalFunctionCall} value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
-	{StandardFunctionCall} value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
-	{ExternalFunctionCall} namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')' |
-	{ArrayFunctionCall} var=[Array] '.' function=ArrayFunctionName '(' ')'
+	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | ArrayFunctionCall
+;
+
+InternalFunctionCall:
+	value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+;
+
+StandardFunctionCall:
+	value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+;
+
+ExternalFunctionCall:
+	namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+;
+
+ArrayFunctionCall:
+	var=[Array] '.' function=ArrayFunctionName '(' ')'
 ;
 
 enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
