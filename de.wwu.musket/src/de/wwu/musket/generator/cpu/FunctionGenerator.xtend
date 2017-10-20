@@ -12,32 +12,58 @@ import de.wwu.musket.musket.Variable
 import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.MapInPlaceSkeleton
 
 class FunctionGenerator {
-	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Array a, Map<String, String> param_map)'''
+	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, Array a,
+		Map<String, String> param_map) '''
 		«FOR s : ifc.value.statement»
-			«s.generateFunctionStatement(a, param_map)»
+			«s.generateFunctionStatement(skeleton, a, param_map)»
 		«ENDFOR»
 	'''
-	
-	def static generateFunctionStatement(FunctionStatement functionStatement, Array a, Map<String, String> param_map){
-		switch functionStatement{
+
+	def static generateFunctionStatement(FunctionStatement functionStatement, Skeleton skeleton, Array a,
+		Map<String, String> param_map) {
+		switch functionStatement {
 			ControlStructure: ''''''
-			Statement: functionStatement.generateStatement(a, param_map)
+			Statement:
+				functionStatement.generateStatement(skeleton, a, param_map)
 			default: ''''''
 		}
 	}
-	
-	def static dispatch generateStatement(Assignment assignment, Array a, Map<String, String> param_map)'''
+
+	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, Array a,
+		Map<String, String> param_map) '''
 	'''
-	
-	def static dispatch generateStatement(ReturnStatement returnStatement, Array a, Map<String, String> param_map)'''
-		«a.name»[«Config.var_loop_counter»] = «returnStatement.value.generateExpression(param_map)»;
+
+	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, Array a,
+		Map<String, String> param_map) '''
+	«getReturnString(returnStatement, skeleton, param_map)»«returnStatement.value.generateExpression(param_map)»;
 	'''
-	
-	def static dispatch generateStatement(Variable variable, Array a, Map<String, String> param_map)'''
+
+	def static dispatch generateStatement(Variable variable, Skeleton skeleton, Array a,
+		Map<String, String> param_map) '''
 	'''
-	
-	def static dispatch generateStatement(FunctionCall functionCall, Array a, Map<String, String> param_map)'''
+
+	def static dispatch generateStatement(FunctionCall functionCall, Skeleton skeleton, Array a,
+		Map<String, String> param_map) '''
 	'''
+
+	// helper
+	def static String getReturnString(ReturnStatement returnStatement, Skeleton skeleton,
+		Map<String, String> param_map) {
+		val params = (returnStatement.eContainer as Function).params
+
+		switch skeleton {
+			case MapSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
+			case MapInPlaceSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
+			case FoldSkeleton: param_map.get(params.get(params.size - 2).name) + ' = '
+			default: '''return '''
+		}
+
+	}
 }
