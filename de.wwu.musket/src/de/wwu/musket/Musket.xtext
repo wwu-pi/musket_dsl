@@ -155,26 +155,31 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' params+=SkeletonParameterInput (',' params+=SkeletonParameterInput)* ')' |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton |
 	Assignment |
 	FunctionCall | 
 	Variable
 ;
 
+Skeleton:
+	{MapSkeleton} 'map' '(' param=SkeletonParameterInput ')' |
+	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
+	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
+	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
+	{FoldSkeleton} 'fold' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
+	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')'
+;
+
 SkeletonParameterInput:
 	FunctionCall | 
-	LambdaFunction |
-	IntVal |
-	DoubleVal |
-	BoolVal
+	LambdaFunction
 ;
 
 ParameterInput:
 	FunctionCall |
 	ObjectRef |
-	IntVal |
-	DoubleVal |
-	BoolVal
+	PrimitiveVal
 ;
 
 Statement:
@@ -302,6 +307,10 @@ ArithmeticExpression returns Expression:
 	FunctionCall
 ;
 
+PrimitiveVal:
+	BoolVal | IntVal | DoubleVal
+;
+
 BoolVal:
 	value = BOOL
 ;
@@ -322,10 +331,6 @@ enum DistributionMode:
 
 enum Type:
 	int | double | bool 
-;
-
-enum Skeleton:
-	map | mapInPlace | mapIndex | mapIndexInPlace | fold | foldIndex | gather
 ;
 
 AssignmentOperator:

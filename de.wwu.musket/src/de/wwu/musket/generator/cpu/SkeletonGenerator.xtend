@@ -18,12 +18,14 @@ import java.util.Map.Entry
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.RegularFunction
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.FoldSkeleton
 
 class SkeletonGenerator {
 	def static generateSkeletonStatement(SkeletonStatement s) {
 		switch s.function {
-			case MAP_IN_PLACE: generateMapInPlaceSkeleton(s)
-			case FOLD: generateFoldSkeleton(s)
+			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
+			FoldSkeleton: generateFoldSkeleton(s)
 			default: ''''''
 		}
 	}
@@ -37,13 +39,13 @@ class SkeletonGenerator {
 
 	def static generateArrayMapInPlaceSkeleton(SkeletonStatement s, Array a) '''
 		«««	create lookup table for parameters
-		«val param_map = createParameterLookupTable(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+		«val param_map = createParameterLookupTable(a, (s.function.param as InternalFunctionCall).value.params, (s.function.param as InternalFunctionCall).params)»
 		«FOR p : param_map.entrySet»
 			
 		«ENDFOR»
 		#pragma omp parallel for
 		for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(a, param_map)»
+			«(s.function.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(a, param_map)»
 		}
 	'''
 
@@ -86,7 +88,7 @@ class SkeletonGenerator {
 
 	def static generateArrayFoldSkeleton(SkeletonStatement s, Array a) '''
 	
-	#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){return omp_out + omp_in;}()) initializer(omp_priv = omp_orig)
+	#pragma omp declare reduction(«((s.function.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){return omp_out + omp_in;}()) initializer(omp_priv = omp_orig)
 	
 		«««	create lookup table for parameters
 «««		«val param_map = createParameterLookupTable(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
@@ -95,7 +97,7 @@ class SkeletonGenerator {
 «««		«ENDFOR»
 		«a.CppPrimitiveTypeAsString» result = 0;
 
-		#pragma omp parallel for reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name»:result)
+		#pragma omp parallel for reduction(«((s.function.param as InternalFunctionCall).value as RegularFunction).name»:result)
 		for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 «««			rest of the function
 «««			return statement
