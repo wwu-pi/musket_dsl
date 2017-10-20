@@ -155,14 +155,17 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' param=SkeletonParameterInput ')' |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton '(' params+=SkeletonParameterInput (',' params+=SkeletonParameterInput)* ')' |
 	Assignment |
 	FunctionCall
 ;
 
 SkeletonParameterInput:
 	FunctionCall | 
-	LambdaFunction
+	LambdaFunction |
+	IntVal |
+	DoubleVal |
+	BoolVal
 ;
 
 ParameterInput:

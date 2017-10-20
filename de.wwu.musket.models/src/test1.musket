@@ -53,5 +53,6 @@ main{
 	
 	if(2 < 5){
 		c = a.map(g());
+		b.fold(3, f());
 	}
 }
