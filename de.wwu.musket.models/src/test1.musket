@@ -34,6 +34,8 @@ bool g(double p, array<int,copy> b){
 }
 
 main{
+	int i = 4;
+	
 	a.mapInPlace(f(1, a[2]));
 	a.mapInPlace((int a) -> double {
 		double sum1 = 0;
