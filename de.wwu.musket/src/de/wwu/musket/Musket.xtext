@@ -155,7 +155,7 @@ MusketIfClause:
 ;
 
 BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton |
+	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? skeleton=Skeleton |
 	Assignment |
 	FunctionCall | 
 	Variable
