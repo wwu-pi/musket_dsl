@@ -31,7 +31,7 @@ CollectionObject:
 	Array ';';
 	
 IndividualObject:
-	Variable ';' | Constant ';'
+	test=STRING//Variable ';' | Constant ';'
 ;
 
 Array:
@@ -41,9 +41,39 @@ Array:
 ;
 
 Variable:
-	{IntVariable} 'int' name=ID ('=' initExpression=Expression)? |
-	{DoubleVariable} 'double' name=ID ('=' initExpression=Expression)? | 
-	{BoolVariable} 'bool' name=ID ('=' initExpression=Expression)?
+	IntVariable | DoubleVariable | BoolVariable
+;
+
+IntVariable:
+	'int' name=ID ('=' initExpression=Expression)?
+;
+
+DoubleVariable:
+	'double' name=ID ('=' initExpression=Expression)?
+;
+
+BoolVariable:
+	'bool' name=ID ('=' initExpression=Expression)?
+;
+
+MusketObject:
+	Object | MusketVariable
+;
+
+MusketVariable:
+	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | Variable
+;
+
+MusketIntVariable:
+	'int' name=ID '=' initExpression=SkeletonExpression
+;
+
+MusketDoubleVariable:
+	'double' name=ID '=' initExpression=SkeletonExpression
+;
+
+MusketBoolVariable:
+	'bool' name=ID '=' initExpression=SkeletonExpression
 ;
 
 Constant:
@@ -154,12 +184,36 @@ MusketIfClause:
 	'}'
 ;
 
-BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton |
-	Assignment |
-	FunctionCall | 
-	Variable
+MusketExpression:
+	SkeletonExpression |
+	Expression
 ;
+
+SkeletonExpression:
+	obj=[CollectionObject] '.' function=Skeleton
+;
+
+BasicMusketStatement:
+	MusketAssignment |
+	FunctionCall | 
+	MusketVariable
+;
+
+MusketAssignment:
+	var=MusketObjectRef OP_ASSIGN_EQUALS value=MusketExpression
+;
+
+MusketObjectRef:
+	ObjectRef |
+	=> value=[MusketObject]
+;
+//
+//BasicMusketStatement:
+//	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton |
+//	Assignment |
+//	FunctionCall | 
+//	Variable
+//;
 
 Skeleton:
 	{MapSkeleton} 'map' '(' param=SkeletonParameterInput ')' |
