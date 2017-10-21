@@ -151,11 +151,11 @@ IndividualParameter:
 	
 //-----------------------------------------------------------
 MainBlock:
-	'main' '{' content+=MusketStatement+ '}'
+	'main' '{' content+=MainFunctionStatement+ '}'
 ;
 
-MusketStatement:
-	MusketControlStructure | BasicMusketStatement ';'
+MainFunctionStatement:
+	MusketControlStructure | MusketStatement ';'
 ;
 	
 MusketControlStructure:
@@ -169,18 +169,18 @@ MusketConditionalForLoop:
 	{MusketConditionalForLoop} 
 	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
-	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
+	( '{' statements+=MainFunctionStatement* '}' | => statements+=MainFunctionStatement?)
 ;
 
 MusketIteratorForLoop:
 	'for' '(' iter=Parameter ':' dataStructure=[Array] ')'
 	//TODO break/continue
-	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
+	( '{' statements+=MainFunctionStatement+ '}' | => statements+=MainFunctionStatement?)
 ;
 
 MusketIfClause:
 	'if' '(' condition=CompareExpression ')' '{'
-		statements+=MusketStatement+
+		statements+=MainFunctionStatement+
 	'}'
 ;
 
@@ -193,7 +193,7 @@ SkeletonExpression:
 	obj=[CollectionObject] '.' function=Skeleton
 ;
 
-BasicMusketStatement:
+MusketStatement:
 	MusketAssignment |
 	FunctionCall | 
 	MusketVariable
