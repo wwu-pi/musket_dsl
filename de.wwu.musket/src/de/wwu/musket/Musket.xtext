@@ -31,7 +31,7 @@ CollectionObject:
 	Array ';';
 	
 IndividualObject:
-	test=STRING//Variable ';' | Constant ';'
+	MusketVariable ';' | Constant ';'
 ;
 
 Array:
@@ -54,10 +54,6 @@ DoubleVariable:
 
 BoolVariable:
 	'bool' name=ID ('=' initExpression=Expression)?
-;
-
-MusketObject:
-	Object | MusketVariable
 ;
 
 MusketVariable:
@@ -193,28 +189,6 @@ SkeletonExpression:
 	obj=[CollectionObject] '.' function=Skeleton
 ;
 
-MusketStatement:
-	MusketAssignment |
-	FunctionCall | 
-	MusketVariable
-;
-
-MusketAssignment:
-	var=MusketObjectRef OP_ASSIGN_EQUALS value=MusketExpression
-;
-
-MusketObjectRef:
-	ObjectRef |
-	=> value=[MusketObject]
-;
-//
-//BasicMusketStatement:
-//	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? function=Skeleton |
-//	Assignment |
-//	FunctionCall | 
-//	Variable
-//;
-
 Skeleton:
 	{MapSkeleton} 'map' '(' param=SkeletonParameterInput ')' |
 	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
@@ -225,15 +199,15 @@ Skeleton:
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')'
 ;
 
-SkeletonParameterInput:
-	FunctionCall | 
-	LambdaFunction
-;
-
 ParameterInput:
 	FunctionCall |
 	ObjectRef |
 	PrimitiveVal
+;
+
+SkeletonParameterInput:
+	FunctionCall | 
+	LambdaFunction
 ;
 
 Statement:
@@ -243,9 +217,19 @@ Statement:
 	FunctionCall
 ;
 
+MusketStatement:
+	MusketAssignment | 
+	MusketVariable |
+	FunctionCall
+;
+
 // TODO check not to assign to Constants
 Assignment:
 	var=ObjectRef operator=AssignmentOperator value=Expression
+;
+
+MusketAssignment:
+	var=ObjectRef OP_ASSIGN_EQUALS value=MusketExpression
 ;
 
 ObjectRef:
