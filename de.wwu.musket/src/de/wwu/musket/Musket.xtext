@@ -219,6 +219,7 @@ Statement:
 
 MusketStatement:
 	MusketAssignment | 
+	SkeletonExpression |
 	MusketVariable |
 	FunctionCall
 ;
