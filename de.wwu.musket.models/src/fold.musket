@@ -10,7 +10,7 @@ int sum(int a, int b){
 }
 
 main{
-	f = c.fold(sum());
+	f = c.fold(0, sum());
 }
 
 

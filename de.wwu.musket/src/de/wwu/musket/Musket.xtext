@@ -186,7 +186,7 @@ MusketExpression:
 ;
 
 SkeletonExpression:
-	obj=[CollectionObject] '.' function=Skeleton
+	obj=[CollectionObject] '.' skeleton=Skeleton
 ;
 
 Skeleton:
@@ -197,11 +197,6 @@ Skeleton:
 	{FoldSkeleton} 'fold' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')'
-;
-
-SkeletonParameterInput:
-	InternalFunctionCall | 
-	LambdaFunction
 ;
 
 ParameterInput:

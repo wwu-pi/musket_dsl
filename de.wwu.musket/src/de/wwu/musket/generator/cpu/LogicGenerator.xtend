@@ -11,6 +11,7 @@ import de.wwu.musket.musket.MusketIteratorForLoop
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.MusketAssignment
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''
@@ -42,4 +43,6 @@ class LogicGenerator {
 	def static dispatch generateStatement(ExternalFunctionCall s) '''
 	'''
 
+	def static dispatch generateStatement(MusketAssignment s) '''
+	'''
 }

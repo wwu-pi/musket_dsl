@@ -22,8 +22,9 @@ import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 
+class SkeletonGenerator {
 	def static generateSkeletonExpression(SkeletonExpression s) {
-		switch s.function {
+		switch s.skeleton {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
 			FoldSkeleton: generateFoldSkeleton(s)
 			default: ''''''
@@ -89,7 +90,7 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 	}
 
 	def static generateArrayFoldSkeleton(SkeletonExpression s, Array a) '''		
-		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.function.param as InternalFunctionCall).value.params, (s.function.param as InternalFunctionCall).params)»
+		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
 			
 		#pragma omp declare reduction(«((s.skeleton.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 		
