@@ -31,7 +31,7 @@ CollectionObject:
 	Array ';';
 	
 IndividualObject:
-	Variable ';' | Constant ';'
+	MusketVariable ';' | Constant ';'
 ;
 
 Array:
@@ -41,9 +41,35 @@ Array:
 ;
 
 Variable:
-	{IntVariable} 'int' name=ID ('=' initExpression=Expression)? |
-	{DoubleVariable} 'double' name=ID ('=' initExpression=Expression)? | 
-	{BoolVariable} 'bool' name=ID ('=' initExpression=Expression)?
+	IntVariable | DoubleVariable | BoolVariable
+;
+
+IntVariable:
+	'int' name=ID ('=' initExpression=Expression)?
+;
+
+DoubleVariable:
+	'double' name=ID ('=' initExpression=Expression)?
+;
+
+BoolVariable:
+	'bool' name=ID ('=' initExpression=Expression)?
+;
+
+MusketVariable:
+	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | Variable
+;
+
+MusketIntVariable:
+	'int' name=ID '=' initExpression=SkeletonExpression
+;
+
+MusketDoubleVariable:
+	'double' name=ID '=' initExpression=SkeletonExpression
+;
+
+MusketBoolVariable:
+	'bool' name=ID '=' initExpression=SkeletonExpression
 ;
 
 Constant:
@@ -121,11 +147,11 @@ IndividualParameter:
 	
 //-----------------------------------------------------------
 MainBlock:
-	'main' '{' content+=MusketStatement+ '}'
+	'main' '{' content+=MainFunctionStatement+ '}'
 ;
 
-MusketStatement:
-	MusketControlStructure | BasicMusketStatement ';'
+MainFunctionStatement:
+	MusketControlStructure | MusketStatement ';'
 ;
 	
 MusketControlStructure:
@@ -139,26 +165,28 @@ MusketConditionalForLoop:
 	{MusketConditionalForLoop} 
 	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
 	//TODO break/continue 
-	( '{' statements+=MusketStatement* '}' | => statements+=MusketStatement?)
+	( '{' statements+=MainFunctionStatement* '}' | => statements+=MainFunctionStatement?)
 ;
 
 MusketIteratorForLoop:
 	'for' '(' iter=Parameter ':' dataStructure=[Array] ')'
 	//TODO break/continue
-	( '{' statements+=MusketStatement+ '}' | => statements+=MusketStatement?)
+	( '{' statements+=MainFunctionStatement+ '}' | => statements+=MainFunctionStatement?)
 ;
 
 MusketIfClause:
 	'if' '(' condition=CompareExpression ')' '{'
-		statements+=MusketStatement+
+		statements+=MainFunctionStatement+
 	'}'
 ;
 
-BasicMusketStatement:
-	{SkeletonStatement} (var=[Object] '=')? (obj=[CollectionObject] '.')? skeleton=Skeleton |
-	Assignment |
-	FunctionCall | 
-	Variable
+MusketExpression:
+	SkeletonExpression |
+	Expression
+;
+
+SkeletonExpression:
+	obj=[CollectionObject] '.' function=Skeleton
 ;
 
 Skeleton:
@@ -182,6 +210,11 @@ ParameterInput:
 	PrimitiveVal
 ;
 
+SkeletonParameterInput:
+	FunctionCall | 
+	LambdaFunction
+;
+
 Statement:
 	Assignment |
 	ReturnStatement |
@@ -189,9 +222,20 @@ Statement:
 	FunctionCall
 ;
 
+MusketStatement:
+	MusketAssignment | 
+	SkeletonExpression |
+	MusketVariable |
+	FunctionCall
+;
+
 // TODO check not to assign to Constants
 Assignment:
 	var=ObjectRef operator=AssignmentOperator value=Expression
+;
+
+MusketAssignment:
+	var=ObjectRef OP_ASSIGN_EQUALS value=MusketExpression
 ;
 
 ObjectRef:

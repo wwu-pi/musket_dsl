@@ -4,13 +4,16 @@ import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.DoubleArray
 import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.ParameterInput
-import de.wwu.musket.musket.SkeletonStatement
+import de.wwu.musket.musket.RegularFunction
+import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
 import java.util.Map
 import java.util.Map.Entry
@@ -18,13 +21,9 @@ import java.util.Map.Entry
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import de.wwu.musket.musket.RegularFunction
-import de.wwu.musket.musket.MapInPlaceSkeleton
-import de.wwu.musket.musket.FoldSkeleton
 
-class SkeletonGenerator {
-	def static generateSkeletonStatement(SkeletonStatement s) {
-		switch s.skeleton {
+	def static generateSkeletonExpression(SkeletonExpression s) {
+		switch s.function {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
 			FoldSkeleton: generateFoldSkeleton(s)
 			default: ''''''
@@ -32,13 +31,13 @@ class SkeletonGenerator {
 	}
 
 // MapInPlace
-	def static generateMapInPlaceSkeleton(SkeletonStatement s) {
+	def static generateMapInPlaceSkeleton(SkeletonExpression s) {
 		switch s.obj {
 			Array: generateArrayMapInPlaceSkeleton(s, s.obj as Array)
 		}
 	}
 
-	def static generateArrayMapInPlaceSkeleton(SkeletonStatement s, Array a) '''
+	def static generateArrayMapInPlaceSkeleton(SkeletonExpression s, Array a) '''
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTable(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
 		«FOR p : param_map.entrySet»
@@ -83,14 +82,14 @@ class SkeletonGenerator {
 	}
 
 // Fold
-	def static generateFoldSkeleton(SkeletonStatement s) {
+	def static generateFoldSkeleton(SkeletonExpression s) {
 		switch s.obj {
 			Array: generateArrayFoldSkeleton(s, s.obj as Array)
 		}
 	}
 
-	def static generateArrayFoldSkeleton(SkeletonStatement s, Array a) '''		
-		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+	def static generateArrayFoldSkeleton(SkeletonExpression s, Array a) '''		
+		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.function.param as InternalFunctionCall).value.params, (s.function.param as InternalFunctionCall).params)»
 			
 		#pragma omp declare reduction(«((s.skeleton.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 		
