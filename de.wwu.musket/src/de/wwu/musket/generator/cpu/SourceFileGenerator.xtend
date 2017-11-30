@@ -34,9 +34,12 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-		«««		«FOR f : resource.Functions»
-«««			«f.generateFunctorDefinition»
-«««		«ENDFOR»
+		«val fas = resource.FoldSkeletons»
+		
+		«FOR f : resource.FoldSkeletons»
+		«f.identity»
+«««			«f.generateMPIFoldFunction(f.)»
+		«ENDFOR»
 		«generateMainFunction(resource)»
 	'''
 
