@@ -23,10 +23,10 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 
 class SkeletonGenerator {
-	def static generateSkeletonExpression(SkeletonExpression s) {
+	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
-			FoldSkeleton: generateFoldSkeleton(s)
+			FoldSkeleton: generateFoldSkeleton(s, target)
 			default: ''''''
 		}
 	}
@@ -83,13 +83,13 @@ class SkeletonGenerator {
 	}
 
 // Fold
-	def static generateFoldSkeleton(SkeletonExpression s) {
+	def static generateFoldSkeleton(SkeletonExpression s, String target) {
 		switch s.obj {
-			Array: generateArrayFoldSkeleton(s.skeleton as FoldSkeleton, s.obj as Array)
+			Array: generateArrayFoldSkeleton(s.skeleton as FoldSkeleton, s.obj as Array, target)
 		}
 	}
 
-	def static generateArrayFoldSkeleton(FoldSkeleton s, Array a) '''		
+	def static generateArrayFoldSkeleton(FoldSkeleton s, Array a, String target) '''		
 		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			
 		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
@@ -103,7 +103,15 @@ class SkeletonGenerator {
 
 		}
 		
-		printf("fold result %i: %i\n", «Config.var_pid», «Config.var_fold_result»);
+		MPI_Op myOp;
+		MPI_Op_create( «((s.param as InternalFunctionCall).value as RegularFunction).name», 0, &myOp );
+		
+		printf("local fold result %i: %i\n", «Config.var_pid», «Config.var_fold_result»);
+		
+		MPI_Allreduce(&«Config.var_fold_result», &«target», sizeof(«a.CppPrimitiveTypeAsString»), MPI_BYTE, myOp, MPI_COMM_WORLD); 
+		
+		printf("global fold result %i: %i\n", «Config.var_pid», «target»);
+		
 	'''
 
 	def static Map<String, String> createParameterLookupTableFold(Array a, Iterable<Parameter> parameters,

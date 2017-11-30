@@ -5,6 +5,7 @@ import de.wwu.musket.musket.Model
 import org.eclipse.emf.ecore.resource.Resource
 import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.SkeletonExpression
 
 class ModelElementAccess {
 
@@ -40,6 +41,9 @@ class ModelElementAccess {
 	
 	def static FoldSkeletons(Resource resource) {
 		resource.allContents.filter(FoldSkeleton).toIterable
+	}
+	def static SkeletonExpressions(Resource resource) {
+		resource.allContents.filter(SkeletonExpression).toIterable
 	}
 
 	def static isPlatformCPU(Resource resource) {

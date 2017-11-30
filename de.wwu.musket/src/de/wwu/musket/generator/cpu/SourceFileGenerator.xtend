@@ -7,10 +7,13 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.wwu.musket.generator.cpu.LogicGenerator.*
+import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.Array
 
 class SourceFileGenerator {
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
@@ -34,11 +37,11 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-		«val fas = resource.FoldSkeletons»
 		
-		«FOR f : resource.FoldSkeletons»
-		«f.identity»
-«««			«f.generateMPIFoldFunction(f.)»
+		«FOR f : resource.SkeletonExpressions»
+			«IF f.skeleton instanceof FoldSkeleton»
+				«generateMPIFoldFunction(f.skeleton as FoldSkeleton, f.obj as Array)»
+			«ENDIF»			
 		«ENDFOR»
 		«generateMainFunction(resource)»
 	'''

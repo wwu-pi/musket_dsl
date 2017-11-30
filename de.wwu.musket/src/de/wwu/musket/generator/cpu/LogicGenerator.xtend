@@ -33,22 +33,22 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(SkeletonExpression s) '''
-		«s.generateSkeletonExpression»
+		«s.generateSkeletonExpression(null)»
 	'''
 
 	def static dispatch generateStatement(MusketIntVariable s) '''
 		int «s.name» = 0;
-		«s.initExpression.generateSkeletonExpression»
+		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 
 	def static dispatch generateStatement(MusketDoubleVariable s) '''
 		double «s.name» = 0.0;
-		«s.initExpression.generateSkeletonExpression»
+		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 
 	def static dispatch generateStatement(MusketBoolVariable s) '''
 		bool «s.name» = true;
-		«s.initExpression.generateSkeletonExpression»
+		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 
 	def static dispatch generateStatement(Assignment s) '''

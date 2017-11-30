@@ -33,8 +33,8 @@ class FoldSkeletonGenerator {
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''inoutv''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''inv''')
+		param_map.put(parameters.drop(inputs.size).head.name, '''*inoutv''')
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''*inv''')
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).asString)
