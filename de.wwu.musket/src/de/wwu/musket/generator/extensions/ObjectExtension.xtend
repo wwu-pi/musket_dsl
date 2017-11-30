@@ -19,6 +19,9 @@ import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVariable
 
 import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
+import de.wwu.musket.musket.BoolVal
+import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.DoubleVal
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -119,6 +122,19 @@ class ObjectExtension {
 	}
 
 	def static dispatch ValueAsString(BoolConstant o) {
+		o.value.toString
+	}
+
+	//Primitive Values
+	def static dispatch ValueAsString(BoolVal o) {
+		o.value.toString
+	}
+
+	def static dispatch ValueAsString(IntVal o) {
+		o.value.toString
+	}
+
+	def static dispatch ValueAsString(DoubleVal o) {
 		o.value.toString
 	}
 	

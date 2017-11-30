@@ -9,9 +9,23 @@ int sum(int a, int b){
 	return a + b;
 }
 
+int double_values(int j, int i){
+	return i + i + j;
+}
+
 main{
 
-	int f = c.fold(0, sum());
+int a=c.fold(0,sum());
+
+
+c.mapInPlace(double_values(42));
+
+//int f;
+//f = c.fold(0, sum());
+
+//int a = c.fold(0, sum());
+
+//	int f = c.fold(0, sum());
 	
 }
 

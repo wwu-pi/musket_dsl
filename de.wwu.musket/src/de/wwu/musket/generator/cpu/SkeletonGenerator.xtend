@@ -85,21 +85,21 @@ class SkeletonGenerator {
 // Fold
 	def static generateFoldSkeleton(SkeletonExpression s) {
 		switch s.obj {
-			Array: generateArrayFoldSkeleton(s, s.obj as Array)
+			Array: generateArrayFoldSkeleton(s.skeleton as FoldSkeleton, s.obj as Array)
 		}
 	}
 
-	def static generateArrayFoldSkeleton(SkeletonExpression s, Array a) '''		
-		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+	def static generateArrayFoldSkeleton(FoldSkeleton s, Array a) '''		
+		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			
-		#pragma omp declare reduction(«((s.skeleton.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 		
-		«a.CppPrimitiveTypeAsString» «Config.var_fold_result» = «a.name»[0];
+		«a.CppPrimitiveTypeAsString» «Config.var_fold_result» = «s.identity.ValueAsString»;
 		
-			#pragma omp parallel for reduction(«((s.skeleton.param as InternalFunctionCall).value as RegularFunction).name»:«Config.var_fold_result»)
-			for(int «Config.var_loop_counter» = 1; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-			«val param_map = createParameterLookupTableFold(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
+			#pragma omp parallel for reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name»:«Config.var_fold_result»)
+			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
+			«val param_map = createParameterLookupTableFold(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, a, param_map)»
 
 		}
 		
