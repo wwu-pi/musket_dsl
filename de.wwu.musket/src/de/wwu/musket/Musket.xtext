@@ -196,7 +196,10 @@ Skeleton:
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
 	{FoldSkeleton} 'fold' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')'
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
+	{ZipSkeleton} 'zip' '(' param=SkeletonParameterInput ')' |
+	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
+	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')'
 ;
 
 ParameterInput:
