@@ -24,6 +24,8 @@ class Config {
 	public static final String var_loop_counter = "counter"
 	public static final String var_fold_result = "fold_result"
 	
+	public static final String mpi_op_suffix = "_mpi_op"
+	
 	// project config
 	public static int processes;
 

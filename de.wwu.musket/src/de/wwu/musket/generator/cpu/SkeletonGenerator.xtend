@@ -61,10 +61,10 @@ class SkeletonGenerator {
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
-		if(parameters.length > inputs.size){
+		if (parameters.length > inputs.size) {
 			param_map.put(parameters.drop(inputs.size).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 		}
-		
+
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).asString)
 		}
@@ -90,27 +90,22 @@ class SkeletonGenerator {
 	}
 
 	def static generateArrayFoldSkeleton(FoldSkeleton s, Array a, String target) '''		
-		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-			
-		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
+
+		«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»  = «s.identity.ValueAsString»;
+		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		
-		«a.CppPrimitiveTypeAsString» «Config.var_fold_result» = «s.identity.ValueAsString»;
-		
-			#pragma omp parallel for reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name»:«Config.var_fold_result»)
+			#pragma omp parallel for reduction(«foldName»:«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»)
 			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«val param_map = createParameterLookupTableFold(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, a, param_map)»
-
-		}
 		
-		MPI_Op myOp;
-		MPI_Op_create( «((s.param as InternalFunctionCall).value as RegularFunction).name», 0, &myOp );
+		}		
 		
-		printf("local fold result %i: %i\n", «Config.var_pid», «Config.var_fold_result»);
+«««		printf("local fold result %i: %i\n", «Config.var_pid», «Config.var_fold_result»_«a.CppPrimitiveTypeAsString»);
 		
-		MPI_Allreduce(&«Config.var_fold_result», &«target», sizeof(«a.CppPrimitiveTypeAsString»), MPI_BYTE, myOp, MPI_COMM_WORLD); 
+		MPI_Allreduce(&«Config.var_fold_result»_«a.CppPrimitiveTypeAsString», &«target», sizeof(«a.CppPrimitiveTypeAsString»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 		
-		printf("global fold result %i: %i\n", «Config.var_pid», «target»);
+«««		printf("global fold result %i: %i\n", «Config.var_pid», «target»);
 		
 	'''
 
@@ -118,7 +113,7 @@ class SkeletonGenerator {
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»''')
+		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
@@ -126,9 +121,9 @@ class SkeletonGenerator {
 		}
 		return param_map
 	}
-	
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(Array a, Iterable<Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+
+	def static Map<String, String> createParameterLookupTableFoldReductionClause(Array a,
+		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')

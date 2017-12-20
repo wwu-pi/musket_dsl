@@ -64,6 +64,10 @@ class SourceFileGenerator {
 			
 			«generateInitializeDataStructures(resource)»
 			
+			«generateReductionDeclarations(resource)»
+			«generateMPIFoldOperators(resource)»
+			«generateTmpFoldResults(resource)»
+			
 			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 			
 			«generateLogic(resource.Model.main)»
