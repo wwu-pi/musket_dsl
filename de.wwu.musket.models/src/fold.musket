@@ -15,8 +15,12 @@ int sum(int a, int b){
 
 main{
 
+for(int i = 0; i < 3; i++){
+
 int a=c.fold(0,sum());
 int b = c.fold(0,sum());
+
+}
 
 
 //c.mapInPlace(double_values(42));

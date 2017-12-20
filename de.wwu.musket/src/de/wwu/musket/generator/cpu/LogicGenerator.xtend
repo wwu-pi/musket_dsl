@@ -10,6 +10,13 @@ import de.wwu.musket.musket.MusketIteratorForLoop
 
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
+import static extension de.wwu.musket.generator.cpu.DataGenerator.*
+import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.MusketAssignment
 import de.wwu.musket.musket.MusketBoolVariable
@@ -24,6 +31,11 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(MusketConditionalForLoop s) '''
+		for(«s.init.CppPrimitiveTypeAsString» «s.init.name» = «s.init.initExpression.generateExpression(null)»; «s.condition.generateExpression(null)»; «s.increment.generateExpression(null)»){
+			«FOR mainstatement : s.statements»
+				«mainstatement.generateStatement()»
+			«ENDFOR»
+		}
 	'''
 
 	def static dispatch generateStatement(MusketIteratorForLoop s) '''

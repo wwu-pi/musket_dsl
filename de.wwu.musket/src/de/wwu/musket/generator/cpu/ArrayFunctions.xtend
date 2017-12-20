@@ -10,6 +10,7 @@ import de.wwu.musket.musket.Array
 class ArrayFunctions {
 
 	def static generateCollectionFunctionCall(CollectionFunctionCall afc) {
+
 		switch afc.function {
 			case SIZE: generateSize(afc)
 			case SIZE_LOCAL: generateSizeLocal(afc)
