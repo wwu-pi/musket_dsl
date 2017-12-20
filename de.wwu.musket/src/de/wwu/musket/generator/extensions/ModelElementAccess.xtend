@@ -43,7 +43,7 @@ class ModelElementAccess {
 		resource.allContents.filter(FoldSkeleton).toIterable
 	}
 	def static SkeletonExpressions(Resource resource) {
-		resource.allContents.filter(SkeletonExpression).toIterable
+		resource.allContents.filter(SkeletonExpression).toList
 	}
 
 	def static isPlatformCPU(Resource resource) {

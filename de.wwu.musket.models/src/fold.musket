@@ -16,6 +16,7 @@ int sum(int a, int b){
 main{
 
 int a=c.fold(0,sum());
+int b = c.fold(0,sum());
 
 
 //c.mapInPlace(double_values(42));

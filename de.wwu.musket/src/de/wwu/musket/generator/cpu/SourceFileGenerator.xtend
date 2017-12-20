@@ -37,12 +37,8 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-		
-		«FOR f : resource.SkeletonExpressions»
-			«IF f.skeleton instanceof FoldSkeleton»
-				«generateMPIFoldFunction(f.skeleton as FoldSkeleton, f.obj as Array)»
-			«ENDIF»			
-		«ENDFOR»
+		«generateMPIFoldFunction(resource.SkeletonExpressions)»
+
 		«generateMainFunction(resource)»
 	'''
 

@@ -8,6 +8,9 @@ import de.wwu.musket.musket.Array
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
+import static extension de.wwu.musket.generator.cpu.DataGenerator.*
+import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import java.util.Map
 import de.wwu.musket.musket.ParameterInput
 import java.util.HashMap
@@ -17,8 +20,31 @@ import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.BoolVal
+import java.util.List
+import de.wwu.musket.musket.SkeletonExpression
 
 class FoldSkeletonGenerator {
+
+	def static generateMPIFoldFunction(Iterable<SkeletonExpression> skeletons) {
+		var result = ""
+		var List<SkeletonExpression> processed = newArrayList
+		for (SkeletonExpression se : skeletons) {
+			if (se.skeleton instanceof FoldSkeleton) {
+				val alreadyProcessed = processed.exists [
+					((it.skeleton.param as InternalFunctionCall).value as RegularFunction).name ==
+						((se.skeleton.param as InternalFunctionCall).value as RegularFunction).name
+				]
+
+				if (!alreadyProcessed) {
+					result += generateMPIFoldFunction(se.skeleton as FoldSkeleton, se.obj as Array)
+					processed.add(se)
+				}
+			}
+		}
+
+		return result
+	}
+
 	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, Array a) '''
 		void «((foldSkeleton.param as InternalFunctionCall).value as RegularFunction).name»(void *in, void *inout, int *len, MPI_Datatype *dptr){
 			«val type = a.CppPrimitiveTypeAsString»
