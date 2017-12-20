@@ -28,7 +28,7 @@ Object:
 	CollectionObject | IndividualObject | Parameter;
 	
 CollectionObject:
-	Array ';';
+	Array ';' | Matrix ';';
 	
 IndividualObject:
 	MusketVariable ';' | Constant ';'
@@ -39,6 +39,13 @@ Array:
 	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
 	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
 ;
+
+Matrix:
+	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
+	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+;
+
 
 Variable:
 	IntVariable | DoubleVariable | BoolVariable
@@ -136,7 +143,10 @@ Parameter:
 CollectionParameter:
 	{IntArrayParameter} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
 	{DoubleArrayParameter} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
-	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID
+	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
+	{IntMatrixParameter} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
+	{DoubleMatrixParameter} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
+	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID
 ;
 
 IndividualParameter:
@@ -169,7 +179,7 @@ MusketConditionalForLoop:
 ;
 
 MusketIteratorForLoop:
-	'for' '(' iter=Parameter ':' dataStructure=[Array] ')'
+	'for' '(' iter=Parameter ':' dataStructure=[CollectionObject] ')'
 	//TODO break/continue
 	( '{' statements+=MainFunctionStatement+ '}' | => statements+=MainFunctionStatement?)
 ;
@@ -237,7 +247,10 @@ MusketAssignment:
 ;
 
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject] (ARR_GLOBAL_OPEN globalArrayIndex=Expression ARR_GLOBAL_CLOSE | ARR_LOCAL_OPEN localArrayIndex=Expression ARR_LOCAL_CLOSE) |
+	{CollectionElementRef} value=[CollectionObject] (
+		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
+		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
+	) |
 	=> value=[Object]
 ;
 
@@ -246,7 +259,7 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | ArrayFunctionCall
+	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | CollectionFunctionCall
 ;
 
 InternalFunctionCall:
@@ -261,8 +274,8 @@ ExternalFunctionCall:
 	namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
-ArrayFunctionCall:
-	var=[Array] '.' function=ArrayFunctionName '(' ')'
+CollectionFunctionCall:
+	var=[CollectionObject] '.' function=CollectionFunctionName '(' ')'
 ;
 
 enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
@@ -302,8 +315,9 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 	memset | strerror | strlen 
 ;
 
-enum ArrayFunctionName:
-	size | sizeLocal | show
+enum CollectionFunctionName:
+	// TODO constraint: rows/colums/~local only for matrices
+	size | sizeLocal | show | rows | rowsLocal | columns | columsLocal
 ;
 
 // Expression tree
@@ -516,18 +530,18 @@ FunctionWhitelist:
 	'memset' | 'strerror' | 'strlen'
 ;
 
-terminal ARR_GLOBAL_OPEN: 
+terminal COLL_GLOBAL_OPEN: 
 	'['
 ;
 
-terminal ARR_GLOBAL_CLOSE: 
+terminal COLL_GLOBAL_CLOSE: 
 	']'
 ;
 
-terminal ARR_LOCAL_OPEN: 
+terminal COLL_LOCAL_OPEN: 
 	'[['
 ;
 
-terminal ARR_LOCAL_CLOSE: 
+terminal COLL_LOCAL_CLOSE: 
 	']]'
 ;

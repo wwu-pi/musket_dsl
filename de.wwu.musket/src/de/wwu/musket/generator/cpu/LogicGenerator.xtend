@@ -1,6 +1,6 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.ArrayFunctionCall
+import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.MainBlock
@@ -54,8 +54,8 @@ class LogicGenerator {
 	def static dispatch generateStatement(Assignment s) '''
 	'''
 
-	def static dispatch generateStatement(ArrayFunctionCall s) '''
-		«s.generateArrayFunctionCall»
+	def static dispatch generateStatement(CollectionFunctionCall s) '''
+		«s.generateCollectionFunctionCall»
 	'''
 
 	def static dispatch generateStatement(ExternalFunctionCall s) '''
