@@ -17,6 +17,7 @@ import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.GatherSkeleton
 
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, Array a,
@@ -59,9 +60,10 @@ class FunctionGenerator {
 		val params = (returnStatement.eContainer as Function).params
 
 		switch skeleton {
-			case MapSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
-			case MapInPlaceSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
-			case FoldSkeleton: param_map.get(params.get(params.size - 2).name) + ' = '
+			MapSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
+			MapInPlaceSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
+			FoldSkeleton: param_map.get(params.get(params.size - 2).name) + ' = '
+			GatherSkeleton: '''GATHER!!!'''
 			default: '''return '''
 		}
 

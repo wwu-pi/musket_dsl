@@ -7,10 +7,13 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.wwu.musket.generator.cpu.LogicGenerator.*
+import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.Array
 
 class SourceFileGenerator {
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
@@ -34,9 +37,8 @@ class SourceFileGenerator {
 			«d.generateObjectDefinition»
 		«ENDFOR»
 		
-		«««		«FOR f : resource.Functions»
-«««			«f.generateFunctorDefinition»
-«««		«ENDFOR»
+		«generateMPIFoldFunction(resource.SkeletonExpressions)»
+
 		«generateMainFunction(resource)»
 	'''
 
@@ -61,6 +63,10 @@ class SourceFileGenerator {
 			}
 			
 			«generateInitializeDataStructures(resource)»
+			
+			«generateReductionDeclarations(resource)»
+			«generateMPIFoldOperators(resource)»
+			«generateTmpFoldResults(resource)»
 			
 			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 			

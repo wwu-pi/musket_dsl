@@ -12,6 +12,9 @@ import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.musket.MusketBoolVariable
+import de.wwu.musket.musket.MusketIntVariable
+import de.wwu.musket.musket.MusketDoubleVariable
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''
@@ -30,7 +33,22 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(SkeletonExpression s) '''
-		«s.generateSkeletonExpression»
+		«s.generateSkeletonExpression(null)»
+	'''
+
+	def static dispatch generateStatement(MusketIntVariable s) '''
+		int «s.name» = 0;
+		«s.initExpression.generateSkeletonExpression(s.name)»
+	'''
+
+	def static dispatch generateStatement(MusketDoubleVariable s) '''
+		double «s.name» = 0.0;
+		«s.initExpression.generateSkeletonExpression(s.name)»
+	'''
+
+	def static dispatch generateStatement(MusketBoolVariable s) '''
+		bool «s.name» = true;
+		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 
 	def static dispatch generateStatement(Assignment s) '''
