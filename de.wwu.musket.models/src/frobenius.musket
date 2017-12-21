@@ -1,7 +1,11 @@
 #config PLATFORM CPU
 #config PROCESSES 4
 
-array<double,16,dist> a;
+matrix<double,16,16,dist> a;
+
+double init(int x, int y, double a){
+	return x + y;
+}
 
 double square(double a){
 	return a * a;
@@ -12,9 +16,9 @@ double sum(double a, double b){
 }
 
 main{
+	a.show();
+	a.mapIndexInPlace(init());
 	a.mapInPlace(square());
 	double f = a.fold(0, sum());
-	printf("Frobenius Norm: %.5\n", f);
+	printf("Frobenius norm is %.5f.\n", f);
 }
-
-
