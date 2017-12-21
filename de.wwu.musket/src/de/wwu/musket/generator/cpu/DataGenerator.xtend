@@ -5,6 +5,7 @@ import de.wwu.musket.musket.Constant
 import de.wwu.musket.musket.Variable
 
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.Matrix
 
 class DataGenerator {
 // Generate declarations	
@@ -17,6 +18,10 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDeclaration(
 		Array a) '''extern std::array<«a.CppPrimitiveTypeAsString», «a.sizeLocal»> «a.name»;'''
+		
+	// Matrix objects
+	def static dispatch generateObjectDeclaration(
+		Matrix m) '''extern std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»;'''
 
 // Generate definitions	
 	// variables
@@ -30,6 +35,10 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinition(
 		Array a) '''std::array<«a.CppPrimitiveTypeAsString», «a.sizeLocal»> «a.name»{};'''
+		
+	// Arrays objects
+	def static dispatch generateObjectDefinition(
+		Matrix m) '''std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»{};'''
 
 // Generate initialization
 	def static generateArrayInitializationForProcess(Array a, int p, Iterable<String> values) '''		

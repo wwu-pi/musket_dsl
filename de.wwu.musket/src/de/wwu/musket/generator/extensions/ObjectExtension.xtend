@@ -22,6 +22,10 @@ import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.Matrix
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -34,6 +38,18 @@ class ObjectExtension {
 	}
 
 	def static dispatch CppPrimitiveTypeAsString(BoolArray o) {
+		'bool'
+	}
+	
+	def static dispatch CppPrimitiveTypeAsString(IntMatrix o) {
+		'int'
+	}
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleMatrix o) {
+		'double'
+	}
+
+	def static dispatch CppPrimitiveTypeAsString(BoolMatrix o) {
 		'bool'
 	}
 
@@ -144,6 +160,17 @@ class ObjectExtension {
 			case DIST: a.size / Config.processes
 			case COPY: a.size
 			default: a.size
+		}
+	}
+	
+	// for matrices
+	def static sizeLocal(Matrix m) {
+		switch m.distributionMode {
+			case DIST: m.cols * m.rows / Config.processes
+			case COPY: m.cols * m.rows
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case COLUMN_DIST")
+			default: 0
 		}
 	}
 }
