@@ -377,11 +377,11 @@ ArithmeticExpression returns Expression:
 ;
 
 PrimitiveVal:
-	BoolVal | IntVal | DoubleVal
+	BoolVal | IntVal | DoubleVal | StringVal
 ;
 
 BoolVal:
-	value = BOOL
+	value=BOOL
 ;
 
 IntVal:
@@ -392,14 +392,17 @@ DoubleVal:
 	value=DOUBLE
 ;
       
-	
+StringVal:
+	value=STRING
+;
+
 //-----------------------------------------------------------
 enum DistributionMode:
 	copy | dist | rowDist | columnDist
 ;
 
 enum Type:
-	int | double | bool 
+	int | double | bool | string
 ;
 
 AssignmentOperator:
