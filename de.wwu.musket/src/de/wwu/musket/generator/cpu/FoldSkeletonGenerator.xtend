@@ -27,6 +27,7 @@ import org.omg.PortableInterceptor.InterceptorOperations
 import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.CollectionObject
 
 class FoldSkeletonGenerator {
 
@@ -41,7 +42,7 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					result += generateMPIFoldFunction(se.skeleton as FoldSkeleton, se.obj as Array)
+					result += generateMPIFoldFunction(se.skeleton as FoldSkeleton, se.obj)
 					processed.add(se)
 				}
 			}
@@ -50,12 +51,12 @@ class FoldSkeletonGenerator {
 		return result
 	}
 
-	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, Array a) '''
+	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, CollectionObject a) '''
 		void «((foldSkeleton.param as InternalFunctionCall).value as RegularFunction).name»(void *in, void *inout, int *len, MPI_Datatype *dptr){
 			«val type = a.CppPrimitiveTypeAsString»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
-			«val param_map = createParameterLookupTable(a, (foldSkeleton.param as InternalFunctionCall).value.params, (foldSkeleton.param as InternalFunctionCall).params)»
+			«val param_map = createParameterLookupTable((foldSkeleton.param as InternalFunctionCall).value.params, (foldSkeleton.param as InternalFunctionCall).params)»
 			«(foldSkeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(foldSkeleton, a, param_map)»
 		} 
 	'''
@@ -71,7 +72,7 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					result += generateReductionDeclaration(se.skeleton as FoldSkeleton, se.obj as Array)
+					result += generateReductionDeclaration(se.skeleton as FoldSkeleton, se.obj)
 					processed.add(se)
 				}
 			}
@@ -80,13 +81,13 @@ class FoldSkeletonGenerator {
 		return result
 	}
 
-	def static generateReductionDeclaration(FoldSkeleton s, Array a) '''
-		«val param_map_red = createParameterLookupTableFoldReductionClause(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+	def static generateReductionDeclaration(FoldSkeleton s, CollectionObject a) '''
+		«val param_map_red = createParameterLookupTableFoldReductionClause((s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 	'''
 
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(Array a,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+	def static Map<String, String> createParameterLookupTableFoldReductionClause(Iterable<Parameter> parameters,
+		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
@@ -109,7 +110,7 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					result += generateMPIFoldOperator(se.skeleton as FoldSkeleton, se.obj as Array)
+					result += generateMPIFoldOperator(se.skeleton as FoldSkeleton)
 					processed.add(se)
 				}
 			}
@@ -118,7 +119,7 @@ class FoldSkeletonGenerator {
 		return result
 	}
 
-	def static generateMPIFoldOperator(FoldSkeleton s, Array a) '''
+	def static generateMPIFoldOperator(FoldSkeleton s) '''
 		«val name = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		MPI_Op «name»«Config.mpi_op_suffix»;
 		MPI_Op_create( «name», 0, &«name»«Config.mpi_op_suffix» );
@@ -136,9 +137,12 @@ class FoldSkeletonGenerator {
 				if (!alreadyProcessed) {
 					val obj = se.obj
 					switch obj {
-						IntArray: result += '''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0;'''
-						BoolArray: result += '''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = true;'''
-						DoubleArray: result += '''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0.0;'''
+						IntArray: result +=
+							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0;'''
+						BoolArray: result +=
+							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = true;'''
+						DoubleArray: result +=
+							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0.0;'''
 					}
 					processed.add(se)
 				}
@@ -147,14 +151,8 @@ class FoldSkeletonGenerator {
 
 		return result
 	}
-	
-	def static generateTmpFoldResult(FoldSkeleton s, Array a) '''
-		«val name = ((s.param as InternalFunctionCall).value as RegularFunction).name»
-		MPI_Op «name»«Config.mpi_op_suffix»;
-		MPI_Op_create( «name», 0, &«name»«Config.mpi_op_suffix» );
-	'''
 
-	def static Map<String, String> createParameterLookupTable(Array a, Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTable(Iterable<Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
