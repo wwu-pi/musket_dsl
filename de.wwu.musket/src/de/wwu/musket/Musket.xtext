@@ -24,8 +24,13 @@ ConfigBlock:
 ;
 
 //-----------------------------------------------------------	
+
+ReferableObject:
+	Object | Parameter
+;
+
 Object:
-	CollectionObject | IndividualObject | Parameter;
+	CollectionObject | IndividualObject;
 	
 CollectionObject:
 	Array ';' | Matrix ';';
@@ -251,7 +256,7 @@ ObjectRef:
 		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
 		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
 	) |
-	=> value=[Object]
+	=> value=[ReferableObject]
 ;
 
 ReturnStatement:
