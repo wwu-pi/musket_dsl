@@ -106,6 +106,8 @@ Struct:
 ;
 	
 //-----------------------------------------------------------
+// TODO validate parameter names are unique
+// TODO validate new variables do not conflict with parameters/global names
 Function:
 	RegularFunction | LambdaFunction
 ;
@@ -172,7 +174,8 @@ CollectionParameter:
 IndividualParameter:
 	{IntParameter} 'int' name=ID |
 	{DoubleParameter} 'double' name=ID | 
-	{BoolParameter} 'bool' name=ID
+	{BoolParameter} 'bool' name=ID |
+	{StructParameter} type=[Struct] name=ID
 ;
 	
 //-----------------------------------------------------------
@@ -267,11 +270,11 @@ MusketAssignment:
 ;
 
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject] (
+	{CollectionElementRef} value=[CollectionObject|QUALIFIED_NAME] (
 		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
 		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
 	) |
-	=> value=[ReferableObject]
+	=> value=[ReferableObject|QUALIFIED_NAME]
 ;
 
 ReturnStatement:
@@ -568,3 +571,7 @@ terminal COLL_LOCAL_OPEN:
 terminal COLL_LOCAL_CLOSE: 
 	']]'
 ;
+
+QUALIFIED_NAME:
+  ID ('.' ID)*
+; 
