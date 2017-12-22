@@ -30,7 +30,7 @@ ReferableObject:
 ;
 
 MusketObject:
-	Object | ComplexObject
+	Object | Struct
 ;
 
 Object:
@@ -93,9 +93,6 @@ Constant:
 	{DoubleConstant} 'const' 'double' name=ID '=' value=DOUBLE | 
 	{BoolConstant} 'const' 'bool' name=ID '=' value=BOOL
 ;
-
-ComplexObject:
-	Struct;
 	
 // TODO Validate: Array/Matrix in structs must be copy-distributed
 // TODO Validate: No constants in structs
