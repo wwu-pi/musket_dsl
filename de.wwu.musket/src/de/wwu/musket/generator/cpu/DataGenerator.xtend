@@ -6,6 +6,7 @@ import de.wwu.musket.musket.Variable
 
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.Struct
 
 class DataGenerator {
 // Generate declarations	
@@ -22,6 +23,9 @@ class DataGenerator {
 	// Matrix objects
 	def static dispatch generateObjectDeclaration(
 		Matrix m) '''extern std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»;'''
+		
+	def static dispatch generateObjectDeclaration(
+		Struct s) '''//TODO struct unimplemented''' //TODO struct unimplemented
 
 // Generate definitions	
 	// variables
@@ -39,6 +43,9 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinition(
 		Matrix m) '''std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»{};'''
+		
+	def static dispatch generateObjectDefinition(
+		Struct s) '''//TODO struct unimplemented''' //TODO struct unimplemented
 
 // Generate initialization
 	def static generateArrayInitializationForProcess(Array a, int p, Iterable<String> values) '''		
