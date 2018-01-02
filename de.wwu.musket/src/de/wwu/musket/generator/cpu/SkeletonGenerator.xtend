@@ -21,11 +21,15 @@ import java.util.Map.Entry
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.CollectionObject
 
 class SkeletonGenerator {
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
+			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj)
 			FoldSkeleton: generateFoldSkeleton(s, target)
 			default: ''''''
 		}
@@ -41,9 +45,6 @@ class SkeletonGenerator {
 	def static generateArrayMapInPlaceSkeleton(SkeletonExpression s, Array a) '''
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTable(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		«FOR p : param_map.entrySet»
-			
-		«ENDFOR»
 		#pragma omp parallel for
 		for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
@@ -56,13 +57,13 @@ class SkeletonGenerator {
 			default: ''''''
 		}
 	}
-
-	def static Map<String, String> createParameterLookupTable(Array a, Iterable<Parameter> parameters,
+	
+	def static Map<String, String> createParameterLookupTable(CollectionObject co, Iterable<Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		if (parameters.length > inputs.size) {
-			param_map.put(parameters.drop(inputs.size).head.name, '''«a.name»[«Config.var_loop_counter»]''')
+			param_map.put(parameters.drop(inputs.size).head.name, '''«co.name»[«Config.var_loop_counter»]''')
 		}
 
 		for (var i = 0; i < inputs.size; i++) {
@@ -81,6 +82,29 @@ class SkeletonGenerator {
 			default: ''''''
 		}
 	}
+
+// MapIndexInPlace
+	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Array a) '''
+	// TODO mapIndexInPlace for array
+	'''
+	
+	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Matrix m) '''
+		«FOR p : 0..Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
+			(«Config.var_pid» == «p»){
+				«Config.var_row_offset» = ;
+				«Config.var_col_offset» = ;
+			}
+		«ENDFOR»
+		«««	create lookup table for parameters
+		«val param_map = createParameterLookupTable(m, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+		#pragma omp parallel for
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			#pragma omp simd
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m, param_map)»
+			}
+		}
+	'''
 
 // Fold
 	def static generateFoldSkeleton(SkeletonExpression s, String target) {

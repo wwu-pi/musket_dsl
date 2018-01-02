@@ -22,7 +22,12 @@ class Config {
 	public static final String tmp_size_t = "tmp_size_t"
 	
 	public static final String var_loop_counter = "counter"
+	public static final String var_loop_counter_rows = "counter_rows"
+	public static final String var_loop_counter_cols = "counter_cols"
 	public static final String var_fold_result = "fold_result"
+	
+	public static final String var_row_offset = "row_offset"
+	public static final String var_col_offset = "col_offset"
 	
 	public static final String mpi_op_suffix = "_mpi_op"
 	
