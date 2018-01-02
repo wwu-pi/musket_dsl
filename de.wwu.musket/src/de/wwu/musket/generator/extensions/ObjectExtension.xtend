@@ -155,7 +155,12 @@ class ObjectExtension {
 	}
 	
 	// for arrays
-	def static sizeLocal(Array a) {
+	// for arrays
+	def static dispatch size(Array a) {
+		a.size
+	}
+	
+	def static dispatch sizeLocal(Array a) {
 		switch a.distributionMode {
 			case DIST: a.size / Config.processes
 			case COPY: a.size
@@ -164,12 +169,56 @@ class ObjectExtension {
 	}
 	
 	// for matrices
-	def static sizeLocal(Matrix m) {
+	def static dispatch size(Matrix m) {
+		m.cols * m.rows
+	}
+	
+	def static dispatch sizeLocal(Matrix m) {
 		switch m.distributionMode {
 			case DIST: m.cols * m.rows / Config.processes
 			case COPY: m.cols * m.rows
 			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case ROW_DIST")
 			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static rowsLocal(Matrix m) {
+		switch m.distributionMode {
+			case DIST: m.rows / m.blocksInRow
+			case COPY: m.rows
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static colsLocal(Matrix m) {
+		switch m.distributionMode {
+			case DIST: m.cols / m.blocksInColumn
+			case COPY: m.cols
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static blocksInRow(Matrix m) {
+		switch m.distributionMode {
+			case DIST: Math.sqrt(Config.processes).intValue
+			case COPY: 1
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static blocksInColumn(Matrix m) {
+		switch m.distributionMode {
+			case DIST: Math.sqrt(Config.processes).intValue
+			case COPY: 1
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
