@@ -24,6 +24,7 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.DistributionMode
 
 class SkeletonGenerator {
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
@@ -89,12 +90,17 @@ class SkeletonGenerator {
 	'''
 	
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Matrix m) '''
-		«FOR p : 0..Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
-			(«Config.var_pid» == «p»){
-				«Config.var_row_offset» = ;
-				«Config.var_col_offset» = ;
-			}
-		«ENDFOR»
+		«IF m.distributionMode == DistributionMode.COPY»
+			«Config.var_row_offset» = 0;
+			«Config.var_col_offset» = 0;
+		«ELSE»
+			«FOR p : 0..<Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
+				(«Config.var_pid» == «p»){
+					«Config.var_row_offset» = «p / m.blocksInColumn * m.rowsLocal»;
+					«Config.var_col_offset» = «p % m.blocksInRow * m.colsLocal»;
+				}
+			«ENDFOR»
+		«ENDIF»
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTable(m, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
 		#pragma omp parallel for
