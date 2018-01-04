@@ -12,6 +12,7 @@ import de.wwu.musket.musket.Variable
 import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapSkeleton
@@ -32,15 +33,16 @@ class FunctionGenerator {
 	def static generateFunctionStatement(FunctionStatement functionStatement, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) {
 		switch functionStatement {
-			ControlStructure: ''''''
+			ControlStructure: '''//TODO: FunctionGenerator.generateFunctionStatement: ControlStructure'''
 			Statement:
 				functionStatement.generateStatement(skeleton, a, param_map)
-			default: ''''''
+			default: '''//TODO: FunctionGenerator.generateFunctionStatement: Default Case'''
 		}
 	}
 
 	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
+		//TODO: FunctionGenerator.generateStatement: Assignment
 	'''
 
 	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, CollectionObject a,
@@ -50,10 +52,12 @@ class FunctionGenerator {
 
 	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
+		«variable.CppPrimitiveTypeAsString» «variable.name» = «variable.initExpression.generateExpression(param_map)»;
 	'''
 
 	def static dispatch generateStatement(FunctionCall functionCall, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
+		//TODO: FunctionGenerator.generateStatement: FunctionCall
 	'''
 
 	// helper
