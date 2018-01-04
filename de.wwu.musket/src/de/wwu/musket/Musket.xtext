@@ -226,10 +226,13 @@ Skeleton:
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
 	{FoldSkeleton} 'fold' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
 	{ZipSkeleton} 'zip' '(' param=SkeletonParameterInput ')' |
 	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
-	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')'
+	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')' |
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
+	{RotateRowsSkeleton} 'rotateRows' '(' param=SkeletonParameterInput ')' |
+	{RotateColsSkeleton} 'rotateCols' '(' param=SkeletonParameterInput ')' |
+	{PermutePartitionsSkeleton} 'permutePartitions' '(' param=SkeletonParameterInput ')'
 ;
 
 ParameterInput:
