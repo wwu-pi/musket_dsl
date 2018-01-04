@@ -115,6 +115,19 @@ class ObjectExtension {
 		a.values.map[v|v.toString]
 	}
 	
+	// Matrix
+	def static dispatch ValuesAsString(IntMatrix a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(DoubleMatrix a){
+		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch ValuesAsString(BoolMatrix a){
+		a.values.map[v|v.toString]
+	}
+	
 	// Variable
 	def static dispatch ValueAsString(IntVariable o) {
 		o.initExpression.generateString

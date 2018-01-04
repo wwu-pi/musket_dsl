@@ -7,6 +7,7 @@ import de.wwu.musket.musket.Variable
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.CollectionObject
 
 class DataGenerator {
 // Generate declarations	
@@ -55,9 +56,9 @@ class DataGenerator {
 		«ENDFOR»
 	'''
 	
-	def static generateArrayInitializationWithSingleValue(Array a) '''
-		#pragma omp parallel for
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.sizeLocal»; «Config.var_loop_counter» ++){
+	def static generateInitializationWithSingleValue(CollectionObject a) '''
+		#pragma omp parallel for simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«a.name»[«Config.var_loop_counter»] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
 		}
 	'''

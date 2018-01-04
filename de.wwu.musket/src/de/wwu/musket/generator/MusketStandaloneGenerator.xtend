@@ -26,7 +26,7 @@ class MusketStandaloneGenerator {
 
 		// load a resource by URI, in this case from the file system
 		val resource = resourceSet.getResource(
-			URI.createFileURI("/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/frobenius.musket"),
+			URI.createFileURI("/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/matmult.musket"),
 			true)
 
 			// Validation

@@ -13,6 +13,9 @@ import static de.wwu.musket.generator.cpu.MapSkeletonGenerator.*
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.Array
 
@@ -130,9 +133,9 @@ class SourceFileGenerator {
 			result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
 		}
 
-		for (a : resource.Arrays.filter[a|a.ValuesAsString.size < 2]) {
+		for (a : resource.CollectionObjects.filter[it.ValuesAsString.size < 2]) {
 			result += "\n"
-			result += a.generateArrayInitializationWithSingleValue
+			result += a.generateInitializationWithSingleValue
 		}
 
 		return result
