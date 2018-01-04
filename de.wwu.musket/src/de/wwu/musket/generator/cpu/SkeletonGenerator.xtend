@@ -21,6 +21,7 @@ import java.util.Map.Entry
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.cpu.Parameter.*
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionObject
@@ -69,6 +70,20 @@ class SkeletonGenerator {
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+		}
+		return param_map
+	}
+	
+	def static Map<String, String> createParameterLookupTableMapIndexSkeleton(CollectionObject co, Iterable<Parameter> parameters,
+		Iterable<ParameterInput> inputs) {
+		val param_map = new HashMap<String, String>
+
+		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_row_offset» + «Config.var_loop_counter_rows»)''')
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''(«Config.var_col_offset» + «Config.var_loop_counter_cols»)''')
+		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«co.name»[«Config.var_loop_counter_rows» * «co.» + «Config.var_loop_counter_cols»]''')
+
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
 		}
 		return param_map
 	}
