@@ -1,0 +1,48 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+matrix<double,4,4,dist> a = {1.0};
+matrix<double,4,4,dist> b = {0.001};
+matrix<double,4,4,dist> c = {0.0};
+
+int negate(int a){
+	return -a;
+}
+
+int identity(int a){
+	return a;
+}
+
+int minusOne(int a){
+	return -1;
+}
+
+double dotProduct(int i, int j, double Cij){
+    double sum = Cij;
+
+    for (int k = 0; k < c.columsLocal(); k++) {
+      sum += a[i,k] * b[j,k];
+    }
+
+    return sum;
+}
+
+main{
+	a.show();
+	b.show();
+	c.show();
+	
+	a.rotateRows(negate());
+	b.rotateRows(negate());
+	
+	for (int i = 0; i < a.blocksInRow(); ++i) {
+    	c.mapIndexInPlace(dotProduct());
+    	a.rotateRows(minusOne());
+    	b.rotateCols(minusOne());
+	}
+
+	a.rotateRows(identity());
+	b.rotateRows(identity());
+	
+	c.show();
+}

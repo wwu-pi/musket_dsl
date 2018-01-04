@@ -344,7 +344,7 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 
 enum CollectionFunctionName:
 	// TODO constraint: rows/colums/~local only for matrices
-	size | sizeLocal | show | rows | rowsLocal | columns | columsLocal
+	size | sizeLocal | show | rows | rowsLocal | columns | columsLocal | blocksInRow | blocksInColumn
 ;
 
 enum MusketFunctionName:
