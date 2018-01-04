@@ -7,6 +7,7 @@ import static de.wwu.musket.generator.cpu.MPIRoutines.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.CollectionFunctionName
 
 class ArrayFunctions {
 
@@ -18,14 +19,12 @@ class ArrayFunctions {
 				generateSizeLocal(afc)
 			case SHOW:
 				generateShow(afc)
-			case COLUMNS: { // TODO unimplemented
-			}
-			case COLUMS_LOCAL: { // TODO unimplemented
-			}
-			case ROWS: { // TODO unimplemented
-			}
-			case ROWS_LOCAL: { // TODO unimplemented
-			}
+			case COLUMNS: (afc.^var as Matrix).cols
+			case COLUMS_LOCAL: (afc.^var as Matrix).colsLocal
+			case ROWS: (afc.^var as Matrix).rows
+			case ROWS_LOCAL: (afc.^var as Matrix).rowsLocal
+			case BLOCKS_IN_ROW: (afc.^var as Matrix).blocksInRow
+			case BLOCKS_IN_COLUMN: (afc.^var as Matrix).blocksInColumn
 		}
 	}
 

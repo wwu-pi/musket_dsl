@@ -1,5 +1,7 @@
 package de.wwu.musket.generator.cpu
 
+import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
+
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
 import de.wwu.musket.musket.CollectionObject
@@ -24,6 +26,7 @@ import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.PreDecrement
+import de.wwu.musket.musket.CollectionFunctionCall
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -44,11 +47,12 @@ class ExpressionGenerator {
 			DoubleVal: '''«expression.value»'''
 			ExternalFunctionCall:
 				throw new UnsupportedOperationException("ExpressionGenerator: ExternalFunctionCall")
+			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
 			PostIncrement: '''«expression.value.generateObjectRef(param_map)»++'''
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
-			default: ''''''
+			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
 		}
 	}
 
