@@ -5,6 +5,14 @@ matrix<double,4,4,dist> a = {1.0};
 matrix<double,4,4,dist> b = {0.001};
 matrix<double,4,4,dist> c = {0.0};
 
+double initA(int a, int b, double x){
+	return a * 4 + b;
+}
+
+double initB(int a, int b, double x){
+	return 16 + a * 4 + b;
+}
+
 int negate(int a){
 	return -a;
 }
@@ -21,13 +29,16 @@ double dotProduct(int i, int j, double Cij){
     double sum = Cij;
 
     for (int k = 0; k < c.columsLocal(); k++) {
-      sum += a[i,k] * b[j,k];
+      sum += a[[i,k]] * b[[k,j]]; // b transposed
     }
 
     return sum;
 }
 
 main{
+	a.mapIndexInPlace(initA());
+	b.mapIndexInPlace(initB());
+
 	a.show();
 	b.show();
 	c.show();

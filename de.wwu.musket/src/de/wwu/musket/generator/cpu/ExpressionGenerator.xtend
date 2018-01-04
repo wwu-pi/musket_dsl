@@ -1,6 +1,7 @@
 package de.wwu.musket.generator.cpu
 
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
@@ -27,6 +28,9 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.CollectionElementRef
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -42,6 +46,7 @@ class ExpressionGenerator {
 			Not: '''!«expression.expression.generateExpression(param_map)»'''
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
+			CollectionElementRef: '''«expression.generateCollectionElementRef(param_map)»'''
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
@@ -56,14 +61,25 @@ class ExpressionGenerator {
 		}
 	}
 
-	def static dispatch generateObjectRef(CollectionObject c, Map<String, String> param_map) {
-		throw new UnsupportedOperationException("ExpressionGenerator: generateObjectRef")
-	}
+	def static generateCollectionElementRef(CollectionElementRef cer, Map<String, String> param_map) '''
+		«IF cer.value instanceof Array»
+			//TODO: ExpressionGenerator.generateCollectionElementRef: Array
+		«ELSEIF cer.value instanceof Matrix»
+			«IF cer.localCollectionIndex.size == 2»
+				«cer.value.name».at(«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»)
+			«ELSEIF cer.globalCollectionIndex.size == 2»
+				//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices
+			«ENDIF»
+		«ELSE»
+			«cer.value.name»
+		«ENDIF»
+	'''
+
+//	def static dispatch generateCollectionElementRef(CollectionElementRef cer, Matrix m, Map<String, String> param_map) '''//TODO ExpressionGenerator.generateObjectRef: CollectionElementRef'''
+
+	def static dispatch generateObjectRef(CollectionObject co, Map<String, String> param_map) '''«co.name»'''
 
 	def static dispatch generateObjectRef(IndividualObject i, Map<String, String> param_map) '''«i.name»'''
 
-//	def static dispatch generateObjectRef(Variable v, Map<String, String> param_map)'''
-//		It's an int
-//	'''
 	def static dispatch generateObjectRef(Parameter p, Map<String, String> param_map) '''«IF param_map !== null && param_map.containsKey(p.name)»«param_map.get(p.name)»«ELSE»«p.name»«ENDIF»'''
 }

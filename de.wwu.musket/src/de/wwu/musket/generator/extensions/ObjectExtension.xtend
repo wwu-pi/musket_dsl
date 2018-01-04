@@ -26,6 +26,8 @@ import de.wwu.musket.musket.IntMatrix
 import de.wwu.musket.musket.DoubleMatrix
 import de.wwu.musket.musket.BoolMatrix
 import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.MusketObject
+import de.wwu.musket.musket.ReferableObject
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -166,6 +168,7 @@ class ObjectExtension {
 	def static dispatch ValueAsString(DoubleVal o) {
 		o.value.toString
 	}
+	
 	
 	// for arrays
 	// for arrays

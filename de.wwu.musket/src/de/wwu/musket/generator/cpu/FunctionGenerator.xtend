@@ -21,6 +21,13 @@ import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.ConditionalForLoop
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.IfClause
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.CollectionElementRef
+import de.wwu.musket.musket.ReferableObject
+import de.wwu.musket.musket.Matrix
 
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
@@ -30,19 +37,21 @@ class FunctionGenerator {
 		«ENDFOR»
 	'''
 
-	def static generateFunctionStatement(FunctionStatement functionStatement, Skeleton skeleton, CollectionObject a,
+	def static CharSequence generateFunctionStatement(FunctionStatement functionStatement, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) {
 		switch functionStatement {
-			ControlStructure: '''//TODO: FunctionGenerator.generateFunctionStatement: ControlStructure'''
+			ControlStructure: functionStatement.generateControlStructure(skeleton, a, param_map)
 			Statement:
 				functionStatement.generateStatement(skeleton, a, param_map)
 			default: '''//TODO: FunctionGenerator.generateFunctionStatement: Default Case'''
 		}
 	}
 
+
+// Statements
 	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		//TODO: FunctionGenerator.generateStatement: Assignment
+		«assignment.^var.value.name» «assignment.operator» «assignment.value.generateExpression(param_map)»;
 	'''
 
 	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, CollectionObject a,
@@ -73,6 +82,41 @@ class FunctionGenerator {
 			GatherSkeleton: '''GATHER!!!'''
 			default: '''return '''
 		}
-
 	}
+	
+	def static generateObjectRef(ObjectRef or, Map<String, String> param_map) {
+		switch or {
+			CollectionElementRef: '''«or.generateCollectionElementRef(param_map)»'''
+			ReferableObject: '''//TODO: FunctionGenerator.generateObjectRef: ReferableObject'''
+			default: '''//TODO: FunctionGenerator.generateObjectRef: default case'''
+		}
+	}
+	
+	def static generateCollectionElementRef(CollectionElementRef cer, Map<String, String> param_map) {
+		switch cer.value {		
+			Array: '''//TODO: FunctionGenerator.generateCollectionElementRef: array'''
+			Matrix: '''//TODO: FunctionGenerator.generateCollectionElementRef: matrix'''
+			default: '''//TODO: FunctionGenerator.generateCollectionElementRef: default case'''
+		}
+	}
+	
+	// ControlStructures	
+	def static dispatch generateControlStructure(ConditionalForLoop cfl, Skeleton skeleton, CollectionObject a,
+		Map<String, String> param_map) '''
+		for(«cfl.init.CppPrimitiveTypeAsString» «cfl.init.name» = «cfl.init.initExpression.generateExpression(null)»; «cfl.condition.generateExpression(null)»; «cfl.increment.generateExpression(null)»){
+			«FOR statement : cfl.statements»
+				«statement.generateFunctionStatement(skeleton, a, param_map)»
+			«ENDFOR»
+		}
+	'''
+	
+	def static dispatch generateControlStructure(IteratorForLoop ifl, Skeleton skeleton, CollectionObject a,
+		Map<String, String> param_map) '''
+		//TODO: FunctionGenerator.generateControlStructure: IteratorForLoop
+	'''
+	
+	def static dispatch generateControlStructure(IfClause ic, Skeleton skeleton, CollectionObject a,
+		Map<String, String> param_map) '''
+		//TODO: FunctionGenerator.generateControlStructure: IfClause
+	'''
 }
