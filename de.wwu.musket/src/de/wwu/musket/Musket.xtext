@@ -220,19 +220,31 @@ SkeletonExpression:
 ;
 
 Skeleton:
-	{MapSkeleton} 'map' '(' param=SkeletonParameterInput ')' |
+	{MapSkeleton} 'map' ('<' options+=MapOption (',' options+=MapOption)* '>')? '(' param=SkeletonParameterInput ')' |
 	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
 	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
-	{FoldSkeleton} 'fold' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
+	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{ZipSkeleton} 'zip' '(' param=SkeletonParameterInput ')' |
+	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' param=SkeletonParameterInput ')' |
 	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
 	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')' |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
 	{RotateRowsSkeleton} 'rotateRows' '(' param=SkeletonParameterInput ')' |
 	{RotateColsSkeleton} 'rotateCols' '(' param=SkeletonParameterInput ')' |
 	{PermutePartitionsSkeleton} 'permutePartitions' '(' param=SkeletonParameterInput ')'
+;
+
+enum MapOption:
+	index | localIndex | inPlace
+;
+
+enum FoldOption:
+	index
+;
+
+enum ZipOption:
+	index | localIndex | inPlace
 ;
 
 ParameterInput:
