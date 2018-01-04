@@ -28,6 +28,7 @@ class Config {
 	
 	public static final String var_row_offset = "row_offset"
 	public static final String var_col_offset = "col_offset"
+	public static final String var_elem_offset = "elem_offset"
 	
 	public static final String mpi_op_suffix = "_mpi_op"
 	

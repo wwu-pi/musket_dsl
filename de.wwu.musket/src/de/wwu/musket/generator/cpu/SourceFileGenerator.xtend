@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.wwu.musket.generator.cpu.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
+import static de.wwu.musket.generator.cpu.MapSkeletonGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
@@ -67,6 +68,7 @@ class SourceFileGenerator {
 			«generateReductionDeclarations(resource)»
 			«generateMPIFoldOperators(resource)»
 			«generateTmpFoldResults(resource)»
+			«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
 			
 			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 			
