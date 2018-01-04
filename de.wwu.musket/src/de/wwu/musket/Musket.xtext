@@ -279,7 +279,7 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | CollectionFunctionCall
+	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | CollectionFunctionCall | MusketFunctionCall
 ;
 
 InternalFunctionCall:
@@ -296,6 +296,10 @@ ExternalFunctionCall:
 
 CollectionFunctionCall:
 	var=[CollectionObject] '.' function=CollectionFunctionName '(' ')'
+;
+
+MusketFunctionCall:
+	value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
 enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
@@ -338,6 +342,10 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 enum CollectionFunctionName:
 	// TODO constraint: rows/colums/~local only for matrices
 	size | sizeLocal | show | rows | rowsLocal | columns | columsLocal
+;
+
+enum MusketFunctionName:
+	print
 ;
 
 // Expression tree

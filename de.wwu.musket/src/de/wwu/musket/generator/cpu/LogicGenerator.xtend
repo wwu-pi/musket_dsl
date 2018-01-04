@@ -10,6 +10,7 @@ import de.wwu.musket.musket.MusketIteratorForLoop
 
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
+import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
@@ -24,6 +25,7 @@ import de.wwu.musket.musket.MusketBoolVariable
 import de.wwu.musket.musket.MusketIntVariable
 import de.wwu.musket.musket.MusketDoubleVariable
 import de.wwu.musket.musket.StandardFunctionCall
+import de.wwu.musket.musket.MusketFunctionCall
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''
@@ -78,6 +80,10 @@ class LogicGenerator {
 
 	def static dispatch generateStatement(ExternalFunctionCall s) '''
 	'''
+
+	def static dispatch generateStatement(MusketFunctionCall s) {
+		s.generateMusketFunctionCall
+	}
 
 	def static dispatch generateStatement(MusketAssignment s) '''
 	'''

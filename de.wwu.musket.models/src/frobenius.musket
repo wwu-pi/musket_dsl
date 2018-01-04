@@ -20,5 +20,5 @@ main{
 	a.show();
 	a.mapInPlace(square());
 	double f = a.fold(0.0, sum());
-	printf("Frobenius norm is %.5f.", f);
+	print("Frobenius norm is %.5f.\n", f);
 }

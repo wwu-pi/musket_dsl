@@ -15,7 +15,7 @@ class Parameter {
 	
 	def static dispatch generateParameterInput(DoubleVal pv)'''«pv.value»'''
 	
-	def static dispatch generateParameterInput(StringVal pv)'''"«pv.value»"'''
+	def static dispatch generateParameterInput(StringVal pv)'''"«pv.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"'''
 
 	def static dispatch generateParameterInput(CollectionObject co)'''«co.name»'''
 	
