@@ -28,6 +28,9 @@ import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.DoubleArray
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.DoubleMatrix
 
 class FoldSkeletonGenerator {
 
@@ -137,11 +140,11 @@ class FoldSkeletonGenerator {
 				if (!alreadyProcessed) {
 					val obj = se.obj
 					switch obj {
-						IntArray: result +=
+						IntArray, IntMatrix: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0;'''
-						BoolArray: result +=
+						BoolArray, BoolMatrix: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = true;'''
-						DoubleArray: result +=
+						DoubleArray, DoubleMatrix: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0.0;'''
 					}
 					processed.add(se)

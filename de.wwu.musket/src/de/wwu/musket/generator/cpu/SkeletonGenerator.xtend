@@ -32,23 +32,24 @@ class SkeletonGenerator {
 		switch s.skeleton {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj)
-			FoldSkeleton: generateFoldSkeleton(s, target)
+			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
 			default: ''''''
 		}
 	}
 
 // MapInPlace
-	def static generateMapInPlaceSkeleton(SkeletonExpression s) {
-		switch s.obj {
-			Array: generateArrayMapInPlaceSkeleton(s, s.obj as Array)
-		}
-	}
+//	def static generateMapInPlaceSkeleton(SkeletonExpression s) {
+//		switch s.obj {
+//			Array: generateArrayMapInPlaceSkeleton(s, s.obj as Array)
+//		}
+//	}
 
-	def static generateArrayMapInPlaceSkeleton(SkeletonExpression s, Array a) '''
+	def static generateMapInPlaceSkeleton(SkeletonExpression s) '''
+		«val a = s.obj»
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTable(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for
-		for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
+		#pragma omp parallel for simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
 		}
 	'''
@@ -141,19 +142,18 @@ class SkeletonGenerator {
 	'''
 
 // Fold
-	def static generateFoldSkeleton(SkeletonExpression s, String target) {
-		switch s.obj {
-			Array: generateArrayFoldSkeleton(s.skeleton as FoldSkeleton, s.obj as Array, target)
-		}
-	}
+//	def static generateFoldSkeleton(SkeletonExpression s, String target) {
+//		switch s.obj {
+//			Array: generateArrayFoldSkeleton(s.skeleton as FoldSkeleton, s.obj as Array, target)
+//		}
+//	}
 
-	def static generateArrayFoldSkeleton(FoldSkeleton s, Array a, String target) '''		
-
+	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject a, String target) '''	
 		«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»  = «s.identity.ValueAsString»;
 		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		
-			#pragma omp parallel for reduction(«foldName»:«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»)
-			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
+			#pragma omp parallel for simd reduction(«foldName»:«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»)
+			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«val param_map = createParameterLookupTableFold(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, a, param_map)»
 		
@@ -167,7 +167,7 @@ class SkeletonGenerator {
 		
 	'''
 
-	def static Map<String, String> createParameterLookupTableFold(Array a, Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -180,7 +180,7 @@ class SkeletonGenerator {
 		return param_map
 	}
 
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(Array a,
+	def static Map<String, String> createParameterLookupTableFoldReductionClause(CollectionObject a,
 		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
