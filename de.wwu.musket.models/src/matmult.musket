@@ -47,7 +47,7 @@ main{
 	b.rotateRows(negate());
 	
 	for (int i = 0; i < a.blocksInRow(); ++i) {
-    	c.map<LocalIndex, InPlace>(dotProduct());
+    	c.mapLocalIndexInPlace(dotProduct());
     	a.rotateRows(minusOne());
     	b.rotateCols(minusOne());
 	}

@@ -66,7 +66,7 @@ class ExpressionGenerator {
 			//TODO: ExpressionGenerator.generateCollectionElementRef: Array
 		«ELSEIF cer.value instanceof Matrix»
 			«IF cer.localCollectionIndex.size == 2»
-				«cer.value.name».at(«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»)
+				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]
 			«ELSEIF cer.globalCollectionIndex.size == 2»
 				//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices
 			«ENDIF»

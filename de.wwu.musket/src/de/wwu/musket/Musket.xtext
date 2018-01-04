@@ -224,6 +224,7 @@ Skeleton:
 	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
 	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
+	{MapLocalIndexInPlaceSkeleton} 'mapLocalIndexInPlace' '(' param=SkeletonParameterInput ')' |
 	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
 	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' param=SkeletonParameterInput ')' |
