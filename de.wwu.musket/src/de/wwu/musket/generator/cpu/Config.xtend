@@ -21,6 +21,7 @@ class Config {
 	
 	public static final String tmp_size_t = "tmp_size_t"
 	
+	
 	public static final String var_loop_counter = "counter"
 	public static final String var_loop_counter_rows = "counter_rows"
 	public static final String var_loop_counter_cols = "counter_cols"
@@ -31,6 +32,12 @@ class Config {
 	public static final String var_elem_offset = "elem_offset"
 	
 	public static final String mpi_op_suffix = "_mpi_op"
+	
+	//rotatePartitons
+	public static final String var_rotate_source = "rotate_source"
+	public static final String var_rotate_target = "rotate_target"
+	public static final String var_rotate_steps = "rotate_steps"
+	public static final String tmp_rotate_buffer = "tmp_rotate_buffer"
 	
 	// project config
 	public static int processes;

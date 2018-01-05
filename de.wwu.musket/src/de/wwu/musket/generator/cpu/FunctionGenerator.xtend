@@ -29,6 +29,8 @@ import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
+import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
 
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
@@ -82,6 +84,8 @@ class FunctionGenerator {
 			MapLocalIndexInPlaceSkeleton: param_map.get(params.get(params.size - 1).name) + ' = '
 			FoldSkeleton: param_map.get(params.get(params.size - 2).name) + ' = '
 			GatherSkeleton: '''GATHER!!!'''
+			RotatePartitionsHorizontallySkeleton: '''«Config.var_rotate_steps» = '''
+			RotatePartitionsVerticallySkeleton: '''«Config.var_rotate_steps» = '''
 			default: '''return '''
 		}
 	}

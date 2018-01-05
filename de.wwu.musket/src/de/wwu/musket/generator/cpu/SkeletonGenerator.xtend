@@ -22,6 +22,9 @@ import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.Parameter.*
+import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIrecv
+import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIsend
+import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionObject
@@ -33,6 +36,9 @@ import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
 import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
 
 class SkeletonGenerator {
+	
+	static var rotateCounter = 0
+
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
 			MapSkeleton: {
@@ -44,8 +50,8 @@ class SkeletonGenerator {
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
-			RotatePartitionsHorizontallySkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateRowsSkeleton'''
-			RotatePartitionsVerticallySkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateColsSkeleton'''
+			RotatePartitionsHorizontallySkeleton: generateRotatePartitionsHorizontallySkeleton(s.skeleton as RotatePartitionsHorizontallySkeleton, s.obj as Matrix)
+			RotatePartitionsVerticallySkeleton: generateRotatePartitionsVerticallySkeleton(s.skeleton as RotatePartitionsVerticallySkeleton, s.obj as Matrix)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
 	}
@@ -241,6 +247,93 @@ class SkeletonGenerator {
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''omp_in''')
+
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+		}
+		return param_map
+	}
+	
+	// rotate partitions
+	def static generateRotatePartitionsHorizontallySkeleton(RotatePartitionsHorizontallySkeleton s, Matrix m) '''		
+		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
+			(«Config.var_pid» == «pid»){
+				«val pos = m.partitionPosition(pid)»				
+				size_t «Config.var_rotate_source» = «pid»;
+				size_t «Config.var_rotate_target» = «pid»;
+«««				generate Function Call
+				«val param_map = createParameterLookupTableRotatePartitionsHorizontally(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m, param_map)»
+				«Config.var_rotate_target» = ((«pid» + «Config.var_rotate_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				«Config.var_rotate_source» = ((«pid» - «Config.var_rotate_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				
+«««				rotation is happening
+				if(«Config.var_rotate_target» != «pid»){
+					MPI_Request requests[2];
+					MPI_Status statuses[2] ;
+					«val buffer_name = Config.tmp_rotate_buffer + '_' + rotateCounter»
+					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_source, "&requests[1]")»
+					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_target, "&requests[0]")»
+					«generateMPIWaitall(2, "requests", "statuses")»
+					
+					#pragma omp parallel for simd
+					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
+						«m.name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
+					}			
+				}
+			}
+		«ENDFOR»
+	'''
+	
+	def static Map<String, String> createParameterLookupTableRotatePartitionsHorizontally(Matrix m, int pid,
+		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		val param_map = new HashMap<String, String>
+
+		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).key»''')
+
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+		}
+		return param_map
+	}
+	
+	def static generateRotatePartitionsVerticallySkeleton(RotatePartitionsVerticallySkeleton s, Matrix m) '''		
+		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
+			(«Config.var_pid» == «pid»){
+				«val pos = m.partitionPosition(pid)»			
+				size_t «Config.var_rotate_source» = «pid»;
+				size_t «Config.var_rotate_target» = «pid»;
+«««				generate Function Call
+				«val param_map = createParameterLookupTableRotatePartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m, param_map)»
+				«Config.var_rotate_target» = ((«pid / m.blocksInColumn» + «Config.var_rotate_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				«Config.var_rotate_source» = ((«pid / m.blocksInColumn» - «Config.var_rotate_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				
+«««				rotation is happening
+				if(«Config.var_rotate_target» != «pid»){
+					MPI_Request requests[2];
+					MPI_Status statuses[2] ;
+					«val buffer_name = Config.tmp_rotate_buffer + '_' + rotateCounter»
+					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_source, "&requests[1]")»
+					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_target, "&requests[0]")»
+					«generateMPIWaitall(2, "requests", "statuses")»
+					
+					#pragma omp parallel for simd
+					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
+						«m.name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
+					}			
+				}
+			}
+		«ENDFOR»
+	'''
+	
+	def static Map<String, String> createParameterLookupTableRotatePartitionsVertically(Matrix m, int pid,
+		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		val param_map = new HashMap<String, String>
+
+		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).value»''')
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).asString)

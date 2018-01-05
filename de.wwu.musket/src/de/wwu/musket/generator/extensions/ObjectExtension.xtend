@@ -238,4 +238,14 @@ class ObjectExtension {
 			default: 0
 		}
 	}
+	
+	def static partitionPosition(Matrix m, int pid) {
+		switch m.distributionMode {
+			case DIST: (pid / m.blocksInColumn) -> (pid % m.blocksInColumn)
+			case COPY: 0 -> 0
+			case ROW_DIST: pid -> 0
+			case COLUMN_DIST: 0 -> pid
+			default: -1 -> -1
+		}
+	}
 }
