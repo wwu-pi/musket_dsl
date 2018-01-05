@@ -29,9 +29,8 @@ import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.RotateRowsSkeleton
-import de.wwu.musket.musket.RotateColsSkeleton
-import de.wwu.musket.musket.PermutePartitionsSkeleton
+import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
+import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
 
 class SkeletonGenerator {
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
@@ -45,9 +44,8 @@ class SkeletonGenerator {
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
-			RotateRowsSkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateRowsSkeleton'''
-			RotateColsSkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateColsSkeleton'''
-			PermutePartitionsSkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: permutePartitionsSkeleton'''
+			RotatePartitionsHorizontallySkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateRowsSkeleton'''
+			RotatePartitionsVerticallySkeleton: '''// TODO: SkeletonGenerator.generateSkeletonExpression: rotateColsSkeleton'''
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
 	}

@@ -231,9 +231,8 @@ Skeleton:
 	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
 	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')' |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
-	{RotateRowsSkeleton} 'rotateRows' '(' param=SkeletonParameterInput ')' |
-	{RotateColsSkeleton} 'rotateCols' '(' param=SkeletonParameterInput ')' |
-	{PermutePartitionsSkeleton} 'permutePartitions' '(' param=SkeletonParameterInput ')'
+	{RotatePartitionsHorizontallySkeleton} 'rotatePartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
+	{RotatePartitionsVerticallySkeleton} 'rotatePartitionsVertically' '(' param=SkeletonParameterInput ')' 
 ;
 
 enum MapOption:
