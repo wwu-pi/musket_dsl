@@ -1,0 +1,15 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+// data structures
+matrix<int, 4, 4, dist> m = {1};
+
+// user functions
+int f(int r, int c, int i){
+	return i + r;
+}
+
+// logic
+main{
+	m.mapIndexInPlace(f());
+}
