@@ -20,7 +20,13 @@ Include:
 //-----------------------------------------------------------
 ConfigBlock:
 	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformGPU?='GPU')?)) &
-	('#config' 'PROCESSES' processes=INT)
+	('#config' 'PROCESSES' processes=INT) &
+	('#config' 'CORES' cores=INT)?	&
+	('#config' 'MODE' mode=Mode)?
+;
+
+enum Mode:
+	release | debug
 ;
 
 //-----------------------------------------------------------	
