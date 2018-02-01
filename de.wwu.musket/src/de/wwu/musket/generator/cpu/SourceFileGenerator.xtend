@@ -9,6 +9,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static de.wwu.musket.generator.cpu.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.MapSkeletonGenerator.*
+import static de.wwu.musket.generator.cpu.RngGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
@@ -37,6 +38,7 @@ class SourceFileGenerator {
 		«generateGlobalVariables»
 		«generateTmpVariables»
 		
+	
 		«FOR d : resource.Data»
 			«d.generateObjectDefinition»
 		«ENDFOR»
@@ -65,6 +67,9 @@ class SourceFileGenerator {
 			if(«Config.var_pid» == 0){
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
 			}
+			
+			«««		TODO: only if rand is used
+			«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
 			
 			«generateInitializeDataStructures(resource)»
 			
@@ -96,6 +101,7 @@ class SourceFileGenerator {
 		#include <array>
 		#include <sstream>
 		#include <chrono>
+		#include <random>
 	'''
 
 	def static generateInitialization() '''

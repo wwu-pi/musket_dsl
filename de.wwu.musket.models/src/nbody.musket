@@ -1,0 +1,18 @@
+#config PLATFORM CPU
+#config PROCESSES 2
+#config CORES 4
+#config MODE release
+
+array<double,16,dist> a = {1.0};
+
+double plusIndex(int i, double a){
+	return a + i;
+}
+
+main{
+	a.show();
+	
+	a.mapIndexInPlace(plusIndex());
+	
+	a.show();
+}

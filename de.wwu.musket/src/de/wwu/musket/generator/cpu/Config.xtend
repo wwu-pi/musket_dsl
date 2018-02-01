@@ -39,6 +39,8 @@ class Config {
 	public static final String var_rotate_steps = "rotate_steps"
 	public static final String tmp_rotate_buffer = "tmp_rotate_buffer"
 	
+	public static final String var_rng_array = "random_engines"
+	
 	// project config
 	public static int processes;
 
