@@ -8,6 +8,7 @@ import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.MusketFunctionCall
 
 class ModelElementAccess {
 
@@ -48,8 +49,13 @@ class ModelElementAccess {
 	def static FoldSkeletons(Resource resource) {
 		resource.allContents.filter(FoldSkeleton).toIterable
 	}
+	
 	def static SkeletonExpressions(Resource resource) {
 		resource.allContents.filter(SkeletonExpression).toList
+	}
+	
+	def static MusketFunctionCalls(Resource resource) {
+		resource.allContents.filter(MusketFunctionCall).toList
 	}
 
 	def static isPlatformCPU(Resource resource) {

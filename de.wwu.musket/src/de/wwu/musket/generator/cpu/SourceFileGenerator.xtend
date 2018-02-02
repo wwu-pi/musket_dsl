@@ -19,6 +19,7 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.MusketFunctionName
 
 class SourceFileGenerator {
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
@@ -68,8 +69,12 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
 			}
 			
-			«««		TODO: only if rand is used
-			«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
+			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
+				«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
+			«ENDIF»
+			
+			«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
+			«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource)»
 			

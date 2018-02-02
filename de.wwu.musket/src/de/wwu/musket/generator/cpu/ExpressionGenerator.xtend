@@ -31,6 +31,7 @@ import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionElementRef
+import de.wwu.musket.musket.MusketFunctionCall
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -57,6 +58,7 @@ class ExpressionGenerator {
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
+			MusketFunctionCall: '''//TODO: MusketFunctionCall!'''
 			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
 		}
 	}

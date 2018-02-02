@@ -320,7 +320,7 @@ CollectionFunctionCall:
 ;
 
 MusketFunctionCall:
-	value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+	'mkt::'value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
 enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
@@ -366,7 +366,7 @@ enum CollectionFunctionName:
 ;
 
 enum MusketFunctionName:
-	print
+	print | rand
 ;
 
 // Expression tree

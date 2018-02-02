@@ -5,14 +5,13 @@
 
 array<double,16,dist> a = {1.0};
 
-double plusIndex(int i, double a){
-	return a + i;
+double plusRand(double a){
+	return a + mkt::rand(0,10);
 }
 
 main{
 	a.show();
 	
-	a.mapIndexInPlace(plusIndex());
-	
+	a.mapInPlace(plusRand());
 	a.show();
 }

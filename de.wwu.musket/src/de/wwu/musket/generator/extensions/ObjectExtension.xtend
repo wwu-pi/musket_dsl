@@ -102,6 +102,18 @@ class ObjectExtension {
 	def static dispatch CppPrimitiveTypeAsString(BoolParameter o) {
 		'bool'
 	}
+	
+	def static dispatch CppPrimitiveTypeAsString(IntVal o) {
+		'int'
+	}
+
+	def static dispatch CppPrimitiveTypeAsString(DoubleVal o) {
+		'double'
+	}
+
+	def static dispatch CppPrimitiveTypeAsString(BoolVal o) {
+		'bool'
+	}
 
 	// Value
 	// Array
