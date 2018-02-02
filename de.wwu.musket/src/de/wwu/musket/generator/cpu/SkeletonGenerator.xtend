@@ -102,7 +102,7 @@ class SkeletonGenerator {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_elem_offset» + «Config.var_loop_counter»)''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''''')
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«co.name»[«Config.var_loop_counter»]''')
 		
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
@@ -137,7 +137,20 @@ class SkeletonGenerator {
 
 // MapIndexInPlace
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Array a) '''
-	// TODO mapIndexInPlace for array
+		«IF a.distributionMode == DistributionMode.COPY»
+					«Config.var_elem_offset» = 0;
+				«ELSE»
+					«FOR p : 0..<Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
+						(«Config.var_pid» == «p»){
+							«Config.var_elem_offset» = «p * a.sizeLocal»;
+						}
+					«ENDFOR»
+				«ENDIF»
+		«val param_map = createParameterLookupTableMapIndexSkeleton(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+		#pragma omp parallel for simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
+		}
 	'''
 	
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Matrix m) '''
@@ -165,7 +178,11 @@ class SkeletonGenerator {
 
 // map local index in place
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, Array a) '''
-	// TODO mapIndexInPlace for array
+		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+		#pragma omp parallel for simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
+		}
 	'''
 	
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, Matrix m) '''
