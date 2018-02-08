@@ -3,7 +3,6 @@ package de.wwu.musket.validation
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
@@ -31,13 +30,9 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			obj = obj.eContainer
 		} while(!(obj instanceof Function) && obj.eContainer !== null)
 		
-		// NOTE currently not strict on differentiating int and double values
-		if( ((obj as Function).returnType === Type.BOOL && !stmt.value.isBoolean) ||
-			((obj as Function).returnType === Type.DOUBLE && !stmt.value.isNumeric) ||
-			((obj as Function).returnType === Type.INT && !stmt.value.isNumeric) ||
-			((obj as Function).returnType === Type.STRING && !stmt.value.isString)){
-				
-			error('Expression does not match specified return type ' + (obj as Function).returnType, 
+		// Check return type
+		if((obj as Function).returnType !== stmt.value.calculateType){
+			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + (obj as Function).returnType, 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
 		}
