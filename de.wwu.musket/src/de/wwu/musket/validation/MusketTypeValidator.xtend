@@ -20,6 +20,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 
 	// Check amount of parameters in each skeleton
 	
+	// Check correct types when calculating values 
+	
 	// Check return type of functions is correct
 	@Check
 	def checkFunctionReturnType(ReturnStatement stmt) {
@@ -29,7 +31,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			obj = obj.eContainer
 		} while(!(obj instanceof Function) && obj.eContainer !== null)
 		
-		if( ((obj as Function).returnType === Type.BOOL && !stmt.value.isBoolean)){
+		// NOTE currently not strict on differentiating int and double values
+		if( ((obj as Function).returnType === Type.BOOL && !stmt.value.isBoolean) ||
+			((obj as Function).returnType === Type.DOUBLE && !stmt.value.isNumeric) ||
+			((obj as Function).returnType === Type.INT && !stmt.value.isNumeric) ||
+			((obj as Function).returnType === Type.STRING && !stmt.value.isString)){
 				
 			error('Expression does not match specified return type ' + (obj as Function).returnType, 
 				MusketPackage.eINSTANCE.returnStatement_Value,
