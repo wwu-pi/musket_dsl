@@ -44,6 +44,12 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
 import de.wwu.musket.musket.CollectionElementRef
+import de.wwu.musket.musket.IntArrayParameter
+import de.wwu.musket.musket.DoubleArrayParameter
+import de.wwu.musket.musket.BoolArrayParameter
+import de.wwu.musket.musket.IntMatrixParameter
+import de.wwu.musket.musket.DoubleMatrixParameter
+import de.wwu.musket.musket.BoolMatrixParameter
 
 class TypeHelper {
 	
@@ -51,8 +57,10 @@ class TypeHelper {
 		return type === Type.INT || type === Type.DOUBLE
 	}
 	
-	static def isCollection(ParameterInput input){
-		return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
+	static def isCollection(Type type){
+		return type === Type.INT_ARRAY || type === Type.DOUBLE_ARRAY  || type === Type.BOOL_ARRAY  || type === Type.STRING_ARRAY
+		   || type === Type.INT_MATRIX || type === Type.DOUBLE_MATRIX || type === Type.BOOL_MATRIX || type === Type.STRING_MATRIX
+		//return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
 	}
 	
 	// Helper to check the expression type of a collection
@@ -351,6 +359,54 @@ class TypeHelper {
 	
 	static dispatch def Type calculateType(BoolParameter exp){
 		return Type.BOOL
+	}
+	
+	static dispatch def Type calculateType(IntArrayParameter exp){
+		return Type.INT_ARRAY
+	}
+	
+	static dispatch def Type calculateType(DoubleArrayParameter exp){
+		return Type.DOUBLE_ARRAY
+	}
+	
+	static dispatch def Type calculateType(BoolArrayParameter exp){
+		return Type.BOOL_ARRAY
+	}
+	
+	static dispatch def Type calculateType(IntMatrixParameter exp){
+		return Type.INT_MATRIX
+	}
+	
+	static dispatch def Type calculateType(DoubleMatrixParameter exp){
+		return Type.DOUBLE_MATRIX
+	}
+	
+	static dispatch def Type calculateType(BoolMatrixParameter exp){
+		return Type.BOOL_MATRIX
+	}
+	
+	static dispatch def Type calculateType(IntArray exp){
+		return Type.INT_ARRAY
+	}
+	
+	static dispatch def Type calculateType(DoubleArray exp){
+		return Type.DOUBLE_ARRAY
+	}
+	
+	static dispatch def Type calculateType(BoolArray exp){
+		return Type.BOOL_ARRAY
+	}
+	
+	static dispatch def Type calculateType(IntMatrix exp){
+		return Type.INT_MATRIX
+	}
+	
+	static dispatch def Type calculateType(DoubleMatrix exp){
+		return Type.DOUBLE_MATRIX
+	}
+	
+	static dispatch def Type calculateType(BoolMatrix exp){
+		return Type.BOOL_MATRIX
 	}
 	
 	static dispatch def Type calculateType(ObjectRef exp){

@@ -205,8 +205,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MapIndexSkeleton,
 				MapIndexInPlaceSkeleton,
 				MapLocalIndexInPlaceSkeleton: 
-					if(callingType !== call.value.params.last.calculateType){
-						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last.calculateType + '!', 
+					if(callingType !== call.value.params.last?.calculateType){
+						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
@@ -214,18 +214,18 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipSkeleton,
 				ZipInPlaceSkeleton,
 				ZipIndexSkeleton: {
-						if(callingType !== call.value.params.last.calculateType){
-							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last.calculateType + '!',
+						if(callingType !== call.value.params.last?.calculateType){
+							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 						// Last given argument needs to match second but last parameters for zip skeleton, e.g. ints.zip(f(doubles)) -> f(double, int)
-						if(!call.params.last.collection){
+						if(!call.params.last?.calculateType?.collection){
 							error('Last argument needs to be a collection!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
-						} else if(call.params.last.calculateCollectionType !== call.value.params.get(call.value.params.size-2).calculateType){
-							error('Argument type ' + call.params.last.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
+						} else if(call.params.last?.calculateCollectionType !== call.value.params.get(call.value.params.size-2).calculateType){
+							error('Argument type ' + call.params.last?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -234,18 +234,18 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				FoldSkeleton,
 				FoldIndexSkeleton: {
 						// Last two parameters need to match for fold skeleton
-						if(callingType !== call.value.params.last.calculateType || callingType !== call.value.params.get(call.value.params.size-2)?.calculateType){
-							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last.calculateType + '!', 
+						if(callingType !== call.value.params.last?.calculateType || callingType !== call.value.params.get(call.value.params.size-2)?.calculateType){
+							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 						// Check identity value parameter matches
-						if((skel instanceof FoldSkeleton) && call.value.params.last.calculateType !== (skel as FoldSkeleton).identity.calculateType){
-							error('Identity value of type ' + (skel as FoldSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last.calculateType + '!', 
+						if((skel instanceof FoldSkeleton) && call.value.params.last?.calculateType !== (skel as FoldSkeleton).identity.calculateType){
+							error('Identity value of type ' + (skel as FoldSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldSkeleton_Identity,
 								INVALID_PARAMS)
-						} else if((skel instanceof FoldIndexSkeleton) && call.value.params.last.calculateType !== (skel as FoldIndexSkeleton).identity.calculateType){
-							error('Identity value of type ' + (skel as FoldIndexSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last.calculateType + '!', 
+						} else if((skel instanceof FoldIndexSkeleton) && call.value.params.last?.calculateType !== (skel as FoldIndexSkeleton).identity.calculateType){
+							error('Identity value of type ' + (skel as FoldIndexSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldIndexSkeleton_Identity,
 								INVALID_PARAMS)
 						}
@@ -253,8 +253,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				
 				RotatePartitionsHorizontallySkeleton,
 				RotatePartitionsVerticallySkeleton: 
-					if(call.value.params.last.calculateType !== Type.INT){
-						error('The function\'s last argument of type ' + call.value.params.last.calculateType + ' does not match the expected skeleton parameter type int!', 
+					if(call.value.params.last?.calculateType !== Type.INT){
+						error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}

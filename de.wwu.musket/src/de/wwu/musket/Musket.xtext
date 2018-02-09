@@ -454,6 +454,10 @@ enum Type:
 	int | double | bool | string
 ;
 
+enum NonPrimitiveType returns Type:
+	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct
+;
+
 AssignmentOperator:
 	OP_ASSIGN_EQUALS | OP_ASSIGN_ADD | OP_ASSIGN_SUB | OP_ASSIGN_MULT | OP_ASSIGN_DIV 
 ;
