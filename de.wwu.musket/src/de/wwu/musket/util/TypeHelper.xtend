@@ -35,6 +35,15 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
 import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.IntArray
+import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.BoolArray
+import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.ParameterInput
 
 class TypeHelper {
 	
@@ -42,8 +51,42 @@ class TypeHelper {
 		return type === Type.INT || type === Type.DOUBLE
 	}
 	
+	// Helper to check the expression type of a collection
+	static dispatch def Type calculateCollectionType(IntArray obj){
+		return Type.INT
+	}
+	
+	static dispatch def Type calculateCollectionType(DoubleArray obj){
+		return Type.DOUBLE
+	}
+	
+	static dispatch def Type calculateCollectionType(BoolArray obj){
+		return Type.BOOL
+	}
+	
+	static dispatch def Type calculateCollectionType(IntMatrix obj){
+		return Type.INT
+	}
+	
+	static dispatch def Type calculateCollectionType(DoubleMatrix obj){
+		return Type.DOUBLE
+	}
+	
+	static dispatch def Type calculateCollectionType(BoolMatrix obj){
+		return Type.BOOL
+	}
+		
+	static dispatch def Type calculateCollectionType(ObjectRef obj){
+		return obj.value.calculateCollectionType
+	}
+	
+	static dispatch def Type calculateCollectionType(ParameterInput obj){
+		println("try to calculate collection type for " + obj)
+		return null;
+	}
+	
 	// Helper to check the expression type (hard to see within type hierarchy)
-	// TODO collections?? missing
+	// TODO handle collections??
 	static dispatch def Type calculateType(IntVal exp){
 		return Type.INT
 	}
@@ -60,7 +103,6 @@ class TypeHelper {
 		return Type.STRING
 	}
 	
-	// TODO check functionCall content
 	static dispatch def Type calculateType(InternalFunctionCall exp){
 		return exp.value?.returnType
 	}
@@ -379,6 +421,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def Type calculateType(EObject exp){ // Else case
+		println("try to calculate type for " + exp)
 		return null
 	}
 }
