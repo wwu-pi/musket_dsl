@@ -251,14 +251,28 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								MusketPackage.eINSTANCE.foldIndexSkeleton_Identity,
 								INVALID_PARAMS)
 						}
+						// Fold function needs to return same type as its input
+						if(callingType !== call.value.returnType){
+							error('Return type ' + call.value.returnType + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
 					}
 				
 				RotatePartitionsHorizontallySkeleton,
-				RotatePartitionsVerticallySkeleton: 
-					if(call.value.params.last?.calculateType !== Type.INT){
-						error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
+				RotatePartitionsVerticallySkeleton: {
+						// Shifting functions need exactly one int parameter
+						if(call.value.params.last?.calculateType !== Type.INT){
+							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+						// Shifting functions return one int value
+						if(call.value.returnType !== Type.INT){
+							error('Return type ' + call.value.returnType + ' must be int for this skeleton!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
 					}
 			}
 		}
