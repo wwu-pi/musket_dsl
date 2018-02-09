@@ -2,17 +2,24 @@ package de.wwu.musket.util
 
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
+import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.BoolConstant
+import de.wwu.musket.musket.BoolMatrix
 import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
+import de.wwu.musket.musket.DoubleArray
 import de.wwu.musket.musket.DoubleConstant
+import de.wwu.musket.musket.DoubleMatrix
 import de.wwu.musket.musket.DoubleParameter
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.IntConstant
+import de.wwu.musket.musket.IntMatrix
 import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
@@ -20,10 +27,12 @@ import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketBoolVariable
 import de.wwu.musket.musket.MusketDoubleVariable
+import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.MusketIntVariable
 import de.wwu.musket.musket.Not
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Or
+import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
@@ -34,21 +43,16 @@ import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.MusketFunctionCall
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.IntArray
-import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.BoolArray
-import de.wwu.musket.musket.IntMatrix
-import de.wwu.musket.musket.DoubleMatrix
-import de.wwu.musket.musket.BoolMatrix
-import de.wwu.musket.musket.Parameter
-import de.wwu.musket.musket.ParameterInput
+import de.wwu.musket.musket.CollectionElementRef
 
 class TypeHelper {
 	
 	static def isNumeric(Type type){
 		return type === Type.INT || type === Type.DOUBLE
+	}
+	
+	static def isCollection(ParameterInput input){
+		return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
 	}
 	
 	// Helper to check the expression type of a collection
@@ -76,6 +80,10 @@ class TypeHelper {
 		return Type.BOOL
 	}
 		
+	static dispatch def Type calculateCollectionType(CollectionElementRef obj){
+		return null // a collection _element_ is no collection itself
+	}
+	
 	static dispatch def Type calculateCollectionType(ObjectRef obj){
 		return obj.value.calculateCollectionType
 	}
@@ -346,6 +354,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def Type calculateType(ObjectRef exp){
+		if(exp instanceof CollectionElementRef) return exp.calculateCollectionType
 		return exp.value.calculateType
 	}
 	
