@@ -87,6 +87,30 @@ class TypeHelper {
 	static dispatch def Type calculateCollectionType(BoolMatrix obj){
 		return Type.BOOL
 	}
+	
+	static dispatch def Type calculateCollectionType(IntArrayParameter exp){
+		return Type.INT
+	}
+	
+	static dispatch def Type calculateCollectionType(DoubleArrayParameter exp){
+		return Type.DOUBLE
+	}
+	
+	static dispatch def Type calculateCollectionType(BoolArrayParameter exp){
+		return Type.BOOL
+	}
+	
+	static dispatch def Type calculateCollectionType(IntMatrixParameter exp){
+		return Type.INT
+	}
+	
+	static dispatch def Type calculateCollectionType(DoubleMatrixParameter exp){
+		return Type.DOUBLE
+	}
+	
+	static dispatch def Type calculateCollectionType(BoolMatrixParameter exp){
+		return Type.BOOL
+	}
 		
 	static dispatch def Type calculateCollectionType(CollectionElementRef obj){
 		return null // a collection _element_ is no collection itself
