@@ -28,6 +28,8 @@ import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
 import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
 import de.wwu.musket.musket.Type
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MusketIteratorForLoop
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -286,4 +288,22 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	
 	// Check function return type is correct in call 
 	
+	// Check IteratorForLoop parameter type matches
+	@Check
+	def checkIteratorForLoopParameterType(IteratorForLoop loop) {
+		if(loop.iter.calculateType !== loop.dataStructure.calculateCollectionType){
+			error('Iterator element type  ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
+				MusketPackage.eINSTANCE.iteratorForLoop_Iter,
+				INVALID_TYPE)
+		}
+	}
+	
+	@Check
+	def checkMusketIteratorForLoopParameterType(MusketIteratorForLoop loop) {
+		if(loop.iter.calculateType !== loop.dataStructure.calculateCollectionType){
+			error('Iterator element type  ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
+				MusketPackage.eINSTANCE.iteratorForLoop_Iter,
+				INVALID_TYPE)
+		}
+	}
 }
