@@ -1,12 +1,16 @@
 package de.wwu.musket.validation
 
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.ReturnStatement
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.MapOption
+import de.wwu.musket.musket.ZipSkeleton
+import de.wwu.musket.musket.ZipOption
 
 /**
  * This class contains custom validation rules. 
@@ -16,8 +20,26 @@ import static extension de.wwu.musket.util.TypeHelper.*
 class MusketTypeValidator extends AbstractMusketValidator {
 
 	public static val INVALID_TYPE = 'invalidType'
+	public static val INVALID_OPTIONS = 'invalidOptions'
 
-	// Check amount of parameters in each skeleton
+	// Check skeleton options
+	@Check
+	def checkSkeletonOptions(MapSkeleton skel) {
+		if(skel.options.exists[it == MapOption.INDEX] && skel.options.exists[it == MapOption.LOCAL_INDEX]) {
+			error('Skeleton cannot contain both index and localIndex option', 
+				MusketPackage.eINSTANCE.mapSkeleton_Options,
+				INVALID_OPTIONS)
+		}
+	}
+	
+	@Check
+	def checkSkeletonOptions(ZipSkeleton skel) {
+		if(skel.options.exists[it == ZipOption.INDEX] && skel.options.exists[it == ZipOption.LOCAL_INDEX]) {
+			error('Skeleton cannot contain both index and localIndex option', 
+				MusketPackage.eINSTANCE.mapSkeleton_Options,
+				INVALID_OPTIONS)
+		}
+	}
 	
 	// Check correct types when calculating values 
 	
