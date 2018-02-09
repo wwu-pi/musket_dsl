@@ -2,11 +2,13 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.MusketFunctionCall
 import static extension de.wwu.musket.generator.cpu.Parameter.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class MusketFunctionCalls {
 	def static generateMusketFunctionCall(MusketFunctionCall mfc){
 		switch mfc.value{
 			case PRINT: generatePrint(mfc)
+			case RAND: generateRand(mfc)
 			default: ''''''
 		}
 	}
@@ -16,4 +18,6 @@ class MusketFunctionCalls {
 			printf«FOR p : mfc.params BEFORE '(' SEPARATOR ',' AFTER ')'»«(p.generateParameterInput)»«ENDFOR»;
 		}
 	'''	
+	
+	def static generateRand(MusketFunctionCall mfc)'''rand_dist_«mfc.params.head.CppPrimitiveTypeAsString»_«mfc.params.head.ValueAsString»_«mfc.params.get(1).ValueAsString»[omp_get_thread_num()](«Config.var_rng_array»[omp_get_thread_num()])'''	
 }
