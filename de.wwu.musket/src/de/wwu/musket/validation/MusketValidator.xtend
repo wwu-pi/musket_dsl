@@ -10,7 +10,7 @@ import org.eclipse.xtext.validation.ComposedChecks
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
- @ComposedChecks(validators = #[MusketTypeValidator])
+ @ComposedChecks(validators = #[MusketTypeValidator, MusketModelValidator])
 class MusketValidator extends AbstractMusketValidator {
 	
 	// Delegates validation to other classes mentioned in the annotation above.
