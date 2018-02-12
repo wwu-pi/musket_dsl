@@ -20,5 +20,5 @@ main{
 	a.show();
 	a.mapInPlace(square());
 	double f = a.fold(0.0, sum());
-	print("Frobenius norm is %.5f.\n", f);
+	mkt::print("Frobenius norm is %.5f.\n", f);
 }
