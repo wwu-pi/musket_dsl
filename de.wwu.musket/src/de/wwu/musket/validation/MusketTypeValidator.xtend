@@ -291,7 +291,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MapIndexSkeleton,
 				MapIndexInPlaceSkeleton,
 				MapLocalIndexInPlaceSkeleton: 
-					if( call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT &&
+					if(call.value.params.size >= 2 && call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT &&
 						(isArray || call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
@@ -302,7 +302,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have 2 final parameters after index parameters
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 				ZipIndexSkeleton:
-					if( call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT &&
+					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT &&
 						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType !== Type.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
@@ -313,7 +313,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have index parameters as final parameters
 				FoldSkeleton,
 				FoldIndexSkeleton: 
-					if( call.value.params.size > 0 && call.value.params.get(call.value.params.size - 1)?.calculateType !== Type.INT &&
+					if(call.value.params.size >= 1 && call.value.params.get(call.value.params.size - 1)?.calculateType !== Type.INT &&
 						(isArray || call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 

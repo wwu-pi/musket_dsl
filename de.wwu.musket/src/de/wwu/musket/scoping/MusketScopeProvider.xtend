@@ -3,22 +3,19 @@
  */
 package de.wwu.musket.scoping
 
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.EReference
 import de.wwu.musket.musket.MusketPackage
-import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.NestedAttributeRef
-import org.eclipse.xtext.scoping.Scopes
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Struct
-import org.eclipse.xtext.EcoreUtil2
-import de.wwu.musket.musket.StructParameter
-import de.wwu.musket.musket.CollectionElementRef
-
-import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructParameter
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
-import de.wwu.musket.musket.ReferableObject
+import org.eclipse.xtext.scoping.Scopes
 
 /**
  * This class contains custom scoping description.

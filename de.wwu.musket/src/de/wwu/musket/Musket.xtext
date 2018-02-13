@@ -297,11 +297,18 @@ MusketAssignment:
 ;
 
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject] (
-		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
-		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
-	) (tail = NestedAttributeRef)? |
+	{CollectionElementRef} value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
 	=> value=[ReferableObject] (tail = NestedAttributeRef)?
+;
+
+fragment CollectionRef*:
+	COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
+	COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
+;
+
+NestedAttributeRef:
+	{NestedCollectionElementRef} ('.') ref=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+	=> ('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
 ;
 
 ReturnStatement:
@@ -614,8 +621,4 @@ terminal COLL_LOCAL_OPEN:
 
 terminal COLL_LOCAL_CLOSE: 
 	']]'
-;
-
-NestedAttributeRef:
-	('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
 ;
