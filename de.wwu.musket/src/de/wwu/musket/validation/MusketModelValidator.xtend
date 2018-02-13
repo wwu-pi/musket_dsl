@@ -4,13 +4,10 @@ import de.wwu.musket.musket.Model
 import de.wwu.musket.musket.MusketObject
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
-import org.eclipse.xtext.validation.Check
-import de.wwu.musket.musket.Variable
-import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.ReferableObject
-import de.wwu.musket.musket.MainBlock
 import java.util.Collection
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.validation.Check
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -39,11 +36,12 @@ class MusketModelValidator extends AbstractMusketValidator {
 	// Check if function parameter names overwrite global object names
 	@Check
 	def checkFunctionParameterNamesOverwriteGlobals(Parameter param) {
-		if((param.eResource.allContents.filter(Model).next as Model).data.exists[it !== param && it.name == param.name]) {
-			warning('Parameter ' + param.name + ' overwrites global object with the same name!', 
-				MusketPackage.eINSTANCE.referableObject_Name,
-				INVALID_ID)
-		}
+		// Already checked in checkVariableNamesOverwritePrevious() and marked as error
+//		if((param.eResource.allContents.filter(Model).next as Model).data.exists[it !== param && it.name == param.name]) {
+//			warning('Parameter ' + param.name + ' overwrites global object with the same name!', 
+//				MusketPackage.eINSTANCE.referableObject_Name,
+//				INVALID_ID)
+//		}
 	}
 	
 	// Check if variable name overwrites other name defined in the scope

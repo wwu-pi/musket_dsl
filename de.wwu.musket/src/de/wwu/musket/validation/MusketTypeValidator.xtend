@@ -278,7 +278,51 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		}
 	}
 	
-	// Check correct types when calculating values 
+	@Check
+	def checkSkeletonFunctionIndexParameterType(Skeleton skel) {
+		if (skel.param instanceof InternalFunctionCall){
+			val call = skel.param as InternalFunctionCall
+			val isArray = (skel.eContainer as SkeletonExpression).obj instanceof Array
+			
+			// Check skeleton type
+			switch skel {
+				// Those have 1 final parameter after index parameters
+				MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
+				MapIndexSkeleton,
+				MapIndexInPlaceSkeleton,
+				MapLocalIndexInPlaceSkeleton: 
+					if( call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT)
+					){
+						error('Referenced function does not have correct amount or type of index parameters!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+				
+				// Those have 2 final parameters after index parameters
+				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
+				ZipIndexSkeleton:
+					if( call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType !== Type.INT)
+					){
+						error('Referenced function does not have correct amount or type of index parameters!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					
+				// Those have index parameters as final parameters
+				FoldSkeleton,
+				FoldIndexSkeleton: 
+					if( call.value.params.size > 0 && call.value.params.get(call.value.params.size - 1)?.calculateType !== Type.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT)
+					){
+						error('Referenced function does not have correct amount or type of index parameters!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+			}
+		}
+	}
 	
 	// Check return type of functions is correct
 	@Check

@@ -3,23 +3,29 @@ package de.wwu.musket.util
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
 import de.wwu.musket.musket.BoolArray
+import de.wwu.musket.musket.BoolArrayParameter
 import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.BoolMatrixParameter
 import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
-import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
 import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.DoubleArrayParameter
 import de.wwu.musket.musket.DoubleConstant
 import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.DoubleMatrixParameter
 import de.wwu.musket.musket.DoubleParameter
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.IntArray
+import de.wwu.musket.musket.IntArrayParameter
 import de.wwu.musket.musket.IntConstant
 import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.IntMatrixParameter
 import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
@@ -43,13 +49,6 @@ import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.CollectionElementRef
-import de.wwu.musket.musket.IntArrayParameter
-import de.wwu.musket.musket.DoubleArrayParameter
-import de.wwu.musket.musket.BoolArrayParameter
-import de.wwu.musket.musket.IntMatrixParameter
-import de.wwu.musket.musket.DoubleMatrixParameter
-import de.wwu.musket.musket.BoolMatrixParameter
 
 class TypeHelper {
 	
