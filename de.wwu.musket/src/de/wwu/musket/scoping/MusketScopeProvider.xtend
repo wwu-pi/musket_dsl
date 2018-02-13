@@ -12,6 +12,13 @@ import org.eclipse.xtext.scoping.Scopes
 import de.wwu.musket.musket.Struct
 import org.eclipse.xtext.EcoreUtil2
 import de.wwu.musket.musket.StructParameter
+import de.wwu.musket.musket.CollectionElementRef
+
+import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.StructArray
+import de.wwu.musket.musket.StructMatrix
+import org.eclipse.xtext.scoping.IScope
+import de.wwu.musket.musket.ReferableObject
 
 /**
  * This class contains custom scoping description.
@@ -22,24 +29,30 @@ import de.wwu.musket.musket.StructParameter
 class MusketScopeProvider extends AbstractMusketScopeProvider {
 
     override getScope(EObject context, EReference reference) {
-        // We want to define the Scope for the Element's superElement cross-reference
-        if (context instanceof NestedAttributeRef
-                && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
-            // Collect a list of candidates by going through the model
-            // EcoreUtil2 provides useful functionality to do that
-            // For example searching for all elements within the root Object's tree
-            //val rootElement = EcoreUtil2.getRootContainer(context)
-            //val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Element)
-            // Create IEObjectDescriptions and puts them into an IScope instance
-            
-            val containerElement = (context.eContainer as ObjectRef).value
-            
+		// We want to define the Scope for the Element's superElement cross-reference
+		if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
+			
+			val ReferableObject containerElement = 
+				if(context.eContainer instanceof ObjectRef) {
+					(context.eContainer as ObjectRef).value
+				} else if(context.eContainer instanceof NestedAttributeRef) {
+					(context.eContainer as NestedAttributeRef).ref
+				}
+			
+			val rootElement = EcoreUtil2.getRootContainer(context)
+	            	
             if(containerElement instanceof StructParameter) {
-            	val rootElement = EcoreUtil2.getRootContainer(context)
             	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
             	return Scopes.scopeFor(candidates)
+            } else if (containerElement instanceof StructArray) {
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            } else if (containerElement instanceof StructMatrix) {
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            } else {
+            	return IScope::NULLSCOPE;
             }
-            // TODO elseif array
         }
         return super.getScope(context, reference);
     }

@@ -55,6 +55,7 @@ import de.wwu.musket.musket.StructMatrixParameter
 import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
 import de.wwu.musket.musket.StructParameter
+import de.wwu.musket.musket.CollectionObject
 
 class TypeHelper {
 	
@@ -140,6 +141,11 @@ class TypeHelper {
 	
 	static dispatch def Type calculateCollectionType(ObjectRef obj){
 		return obj.value.calculateCollectionType
+	}
+	
+	static dispatch def Type calculateCollectionType(CollectionObject obj){
+		println("try to calculate collection type for " + obj)
+		return null;
 	}
 	
 	static dispatch def Type calculateCollectionType(ParameterInput obj){
