@@ -161,7 +161,9 @@ IteratorForLoop:
 IfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=FunctionStatement+
-	'}'
+	'}' ('else' '{'
+		elseStatements+=FunctionStatement+
+	'}')?
 ;
 
 CollectionObjectOrParam:
@@ -222,7 +224,9 @@ MusketIteratorForLoop:
 MusketIfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=MainFunctionStatement+
-	'}'
+	'}' ('else' '{'
+		elseStatements+=MainFunctionStatement+
+	'}')?
 ;
 
 MusketExpression:
