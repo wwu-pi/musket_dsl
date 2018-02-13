@@ -429,7 +429,8 @@ MultiplicationDivision returns Expression:
 
 PrefixedExpression returns Expression:
 	{SignedArithmetic} '-' expression=ArithmeticExpression |
-	ArithmeticExpression
+	{TypeCast} ('(' targetType=Type ')')? expression=ArithmeticExpression |
+	=> ArithmeticExpression
 ;
 
 ArithmeticExpression returns Expression:
