@@ -18,6 +18,7 @@ class Config {
 	public static final String var_np = "number_of_processes"
 	public static final String var_pid = "process_id"
 	public static final String var_mpi_procs = "mpi_world_size"
+	public static final String var_omp_tid = "omp_tid"
 	
 	public static final String tmp_size_t = "tmp_size_t"
 	

@@ -2,6 +2,7 @@ package de.wwu.musket.generator.cpu
 
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
@@ -58,7 +59,7 @@ class ExpressionGenerator {
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
-			MusketFunctionCall: '''//TODO: MusketFunctionCall!'''
+			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
 			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
 		}
 	}
