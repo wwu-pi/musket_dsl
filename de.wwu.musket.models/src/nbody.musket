@@ -48,9 +48,9 @@ Particle calc_force(int curIndex, Particle curParticle) {
         double dx, dy, dz, r2, r, qj_by_r3;
 
         // Here we absorb the minus sign by changing the order of i and j.
-        dx = curParticle.x - oldParticles[j].x;
-        dy = curParticle.y - oldParticles[j].y;
-        dz = curParticle.z - oldParticles[j].z;
+        dx = curParticle.x - oldP[j].x;
+        dy = curParticle.y - oldP[j].y;
+        dz = curParticle.z - oldP[j].z;
 
         r2 = dx * dx + dy * dy + dz * dz;
         r = sqrtf(r2);
@@ -58,8 +58,8 @@ Particle calc_force(int curIndex, Particle curParticle) {
         // Quench the force if the particles are too close.
         if (r < EPSILON){
           qj_by_r3 = 0.0;
-        }else{
-          qj_by_r3 = oldParticles[j].charge / (r2 * r);
+        } else {
+          qj_by_r3 = oldP[j].charge / (r2 * r);
         }
 
         // accumulate the contribution from particle j.
@@ -95,7 +95,7 @@ main{
 	
 	for (int i = 0; i < steps; ++i) {
 	    P.mapIndexInPlace(calc_force());	
-	    P.gather(oldP);
+	    oldP = P.gather();
   	}
   		
 	mkt::print('Final Particle System:\n');

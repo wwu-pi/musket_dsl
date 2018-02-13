@@ -56,6 +56,8 @@ import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
 import de.wwu.musket.musket.StructParameter
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.TypeCast
+import de.wwu.musket.musket.Modulo
 
 class TypeHelper {
 	
@@ -68,6 +70,14 @@ class TypeHelper {
 		   || type === Type.INT_MATRIX || type === Type.DOUBLE_MATRIX || type === Type.BOOL_MATRIX || type === Type.STRING_MATRIX
 		   || type === Type.STRUCT_ARRAY || type === Type.STRUCT_MATRIX
 		//return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
+	}
+	
+	static def String getReadableType(Function function){
+		if(function.calculateType === Type.STRUCT){
+			return function.returnType.name 
+		} else {
+			return function.returnTypePrimitive.toString
+		}
 	}
 	
 	// Helper to check the expression type of a collection
@@ -490,6 +500,10 @@ class TypeHelper {
 		return exp.expression.calculateType
 	}
 	
+	static dispatch def Type calculateType(TypeCast exp){
+		return exp.targetType
+	}
+	
 	static dispatch def Type calculateType(PostIncrement exp){
 		return exp.value.calculateType
 	}
@@ -534,6 +548,13 @@ class TypeHelper {
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error
 			return exp.right.calculateType // division result depends on right side 
+		}
+		return exp.left.calculateType 
+	}
+	
+	static dispatch def Type calculateType(Modulo exp){
+		if(exp.right !== null) {
+			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error 
 		}
 		return exp.left.calculateType 
 	}
