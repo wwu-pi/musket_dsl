@@ -252,7 +252,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as its input
-						if(callingType !== call.value.returnType){
+						if(call.value.calculateType !== callingType){
 							error('Return type ' + call.value.returnType + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
@@ -268,7 +268,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								INVALID_PARAMS)
 						}
 						// Shifting functions return one int value
-						if(call.value.returnType !== Type.INT){
+						if(call.value.calculateType !== Type.INT){
 							error('Return type ' + call.value.returnType + ' must be int for this skeleton!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
@@ -334,7 +334,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		} while(!(obj instanceof Function) && obj.eContainer !== null)
 		
 		// Check return type
-		if((obj as Function).returnType !== stmt.value.calculateType){
+		if((obj as Function).calculateType !== stmt.value.calculateType){
 			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + (obj as Function).returnType + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)

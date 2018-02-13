@@ -49,6 +49,7 @@ import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
+import de.wwu.musket.musket.Function
 
 class TypeHelper {
 	
@@ -143,7 +144,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def Type calculateType(InternalFunctionCall exp){
-		return exp.value?.returnType
+		return if (exp.value?.returnType !== null) Type.STRUCT else exp.value?.returnTypePrimitive
 	}
 	
 	static dispatch def Type calculateType(StandardFunctionCall exp){
@@ -506,6 +507,11 @@ class TypeHelper {
 	static dispatch def Type calculateType(CompareExpression exp){
 		if(exp.eqRight !== null) return Type.BOOL
 		return exp.eqLeft?.calculateType
+	}
+	
+	static dispatch def Type calculateType(Function exp){
+		if(exp.returnType !== null) return Type.STRUCT
+		return exp.returnTypePrimitive
 	}
 	
 	static dispatch def Type calculateType(EObject exp){ // Else case

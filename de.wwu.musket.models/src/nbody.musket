@@ -90,7 +90,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
 main{
 	P.mapIndexInPlace(init_particles());
 	
-	mkt::print('Initial Particle System:\n')
+	mkt::print('Initial Particle System:\n');
 	P.show();
 	
 	for (int i = 0; i < steps; ++i) {
@@ -98,6 +98,6 @@ main{
 	    P.gather(oldP);
   	}
   		
-	mkt::print('Final Particle System:\n')
+	mkt::print('Final Particle System:\n');
 	oldP.show();
 }

@@ -52,13 +52,15 @@ IndividualObject:
 Array:
 	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
 	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{StructArray} 'array' '<' type=[Struct] ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' '}')?
 ;
 
 Matrix:
 	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
 	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' '}')?
 ;
 
 
@@ -116,13 +118,13 @@ Function:
 ;
 
 RegularFunction:
-	returnType=Type name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
+	(returnType=[Struct] | returnTypePrimitive=Type) name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
 
 LambdaFunction:
-	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' returnType=Type '{'
+	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=[Struct] | returnTypePrimitive=Type) '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
@@ -169,9 +171,11 @@ CollectionParameter:
 	{IntArrayParameter} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
 	{DoubleArrayParameter} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
 	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
+	{StructArrayParameter} 'array' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID |
 	{IntMatrixParameter} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
 	{DoubleMatrixParameter} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
-	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID
+	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
+	{StructMatrixParameter} 'matrix' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID
 ;
 
 IndividualParameter:
