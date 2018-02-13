@@ -1,14 +1,13 @@
 package de.wwu.musket.generator.extensions
 
-import de.wwu.musket.musket.ConfigBlock
-import de.wwu.musket.musket.Model
-import org.eclipse.emf.ecore.resource.Resource
 import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.SkeletonExpression
-import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.ConfigBlock
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.Model
 import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.SkeletonExpression
+import org.eclipse.emf.ecore.resource.Resource
 
 class ModelElementAccess {
 

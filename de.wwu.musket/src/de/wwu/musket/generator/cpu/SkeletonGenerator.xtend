@@ -2,6 +2,8 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.BoolVal
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.DoubleArray
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.FoldSkeleton
@@ -9,31 +11,28 @@ import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapOption
+import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.RegularFunction
+import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
+import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
 import java.util.Map
 import java.util.Map.Entry
 
-import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.generator.cpu.Parameter.*
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIrecv
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
-import de.wwu.musket.musket.MapIndexInPlaceSkeleton
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.MapSkeleton
-import de.wwu.musket.musket.MapOption
-import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
-import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
+
+import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
+import static extension de.wwu.musket.generator.cpu.Parameter.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class SkeletonGenerator {
 	
@@ -83,7 +82,7 @@ class SkeletonGenerator {
 		}
 	}
 	
-	def static Map<String, String> createParameterLookupTable(CollectionObject co, Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTable(CollectionObject co, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -97,7 +96,7 @@ class SkeletonGenerator {
 		return param_map
 	}
 	
-	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Array co, Iterable<Parameter> parameters,
+	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Array co, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -110,7 +109,7 @@ class SkeletonGenerator {
 		return param_map
 	}
 	
-	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Matrix co, Iterable<Parameter> parameters,
+	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Matrix co, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -197,7 +196,7 @@ class SkeletonGenerator {
 		}
 	'''
 	
-	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Array co, Iterable<Parameter> parameters,
+	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Array co, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -210,7 +209,7 @@ class SkeletonGenerator {
 		return param_map
 	}
 
-	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Matrix co, Iterable<Parameter> parameters,
+	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Matrix co, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -245,7 +244,7 @@ class SkeletonGenerator {
 		MPI_Allreduce(&«Config.var_fold_result»_«a.CppPrimitiveTypeAsString», &«target», sizeof(«a.CppPrimitiveTypeAsString»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 	'''
 
-	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -259,7 +258,7 @@ class SkeletonGenerator {
 	}
 
 	def static Map<String, String> createParameterLookupTableFoldReductionClause(CollectionObject a,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
@@ -304,7 +303,7 @@ class SkeletonGenerator {
 	'''
 	
 	def static Map<String, String> createParameterLookupTableRotatePartitionsHorizontally(Matrix m, int pid,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).key»''')
@@ -347,7 +346,7 @@ class SkeletonGenerator {
 	'''
 	
 	def static Map<String, String> createParameterLookupTableRotatePartitionsVertically(Matrix m, int pid,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).value»''')

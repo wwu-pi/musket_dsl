@@ -1,11 +1,10 @@
 package de.wwu.musket.generator.cpu
 
-import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
-
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
+import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.CollectionElementRef
+import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
@@ -14,25 +13,23 @@ import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.IndividualObject
 import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.Multiplication
+import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.Not
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Or
-import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.PostDecrement
+import de.wwu.musket.musket.PostIncrement
+import de.wwu.musket.musket.PreDecrement
+import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.Subtraction
 import java.util.Map
-import de.wwu.musket.musket.IntVariable
-import de.wwu.musket.musket.Variable
-import de.wwu.musket.musket.PostIncrement
-import de.wwu.musket.musket.PostDecrement
-import de.wwu.musket.musket.PreIncrement
-import de.wwu.musket.musket.PreDecrement
-import de.wwu.musket.musket.CollectionFunctionCall
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.CollectionElementRef
-import de.wwu.musket.musket.MusketFunctionCall
+
+import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
+import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -84,5 +81,5 @@ class ExpressionGenerator {
 
 	def static dispatch generateObjectRef(IndividualObject i, Map<String, String> param_map) '''«i.name»'''
 
-	def static dispatch generateObjectRef(Parameter p, Map<String, String> param_map) '''«IF param_map !== null && param_map.containsKey(p.name)»«param_map.get(p.name)»«ELSE»«p.name»«ENDIF»'''
+	def static dispatch generateObjectRef(de.wwu.musket.musket.Parameter p, Map<String, String> param_map) '''«IF param_map !== null && param_map.containsKey(p.name)»«param_map.get(p.name)»«ELSE»«p.name»«ENDIF»'''
 }

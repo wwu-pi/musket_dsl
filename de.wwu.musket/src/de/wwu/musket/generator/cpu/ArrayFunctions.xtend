@@ -1,13 +1,12 @@
 package de.wwu.musket.generator.cpu
 
+import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.Matrix
 
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
 
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.CollectionFunctionName
 
 class ArrayFunctions {
 

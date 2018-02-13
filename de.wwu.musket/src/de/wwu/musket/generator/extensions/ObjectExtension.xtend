@@ -5,29 +5,27 @@ import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.BoolArrayParameter
 import de.wwu.musket.musket.BoolConstant
+import de.wwu.musket.musket.BoolMatrix
 import de.wwu.musket.musket.BoolParameter
+import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.DoubleArray
 import de.wwu.musket.musket.DoubleArrayParameter
 import de.wwu.musket.musket.DoubleConstant
+import de.wwu.musket.musket.DoubleMatrix
 import de.wwu.musket.musket.DoubleParameter
+import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.IntArrayParameter
 import de.wwu.musket.musket.IntConstant
-import de.wwu.musket.musket.IntParameter
-import de.wwu.musket.musket.IntVariable
-
-import static extension de.wwu.musket.generator.extensions.ExpressionGenerator.*
-import de.wwu.musket.musket.BoolVal
-import de.wwu.musket.musket.IntVal
-import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.IntMatrix
-import de.wwu.musket.musket.DoubleMatrix
-import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.IntParameter
+import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.MusketObject
-import de.wwu.musket.musket.ReferableObject
+
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -144,15 +142,15 @@ class ObjectExtension {
 	
 	// Variable
 	def static dispatch ValueAsString(IntVariable o) {
-		o.initExpression.generateString
+		o.initExpression.generateExpression(null)
 	}
 
 	def static dispatch ValueAsString(DoubleVariable o) {
-		o.initExpression.generateString
+		o.initExpression.generateExpression(null)
 	}
 
 	def static dispatch ValueAsString(BoolVariable o) {
-		o.initExpression.generateString
+		o.initExpression.generateExpression(null)
 	}
 
 	// Constants

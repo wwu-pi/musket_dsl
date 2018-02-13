@@ -1,36 +1,31 @@
 package de.wwu.musket.generator.cpu
 
+import de.wwu.musket.musket.BoolArray
+import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.BoolVal
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.FunctionCall
+import de.wwu.musket.musket.IntArray
+import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.RegularFunction
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.SkeletonExpression
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import org.eclipse.emf.ecore.resource.Resource
 
-import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
-import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import java.util.Map
-import de.wwu.musket.musket.ParameterInput
-import java.util.HashMap
-import de.wwu.musket.musket.Parameter
-import de.wwu.musket.musket.FunctionCall
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.DoubleVal
-import de.wwu.musket.musket.IntVal
-import de.wwu.musket.musket.BoolVal
-import java.util.List
-import de.wwu.musket.musket.SkeletonExpression
-import org.eclipse.emf.ecore.resource.Resource
-import org.omg.PortableInterceptor.InterceptorOperations
-import de.wwu.musket.musket.IntArray
-import de.wwu.musket.musket.BoolArray
-import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.IntMatrix
-import de.wwu.musket.musket.BoolMatrix
-import de.wwu.musket.musket.DoubleMatrix
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 
 class FoldSkeletonGenerator {
 
@@ -89,7 +84,7 @@ class FoldSkeletonGenerator {
 		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 	'''
 
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTableFoldReductionClause(Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -155,7 +150,7 @@ class FoldSkeletonGenerator {
 		return result
 	}
 
-	def static Map<String, String> createParameterLookupTable(Iterable<Parameter> parameters,
+	def static Map<String, String> createParameterLookupTable(Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 

@@ -19,8 +19,8 @@ struct Particle{
 	double charge;
 };
 
-array<Particle,16,dist> P = {};
-array<Particle,16,copy> oldP = {};
+array<Particle,16,dist> P;
+array<Particle,16,copy> oldP;
 
 Particle init_particles(int i, Particle p){
     x = mkt::rand(0,1);
@@ -58,7 +58,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
         // Quench the force if the particles are too close.
         if (r < EPSILON){
           qj_by_r3 = 0.0;
-        }else{
+        } else {
           qj_by_r3 = oldParticles[j].charge / (r2 * r);
         }
 

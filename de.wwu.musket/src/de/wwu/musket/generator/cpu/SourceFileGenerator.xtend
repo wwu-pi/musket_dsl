@@ -1,25 +1,20 @@
 package de.wwu.musket.generator.cpu
 
+import de.wwu.musket.musket.MusketFunctionName
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
-import static de.wwu.musket.generator.cpu.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
+import static de.wwu.musket.generator.cpu.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.RngGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.MusketFunctionName
 
 class SourceFileGenerator {
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
