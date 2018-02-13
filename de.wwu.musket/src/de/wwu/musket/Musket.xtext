@@ -420,13 +420,11 @@ BooleanExpression returns Expression:
 
 // Arithmetic expressions
 AdditionSubtraction returns Expression: // Top-Level arithmetic expression
-	=> MultiplicationDivision ({Addition.left=current} OP_MATH_PLUS right=MultiplicationDivision)* |
-	MultiplicationDivision ({Subtraction.left=current} OP_MATH_MINUS right=MultiplicationDivision)*
+	MultiplicationDivision (({Addition.left=current} OP_MATH_PLUS | {Subtraction.left=current} OP_MATH_MINUS) right=MultiplicationDivision)*
 ;
 
 MultiplicationDivision returns Expression:
-	=> PrefixedExpression ({Multiplication.left=current} OP_MATH_MULT right=PrefixedExpression)* |
-	PrefixedExpression ({Division.left=current} OP_MATH_DIV right=PrefixedExpression)*
+	PrefixedExpression (({Multiplication.left=current} OP_MATH_MULT | {Division.left=current} OP_MATH_DIV) right=PrefixedExpression)*
 ;
 
 PrefixedExpression returns Expression:
@@ -479,7 +477,8 @@ enum Type:
 	int | double | bool | string
 ;
 
-enum NonPrimitiveType returns Type:
+// synthetic extension of Type for non-instantiable types
+enum NonPrimitiveType returns Type: 
 	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct | structArray | structMatrix
 ;
 
