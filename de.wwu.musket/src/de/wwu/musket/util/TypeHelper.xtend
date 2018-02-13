@@ -50,6 +50,10 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.Type
 import org.eclipse.emf.ecore.EObject
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.StructArray
+import de.wwu.musket.musket.StructMatrixParameter
+import de.wwu.musket.musket.StructArrayParameter
+import de.wwu.musket.musket.StructMatrix
 
 class TypeHelper {
 	
@@ -60,6 +64,7 @@ class TypeHelper {
 	static def isCollection(Type type){
 		return type === Type.INT_ARRAY || type === Type.DOUBLE_ARRAY  || type === Type.BOOL_ARRAY  || type === Type.STRING_ARRAY
 		   || type === Type.INT_MATRIX || type === Type.DOUBLE_MATRIX || type === Type.BOOL_MATRIX || type === Type.STRING_MATRIX
+		   || type === Type.STRUCT_ARRAY || type === Type.STRUCT_MATRIX
 		//return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
 	}
 	
@@ -76,6 +81,10 @@ class TypeHelper {
 		return Type.BOOL
 	}
 	
+	static dispatch def Type calculateCollectionType(StructArray obj){
+		return Type.STRUCT
+	}
+	
 	static dispatch def Type calculateCollectionType(IntMatrix obj){
 		return Type.INT
 	}
@@ -88,28 +97,40 @@ class TypeHelper {
 		return Type.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(IntArrayParameter exp){
+	static dispatch def Type calculateCollectionType(StructMatrix obj){
+		return Type.STRUCT
+	}
+	
+	static dispatch def Type calculateCollectionType(IntArrayParameter obj){
 		return Type.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleArrayParameter exp){
+	static dispatch def Type calculateCollectionType(DoubleArrayParameter obj){
 		return Type.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolArrayParameter exp){
+	static dispatch def Type calculateCollectionType(BoolArrayParameter obj){
 		return Type.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(IntMatrixParameter exp){
+	static dispatch def Type calculateCollectionType(StructArrayParameter obj){
+		return Type.STRUCT
+	}
+	
+	static dispatch def Type calculateCollectionType(IntMatrixParameter obj){
 		return Type.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleMatrixParameter exp){
+	static dispatch def Type calculateCollectionType(DoubleMatrixParameter obj){
 		return Type.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolMatrixParameter exp){
+	static dispatch def Type calculateCollectionType(BoolMatrixParameter obj){
 		return Type.BOOL
+	}
+	
+	static dispatch def Type calculateCollectionType(StructMatrixParameter obj){
+		return Type.STRUCT
 	}
 		
 	static dispatch def Type calculateCollectionType(CollectionElementRef obj){
@@ -397,6 +418,10 @@ class TypeHelper {
 		return Type.BOOL_ARRAY
 	}
 	
+	static dispatch def Type calculateType(StructArrayParameter exp){
+		return Type.STRUCT_ARRAY
+	}
+	
 	static dispatch def Type calculateType(IntMatrixParameter exp){
 		return Type.INT_MATRIX
 	}
@@ -407,6 +432,10 @@ class TypeHelper {
 	
 	static dispatch def Type calculateType(BoolMatrixParameter exp){
 		return Type.BOOL_MATRIX
+	}
+	
+	static dispatch def Type calculateType(StructMatrixParameter exp){
+		return Type.STRUCT_MATRIX
 	}
 	
 	static dispatch def Type calculateType(IntArray exp){
@@ -421,6 +450,10 @@ class TypeHelper {
 		return Type.BOOL_ARRAY
 	}
 	
+	static dispatch def Type calculateType(StructArray exp){
+		return Type.STRUCT_ARRAY
+	}
+	
 	static dispatch def Type calculateType(IntMatrix exp){
 		return Type.INT_MATRIX
 	}
@@ -431,6 +464,10 @@ class TypeHelper {
 	
 	static dispatch def Type calculateType(BoolMatrix exp){
 		return Type.BOOL_MATRIX
+	}
+	
+	static dispatch def Type calculateType(StructMatrix exp){
+		return Type.STRUCT_MATRIX
 	}
 	
 	static dispatch def Type calculateType(ObjectRef exp){
