@@ -54,6 +54,7 @@ import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrixParameter
 import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructParameter
 
 class TypeHelper {
 	
@@ -404,6 +405,10 @@ class TypeHelper {
 	
 	static dispatch def Type calculateType(BoolParameter exp){
 		return Type.BOOL
+	}
+	
+	static dispatch def Type calculateType(StructParameter exp){
+		return Type.STRUCT
 	}
 	
 	static dispatch def Type calculateType(IntArrayParameter exp){

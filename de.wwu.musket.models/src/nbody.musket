@@ -23,14 +23,14 @@ array<Particle,16,dist> P = {};
 array<Particle,16,copy> oldP = {};
 
 Particle init_particles(int i, Particle p){
-    x = mkt::rand(0,1);
-    y = mkt::rand(0,1);
-    z = mkt::rand(0,1);
-    vx = 0.0;
-    vy = 0.0;
-    vz = 0.0;
-    mass = 1.0;
-    charge = 1.0 - 2.0 * (double) (i % 2);
+	p.x = mkt::rand(0,1);
+    p.y = mkt::rand(0,1);
+    p.z = mkt::rand(0,1);
+    p.vx = 0.0;
+    p.vy = 0.0;
+    p.vz = 0.0;
+    p.mass = 1.0;
+    p.charge = 1.0 - 2.0 * (double) (i % 2);
 }
 
 Particle calc_force(int curIndex, Particle curParticle) {
@@ -39,7 +39,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
     double az = 0.0;
 
     // calculate forces for the current particle
-    for (int j = 0; j < oldParticles.getSize(); j++) {
+    for (int j = 0; j < oldP.size(); j++) {
 
       // do not evaluate interaction with yourself.
       if (j != curIndex) {

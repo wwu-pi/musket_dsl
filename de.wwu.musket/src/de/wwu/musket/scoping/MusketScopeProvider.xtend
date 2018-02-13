@@ -3,6 +3,15 @@
  */
 package de.wwu.musket.scoping
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import de.wwu.musket.musket.MusketPackage
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.NestedAttributeRef
+import org.eclipse.xtext.scoping.Scopes
+import de.wwu.musket.musket.Struct
+import org.eclipse.xtext.EcoreUtil2
+import de.wwu.musket.musket.StructParameter
 
 /**
  * This class contains custom scoping description.
@@ -12,4 +21,26 @@ package de.wwu.musket.scoping
  */
 class MusketScopeProvider extends AbstractMusketScopeProvider {
 
+    override getScope(EObject context, EReference reference) {
+        // We want to define the Scope for the Element's superElement cross-reference
+        if (context instanceof NestedAttributeRef
+                && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
+            // Collect a list of candidates by going through the model
+            // EcoreUtil2 provides useful functionality to do that
+            // For example searching for all elements within the root Object's tree
+            //val rootElement = EcoreUtil2.getRootContainer(context)
+            //val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Element)
+            // Create IEObjectDescriptions and puts them into an IScope instance
+            
+            val containerElement = (context.eContainer as ObjectRef).value
+            
+            if(containerElement instanceof StructParameter) {
+            	val rootElement = EcoreUtil2.getRootContainer(context)
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            }
+            // TODO elseif array
+        }
+        return super.getScope(context, reference);
+    }
 }

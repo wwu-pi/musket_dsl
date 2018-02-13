@@ -65,7 +65,7 @@ Matrix:
 
 
 Variable:
-	IntVariable | DoubleVariable | BoolVariable
+	IntVariable | DoubleVariable | BoolVariable | StructVariable
 ;
 
 IntVariable:
@@ -79,6 +79,11 @@ DoubleVariable:
 BoolVariable:
 	'bool' name=ID ('=' initExpression=Expression)?
 ;
+
+StructVariable:
+	type=[Struct] name=ID ('=' initExpression=Expression)?
+;
+
 
 MusketVariable:
 	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | Variable
@@ -292,11 +297,11 @@ MusketAssignment:
 ;
 
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject|QUALIFIED_NAME] (
+	{CollectionElementRef} value=[CollectionObject] (
 		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
 		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
-	) |
-	=> value=[ReferableObject|QUALIFIED_NAME]
+	) (tail = NestedAttributeRef)? |
+	=> value=[ReferableObject] (tail = NestedAttributeRef)?
 ;
 
 ReturnStatement:
@@ -398,7 +403,8 @@ And returns Expression:
 BooleanExpression returns Expression:
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
 	BoolVal |
-	AdditionSubtraction
+	AdditionSubtraction |
+	StructVal
 ;
 
 // Arithmetic expressions
@@ -449,6 +455,10 @@ StringVal:
 	value=STRING
 ;
 
+StructVal:
+	{StructVal} '{' '}'
+;
+
 //-----------------------------------------------------------
 enum DistributionMode:
 	copy | dist | rowDist | columnDist
@@ -459,7 +469,7 @@ enum Type:
 ;
 
 enum NonPrimitiveType returns Type:
-	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct
+	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct | structArray | structMatrix
 ;
 
 AssignmentOperator:
@@ -606,6 +616,6 @@ terminal COLL_LOCAL_CLOSE:
 	']]'
 ;
 
-QUALIFIED_NAME:
-  ID ('.' ID)*
-; 
+NestedAttributeRef:
+	('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
+;
