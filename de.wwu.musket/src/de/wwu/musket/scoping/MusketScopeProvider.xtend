@@ -40,15 +40,14 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			var EObject obj = context
 			var Collection<ReferableObject> inScope = newArrayList()
 			while(obj !== null) {
-				// collect available elements in scope on this level
-				inScope.addAll(obj.eContents.filter(ReferableObject).toList)
+				// collect available elements in scope on this level but exclude non-instantiable struct type definition
+				inScope.addAll(obj.eContents.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
 				// Add nested names in multi attributes
-				val tmp = obj.eContents.filter(MultiDoubleVariable)
 				inScope.addAll(obj.eContents.filter(MultiIntVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiDoubleVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiBoolVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiStructVariable).map[multivar | multivar.vars].flatten.toList)
-				// TODO exclude top-level struct declaration
+				
 				obj = obj.eContainer
 
 			} 
