@@ -5,10 +5,10 @@ package de.wwu.musket.scoping
 
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.FunctionStatement
-import de.wwu.musket.musket.MultiBoolVariable
-import de.wwu.musket.musket.MultiDoubleVariable
-import de.wwu.musket.musket.MultiIntVariable
-import de.wwu.musket.musket.MultiStructVariable
+import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.IntVariable
+import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.NestedAttributeRef
 import de.wwu.musket.musket.ObjectRef
@@ -43,10 +43,10 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 				// collect available elements in scope on this level but exclude non-instantiable struct type definition
 				inScope.addAll(obj.eContents.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
 				// Add nested names in multi attributes
-				inScope.addAll(obj.eContents.filter(MultiIntVariable).map[multivar | multivar.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(MultiDoubleVariable).map[multivar | multivar.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(MultiBoolVariable).map[multivar | multivar.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(MultiStructVariable).map[multivar | multivar.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(IntVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(DoubleVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(BoolVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(StructVariable).map[it.vars].flatten.toList)
 				
 				obj = obj.eContainer
 

@@ -53,7 +53,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
         dz = curParticle.z - oldP[j].z;
 
         r2 = dx * dx + dy * dy + dz * dz;
-        r = sqrtf(r2);
+        r = sqrt(r2);
 
         // Quench the force if the particles are too close.
         if (r < EPSILON){

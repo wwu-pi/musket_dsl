@@ -63,72 +63,48 @@ Matrix:
 	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' '}')?
 ;
 
-SingleOrMultiVariable:
-	MultiVariable | Variable
-;
-
-MultiVariable:
-	MultiIntVariable | MultiDoubleVariable | MultiBoolVariable | MultiStructVariable
-;
-
 Variable:
 	IntVariable | DoubleVariable | BoolVariable | StructVariable
 ;
 
-MultiIntVariable:
-	'int' name=ID (',' vars+=IntVariableElement)+ ('=' initExpression=Expression)?
+IntVariable:
+	'int' name=ID (',' vars+=IntVariableElement)* ('=' initExpression=Expression)?
 ;
 
 IntVariableElement returns IntVariable:
 	name=ID
 ;
 
-MultiDoubleVariable:
-	'double' name=ID (',' vars+=DoubleVariableElement)+ ('=' initExpression=Expression)?
+DoubleVariable:
+	'double' name=ID (',' vars+=DoubleVariableElement)* ('=' initExpression=Expression)?
 ;
 
 DoubleVariableElement returns DoubleVariable:
 	name=ID
 ;
 
-MultiBoolVariable:
-	'bool' name=ID (',' vars+=BoolVariableElement)+ ('=' initExpression=Expression)?
+BoolVariable:
+	'bool' name=ID (',' vars+=BoolVariableElement)* ('=' initExpression=Expression)?
 ;
 
 BoolVariableElement returns BoolVariable:
 	name=ID
 ;
 
-MultiStructVariable:
-	type=[Struct] name=ID (',' vars+=StructVariableElement)+ ('=' initExpression=Expression)?
+StructVariable:
+	type=[Struct] name=ID (',' vars+=StructVariableElement)* ('=' initExpression=Expression)?
 ;
 
 StructVariableElement returns StructVariable:
 	name=ID
 ;
 
-IntVariable:
-	'int' name=ID ('=' initExpression=Expression)?
-;
-
-DoubleVariable:
-	'double' name=ID ('=' initExpression=Expression)?
-;
-
-BoolVariable:
-	'bool' name=ID ('=' initExpression=Expression)?
-;
-
-StructVariable:
-	type=[Struct] name=ID ('=' initExpression=Expression)?
-;
-
 MusketVariable:
-	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | SingleOrMultiVariable
+	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | MusketStructVariable | => Variable
 ;
 
 MusketIntVariable:
-	'int' name=ID (',' vars+=MusketIntVariableElement)+ '=' initExpression=SkeletonExpression
+	'int' name=ID (',' vars+=MusketIntVariableElement)* '=' initExpression=SkeletonExpression
 ;
 
 MusketIntVariableElement returns MusketIntVariable:
@@ -136,7 +112,7 @@ MusketIntVariableElement returns MusketIntVariable:
 ;
 
 MusketDoubleVariable:
-	'double' name=ID (',' vars+=MusketDoubleVariableElement)+ '=' initExpression=SkeletonExpression
+	'double' name=ID (',' vars+=MusketDoubleVariableElement)* '=' initExpression=SkeletonExpression
 ;
 
 MusketDoubleVariableElement returns MusketDoubleVariable:
@@ -144,10 +120,18 @@ MusketDoubleVariableElement returns MusketDoubleVariable:
 ;
 
 MusketBoolVariable:
-	'bool' name=ID (',' vars+=MusketBoolVariableElement)+ '=' initExpression=SkeletonExpression
+	'bool' name=ID (',' vars+=MusketBoolVariableElement)* '=' initExpression=SkeletonExpression
 ;
 
 MusketBoolVariableElement returns MusketBoolVariable:
+	name=ID
+;
+
+MusketStructVariable:
+	type=[Struct] name=ID (',' vars+=MusketStructVariableElement)* ('=' initExpression=SkeletonExpression)?
+;
+
+MusketStructVariableElement returns MusketStructVariable:
 	name=ID
 ;
 
@@ -330,7 +314,7 @@ SkeletonParameterInput:
 Statement:
 	Assignment |
 	ReturnStatement |
-	SingleOrMultiVariable |
+	Variable |
 	FunctionCall
 ;
 
