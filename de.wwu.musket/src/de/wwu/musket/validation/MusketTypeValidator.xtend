@@ -401,6 +401,26 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	}
 	
 	// Check function return type is correct in call 
+	@Check
+	def checkReturnTypeForInPlaceSkeletons(Skeleton skel) {
+		if (skel.param instanceof InternalFunctionCall){
+			val call = skel.param as InternalFunctionCall
+			
+			switch skel {
+				MapSkeleton case skel.options.exists[it == MapOption.IN_PLACE],
+				MapIndexInPlaceSkeleton,
+				MapInPlaceSkeleton,
+				ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
+				ZipInPlaceSkeleton:
+					if( (call.value.returnType !== null && call.value.returnType.structType !== (skel.eContainer as SkeletonExpression).obj.structType) ||
+						(call.value.returnType === null && call.value.returnTypePrimitive !== (skel.eContainer as SkeletonExpression).obj.calculateType)){
+						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + call.value.getReadableType + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_TYPE)
+					} 
+			}
+		}
+	}
 	
 	// Check IteratorForLoop parameter type matches
 	@Check
