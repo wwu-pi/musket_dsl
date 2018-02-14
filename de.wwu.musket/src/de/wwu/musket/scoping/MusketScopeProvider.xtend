@@ -16,6 +16,15 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
+import java.util.Collection
+import de.wwu.musket.musket.Model
+import de.wwu.musket.musket.MultiVariable
+import de.wwu.musket.musket.MultiIntVariable
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.FunctionStatement
+import de.wwu.musket.musket.MultiDoubleVariable
+import de.wwu.musket.musket.MultiStructVariable
+import de.wwu.musket.musket.MultiBoolVariable
 
 /**
  * This class contains custom scoping description.
@@ -26,9 +35,30 @@ import org.eclipse.xtext.scoping.Scopes
 class MusketScopeProvider extends AbstractMusketScopeProvider {
 
     override getScope(EObject context, EReference reference) {
-		// We want to define the Scope for the Element's superElement cross-reference
-		if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
-			
+		// Assign statement -> allowed reference values
+		if ((context instanceof ObjectRef && reference == MusketPackage.eINSTANCE.objectRef_Value)){//(context instanceof Function || context instanceof FunctionStatement) && (reference == MusketPackage.eINSTANCE.objectRef_Value || reference == MusketPackage.eINSTANCE.assignment_Var)) {
+
+			// Move to top level of nested statements to get function
+			var EObject obj = context
+			var Collection<ReferableObject> inScope = newArrayList()
+			while(obj !== null) {
+				// collect available elements in scope on this level
+				inScope.addAll(obj.eContents.filter(ReferableObject).toList)
+				// Add nested names in multiattributes
+				val tmp = obj.eContents.filter(MultiDoubleVariable)
+				inScope.addAll(obj.eContents.filter(MultiIntVariable).map[multivar | multivar.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(MultiDoubleVariable).map[multivar | multivar.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(MultiBoolVariable).map[multivar | multivar.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(MultiStructVariable).map[multivar | multivar.vars].flatten.toList)
+				// TODO auch toplevel MultiMusketVars drin?
+				// TODO exclude top-level struct declaration
+				obj = obj.eContainer
+
+			} 
+			return Scopes.scopeFor(inScope)
+            
+		// Nested refences -> allowed references
+        } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
 			val ReferableObject containerElement = 
 				if(context.eContainer instanceof ObjectRef) {
 					(context.eContainer as ObjectRef).value
