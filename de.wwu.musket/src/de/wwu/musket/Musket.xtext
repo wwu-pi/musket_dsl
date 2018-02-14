@@ -281,8 +281,8 @@ Skeleton:
 	FoldSkeletonVariants | 
 	ZipSkeletonVariants |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
-	{RotatePartitionsHorizontallySkeleton} 'rotatePartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
-	{RotatePartitionsVerticallySkeleton} 'rotatePartitionsVertically' '(' param=SkeletonParameterInput ')' 
+	{ShiftPartitionsHorizontallySkeleton} 'shiftPartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
+	{ShiftPartitionsVerticallySkeleton} 'shiftPartitionsVertically' '(' param=SkeletonParameterInput ')' 
 ;
 
 MapSkeletonVariants:

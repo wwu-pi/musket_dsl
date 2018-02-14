@@ -19,8 +19,8 @@ import de.wwu.musket.musket.MapSkeletonVariants
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
-import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.Type
@@ -180,8 +180,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							INVALID_PARAMS)
 					}
 					
-				RotatePartitionsHorizontallySkeleton,
-				RotatePartitionsVerticallySkeleton: 
+				ShiftPartitionsHorizontallySkeleton,
+				ShiftPartitionsVerticallySkeleton: 
 					if(call.value.params.size < shiftParamsOut){
 						// Check minimum amount of parameters in target function
 						error('Referenced function requires at least ' + shiftParamsOut + ' parameters, ' + call.value.params.size + ' given!', 
@@ -251,8 +251,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						}
 					}
 				
-				RotatePartitionsHorizontallySkeleton,
-				RotatePartitionsVerticallySkeleton: {
+				ShiftPartitionsHorizontallySkeleton,
+				ShiftPartitionsVerticallySkeleton: {
 						// Shifting functions need exactly one int parameter
 						if(call.value.params.last?.calculateType !== Type.INT){
 							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 

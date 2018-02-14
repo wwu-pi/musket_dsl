@@ -32,12 +32,12 @@ import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
-import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 
 class SkeletonGenerator {
 	
-	static var rotateCounter = 0
+	static var ShiftCounter = 0
 
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
@@ -50,8 +50,8 @@ class SkeletonGenerator {
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
-			RotatePartitionsHorizontallySkeleton: generateRotatePartitionsHorizontallySkeleton(s.skeleton as RotatePartitionsHorizontallySkeleton, s.obj as Matrix)
-			RotatePartitionsVerticallySkeleton: generateRotatePartitionsVerticallySkeleton(s.skeleton as RotatePartitionsVerticallySkeleton, s.obj as Matrix)
+			ShiftPartitionsHorizontallySkeleton: generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj as Matrix)
+			ShiftPartitionsVerticallySkeleton: generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj as Matrix)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
 	}
@@ -271,27 +271,27 @@ class SkeletonGenerator {
 		return param_map
 	}
 	
-	// rotate partitions
-	def static generateRotatePartitionsHorizontallySkeleton(RotatePartitionsHorizontallySkeleton s, Matrix m) '''		
+	// Shift partitions
+	def static generateShiftPartitionsHorizontallySkeleton(ShiftPartitionsHorizontallySkeleton s, Matrix m) '''		
 		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
 			(«Config.var_pid» == «pid»){
 				«val pos = m.partitionPosition(pid)»				
-				size_t «Config.var_rotate_source» = «pid»;
-				size_t «Config.var_rotate_target» = «pid»;
+				size_t «Config.var_shift_source» = «pid»;
+				size_t «Config.var_shift_target» = «pid»;
 «««				generate Function Call
-				«val param_map = createParameterLookupTableRotatePartitionsHorizontally(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+				«val param_map = createParameterLookupTableShiftPartitionsHorizontally(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m, param_map)»
-				«Config.var_rotate_target» = ((«pid» + «Config.var_rotate_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
-				«Config.var_rotate_source» = ((«pid» - «Config.var_rotate_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				«Config.var_shift_target» = ((«pid» + «Config.var_shift_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				«Config.var_shift_source» = ((«pid» - «Config.var_shift_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
 				
-«««				rotation is happening
-				if(«Config.var_rotate_target» != «pid»){
+«««				shifting is happening
+				if(«Config.var_shift_target» != «pid»){
 					MPI_Request requests[2];
 					MPI_Status statuses[2] ;
-					«val buffer_name = Config.tmp_rotate_buffer + '_' + rotateCounter»
+					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
 					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_source, "&requests[1]")»
-					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_target, "&requests[0]")»
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
@@ -303,7 +303,7 @@ class SkeletonGenerator {
 		«ENDFOR»
 	'''
 	
-	def static Map<String, String> createParameterLookupTableRotatePartitionsHorizontally(Matrix m, int pid,
+	def static Map<String, String> createParameterLookupTableShiftPartitionsHorizontally(Matrix m, int pid,
 		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 
@@ -315,26 +315,26 @@ class SkeletonGenerator {
 		return param_map
 	}
 	
-	def static generateRotatePartitionsVerticallySkeleton(RotatePartitionsVerticallySkeleton s, Matrix m) '''		
+	def static generateShiftPartitionsVerticallySkeleton(ShiftPartitionsVerticallySkeleton s, Matrix m) '''		
 		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
 			(«Config.var_pid» == «pid»){
 				«val pos = m.partitionPosition(pid)»			
-				size_t «Config.var_rotate_source» = «pid»;
-				size_t «Config.var_rotate_target» = «pid»;
+				size_t «Config.var_shift_source» = «pid»;
+				size_t «Config.var_shift_target» = «pid»;
 «««				generate Function Call
-				«val param_map = createParameterLookupTableRotatePartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+				«val param_map = createParameterLookupTableShiftPartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m, param_map)»
-				«Config.var_rotate_target» = ((«pid / m.blocksInColumn» + «Config.var_rotate_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
-				«Config.var_rotate_source» = ((«pid / m.blocksInColumn» - «Config.var_rotate_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				«Config.var_shift_target» = ((«pid / m.blocksInColumn» + «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				«Config.var_shift_source» = ((«pid / m.blocksInColumn» - «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				
-«««				rotation is happening
-				if(«Config.var_rotate_target» != «pid»){
+«««				shifting is happening
+				if(«Config.var_shift_target» != «pid»){
 					MPI_Request requests[2];
 					MPI_Status statuses[2] ;
-					«val buffer_name = Config.tmp_rotate_buffer + '_' + rotateCounter»
+					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
 					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_source, "&requests[1]")»
-					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_rotate_target, "&requests[0]")»
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(pid, m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
@@ -346,7 +346,7 @@ class SkeletonGenerator {
 		«ENDFOR»
 	'''
 	
-	def static Map<String, String> createParameterLookupTableRotatePartitionsVertically(Matrix m, int pid,
+	def static Map<String, String> createParameterLookupTableShiftPartitionsVertically(Matrix m, int pid,
 		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
 		val param_map = new HashMap<String, String>
 

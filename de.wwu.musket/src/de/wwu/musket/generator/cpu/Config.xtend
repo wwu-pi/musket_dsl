@@ -34,11 +34,11 @@ class Config {
 	
 	public static final String mpi_op_suffix = "_mpi_op"
 	
-	//rotatePartitons
-	public static final String var_rotate_source = "rotate_source"
-	public static final String var_rotate_target = "rotate_target"
-	public static final String var_rotate_steps = "rotate_steps"
-	public static final String tmp_rotate_buffer = "tmp_rotate_buffer"
+	//shiftPartitons
+	public static final String var_shift_source = "shift_source"
+	public static final String var_shift_target = "shift_target"
+	public static final String var_shift_steps = "shift_steps"
+	public static final String tmp_shift_buffer = "tmp_shift_buffer"
 	
 	public static final String var_rng_array = "random_engines"
 	
