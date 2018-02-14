@@ -3,6 +3,12 @@
  */
 package de.wwu.musket.scoping
 
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.FunctionStatement
+import de.wwu.musket.musket.MultiBoolVariable
+import de.wwu.musket.musket.MultiDoubleVariable
+import de.wwu.musket.musket.MultiIntVariable
+import de.wwu.musket.musket.MultiStructVariable
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.NestedAttributeRef
 import de.wwu.musket.musket.ObjectRef
@@ -11,20 +17,12 @@ import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
 import de.wwu.musket.musket.StructParameter
+import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
-import java.util.Collection
-import de.wwu.musket.musket.Model
-import de.wwu.musket.musket.MultiVariable
-import de.wwu.musket.musket.MultiIntVariable
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.FunctionStatement
-import de.wwu.musket.musket.MultiDoubleVariable
-import de.wwu.musket.musket.MultiStructVariable
-import de.wwu.musket.musket.MultiBoolVariable
 
 /**
  * This class contains custom scoping description.
@@ -36,7 +34,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 
     override getScope(EObject context, EReference reference) {
 		// Assign statement -> allowed reference values
-		if ((context instanceof ObjectRef && reference == MusketPackage.eINSTANCE.objectRef_Value)){//(context instanceof Function || context instanceof FunctionStatement) && (reference == MusketPackage.eINSTANCE.objectRef_Value || reference == MusketPackage.eINSTANCE.assignment_Var)) {
+		if ((context instanceof ObjectRef || context instanceof Function || context instanceof FunctionStatement) && reference == MusketPackage.eINSTANCE.objectRef_Value){
 
 			// Move to top level of nested statements to get function
 			var EObject obj = context
@@ -44,13 +42,12 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			while(obj !== null) {
 				// collect available elements in scope on this level
 				inScope.addAll(obj.eContents.filter(ReferableObject).toList)
-				// Add nested names in multiattributes
+				// Add nested names in multi attributes
 				val tmp = obj.eContents.filter(MultiDoubleVariable)
 				inScope.addAll(obj.eContents.filter(MultiIntVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiDoubleVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiBoolVariable).map[multivar | multivar.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(MultiStructVariable).map[multivar | multivar.vars].flatten.toList)
-				// TODO auch toplevel MultiMusketVars drin?
 				// TODO exclude top-level struct declaration
 				obj = obj.eContainer
 
