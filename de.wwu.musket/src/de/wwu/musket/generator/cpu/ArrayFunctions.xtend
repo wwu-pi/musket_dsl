@@ -20,7 +20,7 @@ class ArrayFunctions {
 			case SHOW:
 				generateShow(afc)
 			case COLUMNS: (afc.^var as Matrix).cols
-			case COLUMS_LOCAL: (afc.^var as Matrix).colsLocal
+			case COLUMNS_LOCAL: (afc.^var as Matrix).colsLocal
 			case ROWS: (afc.^var as Matrix).rows
 			case ROWS_LOCAL: (afc.^var as Matrix).rowsLocal
 			case BLOCKS_IN_ROW: (afc.^var as Matrix).blocksInRow

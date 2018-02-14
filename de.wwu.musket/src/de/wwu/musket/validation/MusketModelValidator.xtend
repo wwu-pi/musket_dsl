@@ -14,6 +14,7 @@ import de.wwu.musket.musket.MusketAssignment
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionFunctionName
+import de.wwu.musket.musket.Struct
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -100,4 +101,13 @@ class MusketModelValidator extends AbstractMusketValidator {
 				INVALID_OPERATION)
 		}
 	}
+	
+	// Ensure no constants are defined in structs
+	@Check
+	def checkNoConstantsInStructs(Constant const) {
+		if(const.eContainer instanceof Struct){
+			error('Constants are not allowed in structs!', 
+				const, null)
+		}
+	} 
 }
