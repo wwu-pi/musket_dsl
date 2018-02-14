@@ -8,10 +8,14 @@ import de.wwu.musket.musket.ReferableObject
 import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.Constant
+import de.wwu.musket.musket.MusketAssignment
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
 	public static val INVALID_ID = 'invalidIdentifier'
+	public static val INVALID_OPERATION = 'invalidOperation'
 	
 	// Check variable/constant names are unique
 	@Check
@@ -61,6 +65,25 @@ class MusketModelValidator extends AbstractMusketValidator {
 			error('Duplicate declaration of ' + variable.name + '!', 
 				MusketPackage.eINSTANCE.referableObject_Name,
 				INVALID_ID)
+		}
+	}
+	
+	// Check that constants are not reassigned
+	@Check
+	def checkAssignmentToConstant(Assignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.assignment_Var,
+				INVALID_OPERATION)
+		}
+	}
+	
+	@Check
+	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.musketAssignment_Var,
+				INVALID_OPERATION)
 		}
 	}
 }

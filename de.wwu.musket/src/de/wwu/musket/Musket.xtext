@@ -341,7 +341,6 @@ MusketStatement:
 	FunctionCall
 ;
 
-// TODO check not to assign to Constants
 Assignment:
 	var=ObjectRef operator=AssignmentOperator value=Expression
 ;
