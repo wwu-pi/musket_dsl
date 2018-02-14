@@ -11,6 +11,9 @@ import org.eclipse.xtext.validation.Check
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.Constant
 import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.CollectionFunctionName
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -83,6 +86,17 @@ class MusketModelValidator extends AbstractMusketValidator {
 		if(assignment.^var?.value instanceof Constant){
 			error('Value cannot be assigned to constant!', 
 				MusketPackage.eINSTANCE.musketAssignment_Var,
+				INVALID_OPERATION)
+		}
+	}
+	
+	// Check collectionFunctionCalls match with collection type
+	@Check
+	def checkValidCollectionFunctionCall(CollectionFunctionCall call) {
+		val matrixFunctions = #[CollectionFunctionName.ROWS, CollectionFunctionName.ROWS_LOCAL, CollectionFunctionName.COLUMNS, CollectionFunctionName.COLUMNS_LOCAL, CollectionFunctionName.BLOCKS_IN_COLUMN, CollectionFunctionName.BLOCKS_IN_ROW]
+		if(!(call.^var instanceof Matrix) && matrixFunctions.contains(call.function)){
+			error(call.function + ' can only be applied to matrices!', 
+				MusketPackage.eINSTANCE.collectionFunctionCall_Function,
 				INVALID_OPERATION)
 		}
 	}
