@@ -1,35 +1,38 @@
 package de.wwu.musket.validation
 
+import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.FoldIndexSkeleton
+import de.wwu.musket.musket.FoldOption
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.FoldSkeletonVariants
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.GatherSkeleton
+import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.MapSkeletonVariants
+import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
+import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.Type
+import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipOption
+import de.wwu.musket.musket.ZipSkeleton
+import de.wwu.musket.musket.ZipSkeletonVariants
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
-import de.wwu.musket.musket.MapOption
-import de.wwu.musket.musket.ZipSkeleton
-import de.wwu.musket.musket.ZipOption
-import de.wwu.musket.musket.InternalFunctionCall
-import de.wwu.musket.musket.Skeleton
-import de.wwu.musket.musket.MapInPlaceSkeleton
-import de.wwu.musket.musket.MapIndexSkeleton
-import de.wwu.musket.musket.MapIndexInPlaceSkeleton
-import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.SkeletonExpression
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.ZipInPlaceSkeleton
-import de.wwu.musket.musket.ZipIndexSkeleton
-import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.FoldOption
-import de.wwu.musket.musket.FoldIndexSkeleton
-import de.wwu.musket.musket.GatherSkeleton
-import de.wwu.musket.musket.RotatePartitionsVerticallySkeleton
-import de.wwu.musket.musket.RotatePartitionsHorizontallySkeleton
-import de.wwu.musket.musket.Type
-import de.wwu.musket.musket.IteratorForLoop
-import de.wwu.musket.musket.MusketIteratorForLoop
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -65,7 +68,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			val indexParams = if ((skel.eContainer as SkeletonExpression).obj instanceof Array) 1 else 2
 			
 			// Native parameters to skeletons
-			val zipParamsMin = 1
+			val zipParamsMin = 0
 			val mapParamsOut = 1
 			val zipParamsOut = 2
 			val foldParamsOut = 1
@@ -202,39 +205,32 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			
 			// Check skeleton type
 			switch skel {
-				MapSkeleton,
-				MapInPlaceSkeleton,
-				MapIndexSkeleton,
-				MapIndexInPlaceSkeleton,
-				MapLocalIndexInPlaceSkeleton: 
+				MapSkeletonVariants: 
 					if(callingType !== call.value.params.last?.calculateType){
 						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
 					
-				ZipSkeleton,
-				ZipInPlaceSkeleton,
-				ZipIndexSkeleton: {
+				ZipSkeletonVariants: {
 						if(callingType !== call.value.params.last?.calculateType){
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
-						// Last given argument needs to match second but last parameters for zip skeleton, e.g. ints.zip(f(doubles)) -> f(double, int)
-						if(!call.params.last?.calculateType?.collection){
-							error('Last argument needs to be a collection!',
-								MusketPackage.eINSTANCE.skeleton_Param,
+						// zipWith parameter needs to match second but last parameters for zip skeleton, e.g. ints.zip(doubles, f(...)) -> f(..., double, int)
+						if(!skel.zipWith.calculateType?.collection){
+							error('First argument needs to be a collection!',
+								MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
 								INVALID_PARAMS)
-						} else if(call.params.last?.calculateCollectionType !== call.value.params.get(call.value.params.size-2).calculateType){
-							error('Argument type ' + call.params.last?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
+						} else if(skel.zipWith.value?.calculateCollectionType !== call.value.params.get(call.value.params.size-2).calculateType){
+							error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 					}
 					
-				FoldSkeleton,
-				FoldIndexSkeleton: {
+				FoldSkeletonVariants: {
 						// Last two parameters need to match for fold skeleton
 						if(callingType !== call.value.params.last?.calculateType || callingType !== call.value.params.get(call.value.params.size-2)?.calculateType){
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
@@ -242,13 +238,9 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								INVALID_PARAMS)
 						}
 						// Check identity value parameter matches
-						if((skel instanceof FoldSkeleton) && call.value.params.last?.calculateType !== (skel as FoldSkeleton).identity.calculateType){
-							error('Identity value of type ' + (skel as FoldSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-								MusketPackage.eINSTANCE.foldSkeleton_Identity,
-								INVALID_PARAMS)
-						} else if((skel instanceof FoldIndexSkeleton) && call.value.params.last?.calculateType !== (skel as FoldIndexSkeleton).identity.calculateType){
-							error('Identity value of type ' + (skel as FoldIndexSkeleton).identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-								MusketPackage.eINSTANCE.foldIndexSkeleton_Identity,
+						if(call.value.params.last?.calculateType !== skel.identity.calculateType){
+							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as its input
