@@ -118,7 +118,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateCollectionType(StructArray obj){
-		return new MusketType(obj.type).toArray
+		return new MusketType(obj.type)
 	}
 	
 	static dispatch def MusketType calculateCollectionType(IntMatrix obj){
