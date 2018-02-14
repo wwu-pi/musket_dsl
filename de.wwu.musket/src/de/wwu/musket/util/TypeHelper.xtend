@@ -63,26 +63,9 @@ import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.MusketStructVariable
 import de.wwu.musket.musket.ReturnStatement
 
+import static extension de.wwu.musket.util.MusketType.*
+
 class TypeHelper {
-	
-	static def isNumeric(Type type){
-		return type === Type.INT || type === Type.DOUBLE
-	}
-	
-	static def isCollection(Type type){
-		return type === Type.INT_ARRAY || type === Type.DOUBLE_ARRAY  || type === Type.BOOL_ARRAY  || type === Type.STRING_ARRAY
-		   || type === Type.INT_MATRIX || type === Type.DOUBLE_MATRIX || type === Type.BOOL_MATRIX || type === Type.STRING_MATRIX
-		   || type === Type.STRUCT_ARRAY || type === Type.STRUCT_MATRIX
-		//return input instanceof ObjectRef && (input as ObjectRef).value instanceof CollectionObject
-	}
-	
-	static def String getReadableType(Function function){
-		if(function.calculateType === Type.STRUCT){
-			return function.returnType.name 
-		} else {
-			return function.returnTypePrimitive.toString
-		}
-	}
 	
 	static dispatch def getStructType(StructArray obj){
 		return obj.type.name
@@ -205,44 +188,42 @@ class TypeHelper {
 		return null;
 	}
 	
-	// Helper to check the expression type (hard to see within type hierarchy)
-	// TODO handle collections??
-	static dispatch def Type calculateType(IntVal exp){
-		return Type.INT
+	static dispatch def MusketType calculateType(IntVal exp){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateType(DoubleVal exp){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateType(DoubleVal exp){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateType(BoolVal exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(BoolVal exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(StringVal exp){
-		return Type.STRING
+	static dispatch def MusketType calculateType(StringVal exp){
+		return MusketType.STRING
 	}
 	
-	static dispatch def Type calculateType(InternalFunctionCall exp){
-		return if (exp.value?.returnType !== null) Type.STRUCT else exp.value?.returnTypePrimitive
+	static dispatch def MusketType calculateType(InternalFunctionCall exp){
+		return new MusketType(exp.value)
 	}
 	
-	static dispatch def Type calculateType(StandardFunctionCall exp){
+	static dispatch def MusketType calculateType(StandardFunctionCall exp){
 		if (exp.value === null) return null;
 		
 		switch exp.value {
-			case ATOF: return Type.DOUBLE
-			case ATOI: return Type.INT
-			case ATOL: return Type.INT
-			case ATOLL: return Type.INT
-			case STRTOD: return Type.DOUBLE
-			case STRTOF: return Type.DOUBLE
-			case STRTOL: return Type.INT
-			case STRTOLD: return Type.DOUBLE
-			case STRTOLL: return Type.INT
-			case STRTOUL: return Type.INT
-			case STRTOULL: return Type.INT
-			case RAND: return Type.INT
+			case ATOF: return MusketType.DOUBLE
+			case ATOI: return MusketType.INT
+			case ATOL: return MusketType.INT
+			case ATOLL: return MusketType.INT
+			case STRTOD: return MusketType.DOUBLE
+			case STRTOF: return MusketType.DOUBLE
+			case STRTOL: return MusketType.INT
+			case STRTOLD: return MusketType.DOUBLE
+			case STRTOLL: return MusketType.INT
+			case STRTOUL: return MusketType.INT
+			case STRTOULL: return MusketType.INT
+			case RAND: return MusketType.INT
 			case SRAND: return null
 			case CALLOC: return null
 			case FREE: return null
@@ -252,349 +233,349 @@ class TypeHelper {
 			case ATEXIT: return null
 			case AT_QUICK_EXIT: return null
 			case EXIT: return null
-			case GETENV: return Type.STRING
+			case GETENV: return MusketType.STRING
 			case QUICK_EXIT: return null
 			case SYSTEM: return null
-			case BSEARCH: return Type.INT
+			case BSEARCH: return MusketType.INT
 			case QSORT: return null
-			case ABS: return Type.INT
-			case DIV: return Type.INT
-			case LABS: return Type.INT
-			case LDIV: return Type.INT
-			case LLABS: return Type.INT
-			case LLDIV: return Type.INT
-			case MBLEN: return Type.INT
-			case MBTOWC: return Type.INT
-			case WCTOMB: return Type.INT
-			case MBSTOWCS: return Type.INT
-			case WCSTOMBS: return Type.INT
-			case REMOVE: return Type.INT
-			case RENAME: return Type.INT
+			case ABS: return MusketType.INT
+			case DIV: return MusketType.INT
+			case LABS: return MusketType.INT
+			case LDIV: return MusketType.INT
+			case LLABS: return MusketType.INT
+			case LLDIV: return MusketType.INT
+			case MBLEN: return MusketType.INT
+			case MBTOWC: return MusketType.INT
+			case WCTOMB: return MusketType.INT
+			case MBSTOWCS: return MusketType.INT
+			case WCSTOMBS: return MusketType.INT
+			case REMOVE: return MusketType.INT
+			case RENAME: return MusketType.INT
 			case TMPFILE: return null
-			case TMPNAM: return Type.STRING
-			case FCLOSE: return Type.INT
-			case FFLUSH: return Type.INT
+			case TMPNAM: return MusketType.STRING
+			case FCLOSE: return MusketType.INT
+			case FFLUSH: return MusketType.INT
 			case FOPEN: return null
 			case FREOPEN: return null
 			case SETBUF: return null
-			case SETVBUF: return Type.INT
-			case FPRINTF: return Type.INT
-			case FSCANF: return Type.INT
-			case PRINTF: return Type.INT
-			case SCANF: return Type.INT
-			case SNPRINTF: return Type.INT
-			case SPRINTF: return Type.INT
-			case SSCANF: return Type.INT
-			case VFPRINTF: return Type.INT
-			case VFSCANF: return Type.INT
-			case VPRINTF: return Type.INT
-			case VSCANF: return Type.INT
-			case VSNPRINTF: return Type.INT
-			case VSPRINTF: return Type.INT
-			case VSSCANF: return Type.INT
-			case FGETC: return Type.INT
-			case FGETS: return Type.STRING
-			case FPUTC: return Type.INT
-			case FPUTS: return Type.INT
-			case GETC: return Type.INT
-			case GETCHAR: return Type.INT
-			case GETS: return Type.STRING
-			case PUTC: return Type.INT
-			case PUTCHAR: return Type.INT
-			case PUTS: return Type.INT
-			case UNGETC: return Type.INT
-			case FREAD: return Type.INT
-			case FWRITE: return Type.INT
-			case FGETPOS: return Type.INT
-			case FSEEK: return Type.INT
-			case FSETPOS: return Type.INT
-			case FTELL: return Type.INT
+			case SETVBUF: return MusketType.INT
+			case FPRINTF: return MusketType.INT
+			case FSCANF: return MusketType.INT
+			case PRINTF: return MusketType.INT
+			case SCANF: return MusketType.INT
+			case SNPRINTF: return MusketType.INT
+			case SPRINTF: return MusketType.INT
+			case SSCANF: return MusketType.INT
+			case VFPRINTF: return MusketType.INT
+			case VFSCANF: return MusketType.INT
+			case VPRINTF: return MusketType.INT
+			case VSCANF: return MusketType.INT
+			case VSNPRINTF: return MusketType.INT
+			case VSPRINTF: return MusketType.INT
+			case VSSCANF: return MusketType.INT
+			case FGETC: return MusketType.INT
+			case FGETS: return MusketType.STRING
+			case FPUTC: return MusketType.INT
+			case FPUTS: return MusketType.INT
+			case GETC: return MusketType.INT
+			case GETCHAR: return MusketType.INT
+			case GETS: return MusketType.STRING
+			case PUTC: return MusketType.INT
+			case PUTCHAR: return MusketType.INT
+			case PUTS: return MusketType.INT
+			case UNGETC: return MusketType.INT
+			case FREAD: return MusketType.INT
+			case FWRITE: return MusketType.INT
+			case FGETPOS: return MusketType.INT
+			case FSEEK: return MusketType.INT
+			case FSETPOS: return MusketType.INT
+			case FTELL: return MusketType.INT
 			case REWIND: return null
 			case CLEARERR: return null
-			case FEOF: return Type.INT
-			case FERROR: return Type.INT
+			case FEOF: return MusketType.INT
+			case FERROR: return MusketType.INT
 			case PERROR: return null
-			case COS: return Type.DOUBLE
-			case SIN: return Type.DOUBLE
-			case TAN: return Type.DOUBLE
-			case ACOS: return Type.DOUBLE
-			case ASIN: return Type.DOUBLE
-			case ATAN: return Type.DOUBLE
-			case ATAN2: return Type.DOUBLE
-			case COSH: return Type.DOUBLE
-			case SINH: return Type.DOUBLE
-			case TANH: return Type.DOUBLE
-			case ACOSH: return Type.DOUBLE
-			case ASINH: return Type.DOUBLE
-			case ATANH: return Type.DOUBLE
-			case EXP: return Type.DOUBLE
-			case FREXP: return Type.DOUBLE
-			case LDEXP: return Type.DOUBLE
-			case LOG: return Type.DOUBLE
-			case LOG10: return Type.DOUBLE
-			case MODF: return Type.DOUBLE
-			case EXP2: return Type.DOUBLE
-			case EXPM1: return Type.DOUBLE
-			case ILOGB: return Type.INT
-			case LOG1P: return Type.DOUBLE
-			case LOG2: return Type.DOUBLE
-			case LOGB: return Type.DOUBLE
-			case SCALBN: return Type.DOUBLE
-			case SCALBLN: return Type.DOUBLE
-			case POW: return Type.DOUBLE
-			case SQRT: return Type.DOUBLE
-			case CBRT: return Type.DOUBLE
-			case HYPOT: return Type.DOUBLE
-			case ERF: return Type.DOUBLE
-			case ERFC: return Type.DOUBLE
-			case TGAMMA: return Type.DOUBLE
-			case LGAMMA: return Type.DOUBLE
-			case CEIL: return Type.DOUBLE
-			case FLOOR: return Type.DOUBLE
-			case FMOD: return Type.DOUBLE
-			case TRUNC: return Type.DOUBLE
-			case ROUND: return Type.DOUBLE
-			case LROUND: return Type.INT
-			case LLROUND: return Type.INT
-			case RINT: return Type.DOUBLE
-			case LRINT: return Type.INT
-			case LLRINT: return Type.INT
-			case NEARBYINT: return Type.DOUBLE
-			case REMAINDER: return Type.DOUBLE
-			case REMQUO: return Type.DOUBLE
-			case COPYSIGN: return Type.DOUBLE
-			case NAN: return Type.DOUBLE
-			case NEXTAFTER: return Type.DOUBLE
-			case NEXTTOWARD: return Type.DOUBLE
-			case FDIM: return Type.DOUBLE
-			case FMAX: return Type.DOUBLE
-			case FMIN: return Type.DOUBLE
-			case FABS: return Type.DOUBLE
-			case FMA: return Type.DOUBLE
-			case FPCLASSIFY: return Type.INT
-			case ISFINITE: return Type.BOOL
-			case ISINF: return Type.BOOL
-			case ISNAN: return Type.BOOL
-			case ISNORMAL: return Type.BOOL
-			case SIGNBIT: return Type.BOOL
-			case ISGREATER: return Type.BOOL
-			case ISGREATEREQUAL: return Type.BOOL
-			case ISLESS: return Type.BOOL
-			case ISLESSEQUAL: return Type.BOOL
-			case ISLESSGREATER: return Type.BOOL
-			case ISUNORDERED: return Type.BOOL
+			case COS: return MusketType.DOUBLE
+			case SIN: return MusketType.DOUBLE
+			case TAN: return MusketType.DOUBLE
+			case ACOS: return MusketType.DOUBLE
+			case ASIN: return MusketType.DOUBLE
+			case ATAN: return MusketType.DOUBLE
+			case ATAN2: return MusketType.DOUBLE
+			case COSH: return MusketType.DOUBLE
+			case SINH: return MusketType.DOUBLE
+			case TANH: return MusketType.DOUBLE
+			case ACOSH: return MusketType.DOUBLE
+			case ASINH: return MusketType.DOUBLE
+			case ATANH: return MusketType.DOUBLE
+			case EXP: return MusketType.DOUBLE
+			case FREXP: return MusketType.DOUBLE
+			case LDEXP: return MusketType.DOUBLE
+			case LOG: return MusketType.DOUBLE
+			case LOG10: return MusketType.DOUBLE
+			case MODF: return MusketType.DOUBLE
+			case EXP2: return MusketType.DOUBLE
+			case EXPM1: return MusketType.DOUBLE
+			case ILOGB: return MusketType.INT
+			case LOG1P: return MusketType.DOUBLE
+			case LOG2: return MusketType.DOUBLE
+			case LOGB: return MusketType.DOUBLE
+			case SCALBN: return MusketType.DOUBLE
+			case SCALBLN: return MusketType.DOUBLE
+			case POW: return MusketType.DOUBLE
+			case SQRT: return MusketType.DOUBLE
+			case CBRT: return MusketType.DOUBLE
+			case HYPOT: return MusketType.DOUBLE
+			case ERF: return MusketType.DOUBLE
+			case ERFC: return MusketType.DOUBLE
+			case TGAMMA: return MusketType.DOUBLE
+			case LGAMMA: return MusketType.DOUBLE
+			case CEIL: return MusketType.DOUBLE
+			case FLOOR: return MusketType.DOUBLE
+			case FMOD: return MusketType.DOUBLE
+			case TRUNC: return MusketType.DOUBLE
+			case ROUND: return MusketType.DOUBLE
+			case LROUND: return MusketType.INT
+			case LLROUND: return MusketType.INT
+			case RINT: return MusketType.DOUBLE
+			case LRINT: return MusketType.INT
+			case LLRINT: return MusketType.INT
+			case NEARBYINT: return MusketType.DOUBLE
+			case REMAINDER: return MusketType.DOUBLE
+			case REMQUO: return MusketType.DOUBLE
+			case COPYSIGN: return MusketType.DOUBLE
+			case NAN: return MusketType.DOUBLE
+			case NEXTAFTER: return MusketType.DOUBLE
+			case NEXTTOWARD: return MusketType.DOUBLE
+			case FDIM: return MusketType.DOUBLE
+			case FMAX: return MusketType.DOUBLE
+			case FMIN: return MusketType.DOUBLE
+			case FABS: return MusketType.DOUBLE
+			case FMA: return MusketType.DOUBLE
+			case FPCLASSIFY: return MusketType.INT
+			case ISFINITE: return MusketType.BOOL
+			case ISINF: return MusketType.BOOL
+			case ISNAN: return MusketType.BOOL
+			case ISNORMAL: return MusketType.BOOL
+			case SIGNBIT: return MusketType.BOOL
+			case ISGREATER: return MusketType.BOOL
+			case ISGREATEREQUAL: return MusketType.BOOL
+			case ISLESS: return MusketType.BOOL
+			case ISLESSEQUAL: return MusketType.BOOL
+			case ISLESSGREATER: return MusketType.BOOL
+			case ISUNORDERED: return MusketType.BOOL
 			case MEMCPY: return null
 			case MEMMOVE: return null
-			case STRCPY: return Type.STRING
-			case STRNCPY: return Type.STRING
-			case STRCAT: return Type.STRING
-			case STRNCAT: return Type.STRING
-			case MEMCMP: return Type.INT
-			case STRCMP: return Type.INT
-			case STRCOLL: return Type.INT
-			case STRNCMP: return Type.INT
-			case STRXFRM: return Type.INT
+			case STRCPY: return MusketType.STRING
+			case STRNCPY: return MusketType.STRING
+			case STRCAT: return MusketType.STRING
+			case STRNCAT: return MusketType.STRING
+			case MEMCMP: return MusketType.INT
+			case STRCMP: return MusketType.INT
+			case STRCOLL: return MusketType.INT
+			case STRNCMP: return MusketType.INT
+			case STRXFRM: return MusketType.INT
 			case MEMCHR: return null
 			case STRCHR: return null
-			case STRCSPN: return Type.INT
+			case STRCSPN: return MusketType.INT
 			case STRPBRK: return null
 			case STRRCHR: return null
-			case STRSPN: return Type.INT
+			case STRSPN: return MusketType.INT
 			case STRSTR: return null
 			case STRTOK: return null
 			case MEMSET: return null
-			case STRERROR: return Type.STRING
-			case STRLEN: return Type.INT
+			case STRERROR: return MusketType.STRING
+			case STRLEN: return MusketType.INT
 		}
 	}
 	
-	static dispatch def Type calculateType(MusketFunctionCall exp){
+	static dispatch def MusketType calculateType(MusketFunctionCall exp){
 		if (exp.value === null) return null;
 		
 		switch exp.value {
-			case PRINT: return Type.STRING
-			case RAND: return Type.DOUBLE
+			case PRINT: return MusketType.STRING
+			case RAND: return MusketType.DOUBLE
 		}
 	}
 	
-	static dispatch def Type calculateType(IntConstant exp){
-		return Type.INT
+	static dispatch def MusketType calculateType(IntConstant exp){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateType(DoubleConstant exp){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateType(DoubleConstant exp){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateType(BoolConstant exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(BoolConstant exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(MusketIntVariable exp){
-		return Type.INT
+	static dispatch def MusketType calculateType(MusketIntVariable exp){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateType(MusketDoubleVariable exp){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateType(MusketDoubleVariable exp){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateType(MusketBoolVariable exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(MusketBoolVariable exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(MusketStructVariable exp){
-		return Type.STRUCT
+	static dispatch def MusketType calculateType(MusketStructVariable exp){
+		return new MusketType(exp.type)
 	}
 	
-	static dispatch def Type calculateType(IntVariable exp){
-		return Type.INT
+	static dispatch def MusketType calculateType(IntVariable exp){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateType(DoubleVariable exp){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateType(DoubleVariable exp){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateType(StructVariable exp){
-		return Type.STRUCT
+	static dispatch def MusketType calculateType(StructVariable exp){
+		return new MusketType(exp.type)
 	}
 	
-	static dispatch def Type calculateType(BoolVariable exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(BoolVariable exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(IntParameter exp){
-		return Type.INT
+	static dispatch def MusketType calculateType(IntParameter exp){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateType(DoubleParameter exp){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateType(DoubleParameter exp){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateType(BoolParameter exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(BoolParameter exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(StructParameter exp){
-		return Type.STRUCT
+	static dispatch def MusketType calculateType(StructParameter exp){
+		return new MusketType(exp.type)
 	}
 	
-	static dispatch def Type calculateType(IntArrayParameter exp){
-		return Type.INT_ARRAY
+	static dispatch def MusketType calculateType(IntArrayParameter exp){
+		return MusketType.INT_ARRAY
 	}
 	
-	static dispatch def Type calculateType(DoubleArrayParameter exp){
-		return Type.DOUBLE_ARRAY
+	static dispatch def MusketType calculateType(DoubleArrayParameter exp){
+		return MusketType.DOUBLE_ARRAY
 	}
 	
-	static dispatch def Type calculateType(BoolArrayParameter exp){
-		return Type.BOOL_ARRAY
+	static dispatch def MusketType calculateType(BoolArrayParameter exp){
+		return MusketType.BOOL_ARRAY
 	}
 	
-	static dispatch def Type calculateType(StructArrayParameter exp){
-		return Type.STRUCT_ARRAY
+	static dispatch def MusketType calculateType(StructArrayParameter exp){
+		return new MusketType(exp.type).toArray
 	}
 	
-	static dispatch def Type calculateType(IntMatrixParameter exp){
-		return Type.INT_MATRIX
+	static dispatch def MusketType calculateType(IntMatrixParameter exp){
+		return MusketType.INT_MATRIX
 	}
 	
-	static dispatch def Type calculateType(DoubleMatrixParameter exp){
-		return Type.DOUBLE_MATRIX
+	static dispatch def MusketType calculateType(DoubleMatrixParameter exp){
+		return MusketType.DOUBLE_MATRIX
 	}
 	
-	static dispatch def Type calculateType(BoolMatrixParameter exp){
-		return Type.BOOL_MATRIX
+	static dispatch def MusketType calculateType(BoolMatrixParameter exp){
+		return MusketType.BOOL_MATRIX
 	}
 	
-	static dispatch def Type calculateType(StructMatrixParameter exp){
-		return Type.STRUCT_MATRIX
+	static dispatch def MusketType calculateType(StructMatrixParameter exp){
+		return new MusketType(exp.type).toMatrix
 	}
 	
-	static dispatch def Type calculateType(IntArray exp){
-		return Type.INT_ARRAY
+	static dispatch def MusketType calculateType(IntArray exp){
+		return MusketType.INT_ARRAY
 	}
 	
-	static dispatch def Type calculateType(DoubleArray exp){
-		return Type.DOUBLE_ARRAY
+	static dispatch def MusketType calculateType(DoubleArray exp){
+		return MusketType.DOUBLE_ARRAY
 	}
 	
-	static dispatch def Type calculateType(BoolArray exp){
-		return Type.BOOL_ARRAY
+	static dispatch def MusketType calculateType(BoolArray exp){
+		return MusketType.BOOL_ARRAY
 	}
 	
-	static dispatch def Type calculateType(StructArray exp){
-		return Type.STRUCT_ARRAY
+	static dispatch def MusketType calculateType(StructArray exp){
+		return new MusketType(exp.type).toArray
 	}
 	
-	static dispatch def Type calculateType(IntMatrix exp){
-		return Type.INT_MATRIX
+	static dispatch def MusketType calculateType(IntMatrix exp){
+		return MusketType.INT_MATRIX
 	}
 	
-	static dispatch def Type calculateType(DoubleMatrix exp){
-		return Type.DOUBLE_MATRIX
+	static dispatch def MusketType calculateType(DoubleMatrix exp){
+		return MusketType.DOUBLE_MATRIX
 	}
 	
-	static dispatch def Type calculateType(BoolMatrix exp){
-		return Type.BOOL_MATRIX
+	static dispatch def MusketType calculateType(BoolMatrix exp){
+		return MusketType.BOOL_MATRIX
 	}
 	
-	static dispatch def Type calculateType(StructMatrix exp){
-		return Type.STRUCT_MATRIX
+	static dispatch def MusketType calculateType(StructMatrix exp){
+		return new MusketType(exp.type).toMatrix
 	}
 	
-	static dispatch def Type calculateType(ObjectRef exp){
-		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
+	static dispatch def MusketType calculateType(ObjectRef exp){
+		if(exp instanceof CollectionElementRef) return new MusketType(exp.value.calculateCollectionType)
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(SignedArithmetic exp){
+	static dispatch def MusketType calculateType(SignedArithmetic exp){
 		return exp.expression.calculateType
 	}
 	
-	static dispatch def Type calculateType(TypeCast exp){
-		return exp.targetType
+	static dispatch def MusketType calculateType(TypeCast exp){
+		return new MusketType(exp.targetType)
 	}
 	
-	static dispatch def Type calculateType(PostIncrement exp){
+	static dispatch def MusketType calculateType(PostIncrement exp){
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(PostDecrement exp){
+	static dispatch def MusketType calculateType(PostDecrement exp){
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(PreIncrement exp){
+	static dispatch def MusketType calculateType(PreIncrement exp){
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(PreDecrement exp){
+	static dispatch def MusketType calculateType(PreDecrement exp){
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(Addition exp){
+	static dispatch def MusketType calculateType(Addition exp){
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error
-			if(exp.right.calculateType === Type.DOUBLE) return Type.DOUBLE // anything plus double results in double
+			if(exp.right.calculateType == MusketType.DOUBLE) return MusketType.DOUBLE // anything plus double results in double
 		}
 		return exp.left.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Subtraction exp){
+	static dispatch def MusketType calculateType(Subtraction exp){
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error
-			if(exp.right.calculateType === Type.DOUBLE) return Type.DOUBLE // anything minus double results in double
+			if(exp.right.calculateType == MusketType.DOUBLE) return MusketType.DOUBLE // anything minus double results in double
 		}
 		return exp.left.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Multiplication exp){
+	static dispatch def MusketType calculateType(Multiplication exp){
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error
-			if(exp.right.calculateType === Type.DOUBLE) return Type.DOUBLE // anything times double results in double
+			if(exp.right.calculateType == MusketType.DOUBLE) return MusketType.DOUBLE // anything times double results in double
 		}
 		return exp.left.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Division exp){
+	static dispatch def MusketType calculateType(Division exp){
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error
 			return exp.right.calculateType // division result depends on right side 
@@ -602,43 +583,42 @@ class TypeHelper {
 		return exp.left.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Modulo exp){
+	static dispatch def MusketType calculateType(Modulo exp){
 		if(exp.right !== null) {
 			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error 
 		}
 		return exp.left.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Not exp){
-		return Type.BOOL
+	static dispatch def MusketType calculateType(Not exp){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateType(And exp){
-		if(exp.rightExpression !== null) return Type.BOOL
+	static dispatch def MusketType calculateType(And exp){
+		if(exp.rightExpression !== null) return MusketType.BOOL
 		return exp.leftExpression.calculateType 
 	}
 	
-	static dispatch def Type calculateType(Or exp){
-		if(exp.rightExpression !== null) return Type.BOOL
+	static dispatch def MusketType calculateType(Or exp){
+		if(exp.rightExpression !== null) return MusketType.BOOL
 		return exp.leftExpression.calculateType
 	}
 	
-	static dispatch def Type calculateType(CompareExpression exp){
-		if(exp.eqRight !== null) return Type.BOOL
+	static dispatch def MusketType calculateType(CompareExpression exp){
+		if(exp.eqRight !== null) return MusketType.BOOL
 		return exp.eqLeft?.calculateType
 	}
 	
-	static dispatch def Type calculateType(Function exp){
-		if(exp.returnType !== null) return Type.STRUCT
-		return exp.returnTypePrimitive
+	static dispatch def MusketType calculateType(Function exp){
+		return new MusketType(exp)
 	}
 	
-	static dispatch def Type calculateType(ReturnStatement exp){
+	static dispatch def MusketType calculateType(ReturnStatement exp){
 		return exp.value.calculateType
 	}
 	
-	static dispatch def Type calculateType(EObject exp){ // Else case
-		println("try to calculate type for " + exp)
+	static dispatch def MusketType calculateType(EObject exp){ // Else case
+		println("try to calculate type for unknown object " + exp)
 		return null
 	}
 }

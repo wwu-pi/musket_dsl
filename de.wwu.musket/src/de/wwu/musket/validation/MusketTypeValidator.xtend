@@ -39,6 +39,7 @@ import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.util.MusketType
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -253,7 +254,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						}
 						// Fold function needs to return same type as its input
 						if(call.value.calculateType !== callingType){
-							error('Return type ' + call.value.getReadableType + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
+							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -269,7 +270,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						}
 						// Shifting functions return one int value
 						if(call.value.calculateType !== Type.INT){
-							error('Return type ' + call.value.getReadableType + ' must be int for this skeleton!', 
+							error('Return type ' + new MusketType(call.value) + ' must be int for this skeleton!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -395,7 +396,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		
 		// Check return type
 		if((obj as Function).calculateType !== stmt.value.calculateType){
-			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + (obj as Function).getReadableType + '!', 
+			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + new MusketType(obj as Function) + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
 		}
@@ -416,7 +417,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipInPlaceSkeleton:
 					if( (call.value.returnType !== null && call.value.returnType.structType !== (skel.eContainer as SkeletonExpression).obj.structType) ||
 						(call.value.returnType === null && call.value.returnTypePrimitive !== (skel.eContainer as SkeletonExpression).obj.calculateType)){
-						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + call.value.getReadableType + ' given!', 
+						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + new MusketType(call.value) + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_TYPE)
 					} 
@@ -434,7 +435,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				INCOMPLETE_DECLARATION)
 		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement)){
 			// TODO missing struct comparison
-			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + func.readableType + '!', 
+			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
 				MusketPackage.eINSTANCE.function_Statement,
 				func.statement.size-1,
 				INVALID_TYPE)
