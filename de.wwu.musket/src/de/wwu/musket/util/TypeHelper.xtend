@@ -61,6 +61,8 @@ import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
+import de.wwu.musket.musket.NestedAttributeRef
+import de.wwu.musket.musket.NestedCollectionElementRef
 
 class TypeHelper {
 	
@@ -524,7 +526,24 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateType(ObjectRef exp){
+		// Follow nested attributes
+		if(exp.tail !== null) return exp.tail.calculateType
+		
+		// Type of collection _element_ 
 		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
+		
+		// Other object references
+		return exp.value.calculateType
+	}
+	
+	static dispatch def MusketType calculateType(NestedAttributeRef exp){
+		// Follow nested attributes
+		if(exp.tail !== null) return exp.tail.calculateType
+		
+		// Type of collection _element_ 
+		if(exp instanceof NestedCollectionElementRef) return exp.value.calculateCollectionType
+		
+		// Other object references
 		return exp.value.calculateType
 	}
 	
@@ -586,9 +605,9 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(Modulo exp){
 		if(exp.right !== null) {
-			if(!exp.left.calculateType?.isNumeric || !exp.right.calculateType?.isNumeric) return null // Calculation error 
+			if(exp.left.calculateType != MusketType.INT || exp.right.calculateType != MusketType.INT) return null // Modulo requires two ints 
 		}
-		return exp.left.calculateType 
+		return exp.left.calculateType
 	}
 	
 	static dispatch def MusketType calculateType(Not exp){

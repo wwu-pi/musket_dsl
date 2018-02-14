@@ -38,6 +38,7 @@ import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.Assignment
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -452,6 +453,16 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if(loop.iter.calculateType != loop.dataStructure.calculateCollectionType){
 			error('Iterator element type ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
 				MusketPackage.eINSTANCE.iteratorForLoop_Iter,
+				INVALID_TYPE)
+		}
+	}
+	
+	// Check assignment type
+	@Check
+	def checkAssignmentType(Assignment assign) {
+		if(assign.value.calculateType != assign.^var.calculateType){
+			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
+				MusketPackage.eINSTANCE.assignment_Value,
 				INVALID_TYPE)
 		}
 	}

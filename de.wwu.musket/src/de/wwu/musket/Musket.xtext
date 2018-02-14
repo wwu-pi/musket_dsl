@@ -351,8 +351,8 @@ fragment CollectionRef*:
 ;
 
 NestedAttributeRef:
-	{NestedCollectionElementRef} ('.') ref=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
-	=> ('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
+	{NestedCollectionElementRef} ('.') value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+	=> ('.') value=[ReferableObject] (tail = NestedAttributeRef)?
 ;
 
 ReturnStatement:

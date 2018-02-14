@@ -56,7 +56,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			return Scopes.scopeFor(inScope)
             
 		// Nested refences -> allowed references
-        } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
+        } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Value) {
 			val ReferableObject containerElement = 
 				if(context.eContainer instanceof ObjectRef) {
 					// Dealing with multi-array definitions
@@ -67,10 +67,10 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 					}
 				} else if(context.eContainer instanceof NestedAttributeRef) {
 					// Dealing with multi-array definitions
-					if((context.eContainer as NestedAttributeRef).ref.eContainer instanceof CollectionObject){
-						(context.eContainer as NestedAttributeRef).ref.eContainer as CollectionObject
+					if((context.eContainer as NestedAttributeRef).value.eContainer instanceof CollectionObject){
+						(context.eContainer as NestedAttributeRef).value.eContainer as CollectionObject
 					} else {
-						(context.eContainer as NestedAttributeRef).ref
+						(context.eContainer as NestedAttributeRef).value
 					}
 				}
 			
