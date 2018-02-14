@@ -23,6 +23,7 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
+import de.wwu.musket.musket.CollectionObject
 
 /**
  * This class contains custom scoping description.
@@ -47,6 +48,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 				inScope.addAll(obj.eContents.filter(DoubleVariable).map[it.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(BoolVariable).map[it.vars].flatten.toList)
 				inScope.addAll(obj.eContents.filter(StructVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(CollectionObject).map[it.vars].flatten.toList)
 				
 				obj = obj.eContainer
 
@@ -57,9 +59,19 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
         } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
 			val ReferableObject containerElement = 
 				if(context.eContainer instanceof ObjectRef) {
-					(context.eContainer as ObjectRef).value
+					// Dealing with multi-array definitions
+					if((context.eContainer as ObjectRef).value.eContainer instanceof CollectionObject){
+						(context.eContainer as ObjectRef).value.eContainer as CollectionObject
+					} else {
+						(context.eContainer as ObjectRef).value
+					}
 				} else if(context.eContainer instanceof NestedAttributeRef) {
-					(context.eContainer as NestedAttributeRef).ref
+					// Dealing with multi-array definitions
+					if((context.eContainer as NestedAttributeRef).ref.eContainer instanceof CollectionObject){
+						(context.eContainer as NestedAttributeRef).ref.eContainer as CollectionObject
+					} else {
+						(context.eContainer as NestedAttributeRef).ref
+					}
 				}
 			
 			val rootElement = EcoreUtil2.getRootContainer(context)
