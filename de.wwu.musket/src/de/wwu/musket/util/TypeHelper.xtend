@@ -58,6 +58,9 @@ import de.wwu.musket.musket.StructParameter
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.StructVariable
+import de.wwu.musket.musket.MusketStructVariable
 
 class TypeHelper {
 	
@@ -78,6 +81,44 @@ class TypeHelper {
 		} else {
 			return function.returnTypePrimitive.toString
 		}
+	}
+	
+	static dispatch def getStructType(StructArray obj){
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(StructMatrix obj){
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(Struct obj){
+		return obj.name
+	}
+	
+	static dispatch def getStructType(StructVariable obj){
+		if(obj.eContainer instanceof StructVariable) return (obj.eContainer as StructVariable).type.name
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(MusketStructVariable obj){
+		if(obj.eContainer instanceof MusketStructVariable) return (obj.eContainer as MusketStructVariable).type.name
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(StructParameter obj){
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(StructArrayParameter obj){
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(StructMatrixParameter obj){
+		return obj.type.name
+	}
+	
+	static dispatch def getStructType(EObject obj){
+		return null
 	}
 	
 	// Helper to check the expression type of a collection
@@ -399,12 +440,20 @@ class TypeHelper {
 		return Type.BOOL
 	}
 	
+	static dispatch def Type calculateType(MusketStructVariable exp){
+		return Type.STRUCT
+	}
+	
 	static dispatch def Type calculateType(IntVariable exp){
 		return Type.INT
 	}
 	
 	static dispatch def Type calculateType(DoubleVariable exp){
 		return Type.DOUBLE
+	}
+	
+	static dispatch def Type calculateType(StructVariable exp){
+		return Type.STRUCT
 	}
 	
 	static dispatch def Type calculateType(BoolVariable exp){
@@ -492,7 +541,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def Type calculateType(ObjectRef exp){
-		if(exp instanceof CollectionElementRef) return exp.calculateCollectionType
+		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
 		return exp.value.calculateType
 	}
 	
