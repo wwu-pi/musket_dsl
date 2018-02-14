@@ -432,9 +432,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MusketPackage.eINSTANCE.function_Statement,
 				func.statement.size-1,
 				INCOMPLETE_DECLARATION)
-		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.readableType !== func.statement.last.calculateType.toString){
+		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement)){
+			// TODO missing struct comparison
 			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + func.readableType + '!', 
 				MusketPackage.eINSTANCE.function_Statement,
+				func.statement.size-1,
 				INVALID_TYPE)
 		}
 	}
