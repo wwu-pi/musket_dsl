@@ -11,6 +11,7 @@ import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.CollectionElementRef
+import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
 import de.wwu.musket.musket.DoubleArray
@@ -21,6 +22,7 @@ import de.wwu.musket.musket.DoubleMatrixParameter
 import de.wwu.musket.musket.DoubleParameter
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.IntArrayParameter
 import de.wwu.musket.musket.IntConstant
@@ -30,11 +32,13 @@ import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketBoolVariable
 import de.wwu.musket.musket.MusketDoubleVariable
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.MusketIntVariable
+import de.wwu.musket.musket.MusketStructVariable
 import de.wwu.musket.musket.Not
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Or
@@ -43,27 +47,20 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
+import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StandardFunctionCall
 import de.wwu.musket.musket.StringVal
-import de.wwu.musket.musket.Subtraction
-import de.wwu.musket.musket.Type
-import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructMatrixParameter
 import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructMatrixParameter
 import de.wwu.musket.musket.StructParameter
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.TypeCast
-import de.wwu.musket.musket.Modulo
-import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructVariable
-import de.wwu.musket.musket.MusketStructVariable
-import de.wwu.musket.musket.ReturnStatement
-
-import static extension de.wwu.musket.util.MusketType.*
+import de.wwu.musket.musket.Subtraction
+import de.wwu.musket.musket.TypeCast
+import org.eclipse.emf.ecore.EObject
 
 class TypeHelper {
 	
@@ -106,84 +103,88 @@ class TypeHelper {
 	}
 	
 	// Helper to check the expression type of a collection
-	static dispatch def Type calculateCollectionType(IntArray obj){
-		return Type.INT
+	static dispatch def MusketType calculateCollectionType(IntArray obj){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleArray obj){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateCollectionType(DoubleArray obj){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolArray obj){
-		return Type.BOOL
+	static dispatch def MusketType calculateCollectionType(BoolArray obj){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(StructArray obj){
-		return Type.STRUCT
+	static dispatch def MusketType calculateCollectionType(StructArray obj){
+		return new MusketType(obj.type).toArray
 	}
 	
-	static dispatch def Type calculateCollectionType(IntMatrix obj){
-		return Type.INT
+	static dispatch def MusketType calculateCollectionType(IntMatrix obj){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleMatrix obj){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateCollectionType(DoubleMatrix obj){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolMatrix obj){
-		return Type.BOOL
+	static dispatch def MusketType calculateCollectionType(BoolMatrix obj){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(StructMatrix obj){
-		return Type.STRUCT
+	static dispatch def MusketType calculateCollectionType(StructMatrix obj){
+		return new MusketType(obj.type).toMatrix
 	}
 	
-	static dispatch def Type calculateCollectionType(IntArrayParameter obj){
-		return Type.INT
+	static dispatch def MusketType calculateCollectionType(IntArrayParameter obj){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleArrayParameter obj){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateCollectionType(DoubleArrayParameter obj){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolArrayParameter obj){
-		return Type.BOOL
+	static dispatch def MusketType calculateCollectionType(BoolArrayParameter obj){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(StructArrayParameter obj){
-		return Type.STRUCT
+	static dispatch def MusketType calculateCollectionType(StructArrayParameter obj){
+		return new MusketType(obj.type).toArray
 	}
 	
-	static dispatch def Type calculateCollectionType(IntMatrixParameter obj){
-		return Type.INT
+	static dispatch def MusketType calculateCollectionType(IntMatrixParameter obj){
+		return MusketType.INT
 	}
 	
-	static dispatch def Type calculateCollectionType(DoubleMatrixParameter obj){
-		return Type.DOUBLE
+	static dispatch def MusketType calculateCollectionType(DoubleMatrixParameter obj){
+		return MusketType.DOUBLE
 	}
 	
-	static dispatch def Type calculateCollectionType(BoolMatrixParameter obj){
-		return Type.BOOL
+	static dispatch def MusketType calculateCollectionType(BoolMatrixParameter obj){
+		return MusketType.BOOL
 	}
 	
-	static dispatch def Type calculateCollectionType(StructMatrixParameter obj){
-		return Type.STRUCT
+	static dispatch def MusketType calculateCollectionType(StructMatrixParameter obj){
+		return new MusketType(obj.type).toMatrix
 	}
 		
-	static dispatch def Type calculateCollectionType(CollectionElementRef obj){
+	static dispatch def MusketType calculateCollectionType(CollectionElementRef obj){
 		return null // a collection _element_ is no collection itself
 	}
 	
-	static dispatch def Type calculateCollectionType(ObjectRef obj){
+	static dispatch def MusketType calculateCollectionType(ObjectRef obj){
 		return obj.value.calculateCollectionType
 	}
 	
-	static dispatch def Type calculateCollectionType(CollectionObject obj){
+	static dispatch def MusketType calculateCollectionType(MusketType t){
+		return t.toSingleValued;
+	}
+	
+	static dispatch def MusketType calculateCollectionType(CollectionObject obj){
 		println("try to calculate collection type for " + obj)
 		return null;
 	}
 	
-	static dispatch def Type calculateCollectionType(ParameterInput obj){
+	static dispatch def MusketType calculateCollectionType(ParameterInput obj){
 		println("try to calculate collection type for " + obj)
 		return null;
 	}
@@ -523,7 +524,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateType(ObjectRef exp){
-		if(exp instanceof CollectionElementRef) return new MusketType(exp.value.calculateCollectionType)
+		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
 		return exp.value.calculateType
 	}
 	

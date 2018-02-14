@@ -77,13 +77,13 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			val rootElement = EcoreUtil2.getRootContainer(context)
 	            	
             if(containerElement instanceof StructParameter) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
             	return Scopes.scopeFor(candidates)
             } else if (containerElement instanceof StructArray) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
             	return Scopes.scopeFor(candidates)
             } else if (containerElement instanceof StructMatrix) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
             	return Scopes.scopeFor(candidates)
             } else {
             	return IScope::NULLSCOPE;

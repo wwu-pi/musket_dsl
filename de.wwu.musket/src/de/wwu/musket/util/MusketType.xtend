@@ -3,19 +3,20 @@ package de.wwu.musket.util
 import de.wwu.musket.musket.Type
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.Struct
+import java.util.Objects
 
 class MusketType {
 	
-	public static MusketType INT = new MusketType(Type.INT)
-	public static MusketType DOUBLE = new MusketType(Type.DOUBLE)
-	public static MusketType BOOL = new MusketType(Type.BOOL)
-	public static MusketType STRING = new MusketType(Type.STRING)
-	public static MusketType INT_ARRAY = new MusketType(Type.INT).toArray
-	public static MusketType DOUBLE_ARRAY = new MusketType(Type.DOUBLE).toArray
-	public static MusketType BOOL_ARRAY = new MusketType(Type.BOOL).toArray
-	public static MusketType INT_MATRIX = new MusketType(Type.INT).toMatrix
-	public static MusketType DOUBLE_MATRIX = new MusketType(Type.DOUBLE).toMatrix
-	public static MusketType BOOL_MATRIX = new MusketType(Type.BOOL).toMatrix
+	public static final MusketType INT = new MusketType(Type.INT)
+	public static final MusketType DOUBLE = new MusketType(Type.DOUBLE)
+	public static final MusketType BOOL = new MusketType(Type.BOOL)
+	public static final MusketType STRING = new MusketType(Type.STRING)
+	public static final MusketType INT_ARRAY = new MusketType(Type.INT).toArray
+	public static final MusketType DOUBLE_ARRAY = new MusketType(Type.DOUBLE).toArray
+	public static final MusketType BOOL_ARRAY = new MusketType(Type.BOOL).toArray
+	public static final MusketType INT_MATRIX = new MusketType(Type.INT).toMatrix
+	public static final MusketType DOUBLE_MATRIX = new MusketType(Type.DOUBLE).toMatrix
+	public static final MusketType BOOL_MATRIX = new MusketType(Type.BOOL).toMatrix
 	
 	protected Type type = null
 	protected String structName = null
@@ -50,16 +51,28 @@ class MusketType {
 		return this
 	}
 	
-	static def isNumeric(MusketType t){
-		return !t.isArray && !t.isMatrix && (t.type === Type.INT || t.type === Type.DOUBLE)
+	def toSingleValued(){
+		isMatrix = false
+		isArray = false
+		return this
+	}
+	
+	def isNumeric(){
+		return !isArray && !isMatrix && (type === Type.INT || type === Type.DOUBLE)
 	}
 	
 	def isCollection() {
 		return isArray || isMatrix
 	}
 	
-	def equals(MusketType t){
-		return this.type === t.type && this.structName == t.structName && this.isArray === t.isArray && this.isMatrix === t.isMatrix
+	override hashCode() {
+		Objects.hash(this.type, this.structName, this.isArray, this.isMatrix)
+	}
+	
+	override def equals(Object obj){
+		if(!(obj instanceof MusketType)) return false
+		return this.type === (obj as MusketType).type && this.structName == (obj as MusketType).structName
+			&& this.isArray === (obj as MusketType).isArray && this.isMatrix === (obj as MusketType).isMatrix
 	}
 	
 	override def String toString(){
