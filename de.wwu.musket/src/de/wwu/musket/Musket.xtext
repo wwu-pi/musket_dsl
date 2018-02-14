@@ -30,7 +30,6 @@ enum Mode:
 ;
 
 //-----------------------------------------------------------	
-
 ReferableObject:
 	MusketObject | Parameter
 ;
@@ -144,9 +143,7 @@ Constant:
 	{DoubleConstant} 'const' 'double' name=ID '=' value=DOUBLE | 
 	{BoolConstant} 'const' 'bool' name=ID '=' value=BOOL
 ;
-	
-// TODO Validate: Array/Matrix in structs must be copy-distributed
-// TODO Validate: No constants in structs
+
 Struct:
 	'struct' name=ID '{'
 		attributes+=Object*
@@ -154,8 +151,6 @@ Struct:
 ;
 	
 //-----------------------------------------------------------
-// TODO validate parameter names are unique
-// TODO validate new variables do not conflict with parameters/global names
 Function:
 	RegularFunction | LambdaFunction
 ;
@@ -186,13 +181,11 @@ ForLoop:
 ConditionalForLoop:
 	{ConditionalForLoop} 
 	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
-	//TODO break/continue 
 	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
 ;
 
 IteratorForLoop:
 	'for' '(' iter=Parameter ':' dataStructure=[CollectionObjectOrParam] ')'
-	//TODO break/continue
 	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
 ;
 
@@ -248,14 +241,12 @@ MusketForLoop:
 
 MusketConditionalForLoop:
 	{MusketConditionalForLoop} 
-	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
-	//TODO break/continue 
+	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')' 
 	( '{' statements+=MainFunctionStatement* '}' | => statements+=MainFunctionStatement?)
 ;
 
 MusketIteratorForLoop:
 	'for' '(' iter=Parameter ':' dataStructure=[CollectionObject] ')'
-	//TODO break/continue
 	( '{' statements+=MainFunctionStatement+ '}' | => statements+=MainFunctionStatement?)
 ;
 
@@ -341,7 +332,6 @@ MusketStatement:
 	FunctionCall
 ;
 
-// TODO check not to assign to Constants
 Assignment:
 	var=ObjectRef operator=AssignmentOperator value=Expression
 ;
@@ -431,8 +421,7 @@ enum StandardFunctionName: // Whitelisting allowed function names from http://ww
 ;
 
 enum CollectionFunctionName:
-	// TODO constraint: rows/colums/~local only for matrices
-	size | sizeLocal | show | rows | rowsLocal | columns | columsLocal | blocksInRow | blocksInColumn
+	size | sizeLocal | show | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
 ;
 
 enum MusketFunctionName:

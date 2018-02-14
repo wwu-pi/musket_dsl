@@ -8,10 +8,18 @@ import de.wwu.musket.musket.ReferableObject
 import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.Constant
+import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.CollectionFunctionName
+import de.wwu.musket.musket.Struct
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
 	public static val INVALID_ID = 'invalidIdentifier'
+	public static val INVALID_OPERATION = 'invalidOperation'
 	
 	// Check variable/constant names are unique
 	@Check
@@ -63,4 +71,43 @@ class MusketModelValidator extends AbstractMusketValidator {
 				INVALID_ID)
 		}
 	}
+	
+	// Check that constants are not reassigned
+	@Check
+	def checkAssignmentToConstant(Assignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.assignment_Var,
+				INVALID_OPERATION)
+		}
+	}
+	
+	@Check
+	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.musketAssignment_Var,
+				INVALID_OPERATION)
+		}
+	}
+	
+	// Check collectionFunctionCalls match with collection type
+	@Check
+	def checkValidCollectionFunctionCall(CollectionFunctionCall call) {
+		val matrixFunctions = #[CollectionFunctionName.ROWS, CollectionFunctionName.ROWS_LOCAL, CollectionFunctionName.COLUMNS, CollectionFunctionName.COLUMNS_LOCAL, CollectionFunctionName.BLOCKS_IN_COLUMN, CollectionFunctionName.BLOCKS_IN_ROW]
+		if(!(call.^var instanceof Matrix) && matrixFunctions.contains(call.function)){
+			error(call.function + ' can only be applied to matrices!', 
+				MusketPackage.eINSTANCE.collectionFunctionCall_Function,
+				INVALID_OPERATION)
+		}
+	}
+	
+	// Ensure no constants are defined in structs
+	@Check
+	def checkNoConstantsInStructs(Constant const) {
+		if(const.eContainer instanceof Struct){
+			error('Constants are not allowed in structs!', 
+				const, null)
+		}
+	} 
 }
