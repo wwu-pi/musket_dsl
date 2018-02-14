@@ -39,6 +39,7 @@ import org.eclipse.xtext.validation.Check
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.Modulo
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -464,6 +465,15 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
 				MusketPackage.eINSTANCE.assignment_Value,
 				INVALID_TYPE)
+		}
+	}
+	
+	// Check modulo Operator only works on ints
+	@Check
+	def checkModuloOperator(Modulo modulo) {
+		if(modulo.left.calculateType != MusketType.INT || modulo.right.calculateType != MusketType.INT){
+			error('Modulo operator requires two int values, ' + modulo.left.calculateType + ' and ' + modulo.right.calculateType + ' given!', 
+				modulo, null, null)
 		}
 	}
 }
