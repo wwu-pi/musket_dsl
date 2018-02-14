@@ -45,6 +45,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	public static val INVALID_TYPE = 'invalidType'
 	public static val INVALID_OPTIONS = 'invalidOptions'
 	public static val INVALID_PARAMS = 'invalidParameters'
+	public static val INCOMPLETE_DECLARATION = 'incompleteDeclaration'
+	public static val INVALID_STATEMENT = 'invalidStatement'
 	
 	// Native parameters to skeletons
 	static val zipParamsMin = 0
@@ -400,7 +402,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			
 	}
 	
-	// Check function return type is correct in call 
+	// Check function return type is present and correct 
 	@Check
 	def checkReturnTypeForInPlaceSkeletons(Skeleton skel) {
 		if (skel.param instanceof InternalFunctionCall){
@@ -419,6 +421,21 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							INVALID_TYPE)
 					} 
 			}
+		}
+	}
+	
+	@Check
+	def checkReturnStatement(Function func) {
+		if(func.statement.size > 0 && func.statement.filter(ReturnStatement).toList == emptyList){
+			//  Return statement missing
+			error('Function has no return statement!', 
+				MusketPackage.eINSTANCE.function_Statement,
+				func.statement.size-1,
+				INCOMPLETE_DECLARATION)
+		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.readableType !== func.statement.last.calculateType.toString){
+			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + func.readableType + '!', 
+				MusketPackage.eINSTANCE.function_Statement,
+				INVALID_TYPE)
 		}
 	}
 	

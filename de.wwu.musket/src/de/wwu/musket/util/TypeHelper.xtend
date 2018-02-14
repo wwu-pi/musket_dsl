@@ -61,6 +61,7 @@ import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.MusketStructVariable
+import de.wwu.musket.musket.ReturnStatement
 
 class TypeHelper {
 	
@@ -630,6 +631,10 @@ class TypeHelper {
 	static dispatch def Type calculateType(Function exp){
 		if(exp.returnType !== null) return Type.STRUCT
 		return exp.returnTypePrimitive
+	}
+	
+	static dispatch def Type calculateType(ReturnStatement exp){
+		return exp.value.calculateType
 	}
 	
 	static dispatch def Type calculateType(EObject exp){ // Else case
