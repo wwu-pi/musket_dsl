@@ -8,6 +8,8 @@ import de.wwu.musket.musket.Model
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
+import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.Struct
 
 class ModelElementAccess {
 
@@ -41,8 +43,16 @@ class ModelElementAccess {
 		resource.Model.data.filter(Array)
 	}
 	
+	def static Matrices(Resource resource) {
+		resource.Model.data.filter(Matrix)
+	}
+	
 	def static CollectionObjects(Resource resource) {
 		resource.Model.data.filter(CollectionObject)
+	}
+	
+	def static Structs(Resource resource) {
+		resource.Model.data.filter(Struct)
 	}
 	
 	def static FoldSkeletons(Resource resource) {

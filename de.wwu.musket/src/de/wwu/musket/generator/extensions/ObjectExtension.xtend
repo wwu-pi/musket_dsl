@@ -24,13 +24,11 @@ import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.Matrix
-
-import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
-import org.eclipse.emf.common.util.EList
-import org.eclipse.emf.common.util.BasicEList
 import java.util.List
+
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element

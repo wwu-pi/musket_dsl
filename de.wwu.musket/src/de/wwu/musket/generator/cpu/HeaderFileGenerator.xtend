@@ -7,6 +7,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
+import static extension de.wwu.musket.generator.cpu.StructGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
 class HeaderFileGenerator {
@@ -23,12 +24,12 @@ class HeaderFileGenerator {
 	def static headerFileContent(Resource resource) '''
 		#pragma once
 		
-		«FOR d : resource.Data»
-			«d.generateObjectDeclaration»
+		«FOR co : resource.CollectionObjects»
+			«co.generateObjectDeclaration»
 		«ENDFOR»
 		
-«««		«FOR f : resource.Functions»
-«««			«f.generateFunctorDeclaration»
-«««		«ENDFOR»
+		«FOR s : resource.Structs»
+			«s.generateStructDeclaration»
+		«ENDFOR»
 	'''
 }
