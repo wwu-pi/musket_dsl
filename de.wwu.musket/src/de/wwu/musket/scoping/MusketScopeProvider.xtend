@@ -3,6 +3,27 @@
  */
 package de.wwu.musket.scoping
 
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.FunctionStatement
+import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.IntVariable
+import de.wwu.musket.musket.StructVariable
+import de.wwu.musket.musket.MusketPackage
+import de.wwu.musket.musket.NestedAttributeRef
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.ReferableObject
+import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.StructArray
+import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructParameter
+import java.util.Collection
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.scoping.IScope
+import org.eclipse.xtext.scoping.Scopes
+import de.wwu.musket.musket.CollectionObject
 
 /**
  * This class contains custom scoping description.
@@ -12,4 +33,62 @@ package de.wwu.musket.scoping
  */
 class MusketScopeProvider extends AbstractMusketScopeProvider {
 
+    override getScope(EObject context, EReference reference) {
+		// Assign statement -> allowed reference values
+		if ((context instanceof ObjectRef || context instanceof Function || context instanceof FunctionStatement) && reference == MusketPackage.eINSTANCE.objectRef_Value){
+
+			// Move to top level of nested statements to get function
+			var EObject obj = context
+			var Collection<ReferableObject> inScope = newArrayList()
+			while(obj !== null) {
+				// collect available elements in scope on this level but exclude non-instantiable struct type definition
+				inScope.addAll(obj.eContents.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
+				// Add nested names in multi attributes
+				inScope.addAll(obj.eContents.filter(IntVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(DoubleVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(BoolVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(StructVariable).map[it.vars].flatten.toList)
+				inScope.addAll(obj.eContents.filter(CollectionObject).map[it.vars].flatten.toList)
+				
+				obj = obj.eContainer
+
+			} 
+			return Scopes.scopeFor(inScope)
+            
+		// Nested refences -> allowed references
+        } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Ref) {
+			val ReferableObject containerElement = 
+				if(context.eContainer instanceof ObjectRef) {
+					// Dealing with multi-array definitions
+					if((context.eContainer as ObjectRef).value.eContainer instanceof CollectionObject){
+						(context.eContainer as ObjectRef).value.eContainer as CollectionObject
+					} else {
+						(context.eContainer as ObjectRef).value
+					}
+				} else if(context.eContainer instanceof NestedAttributeRef) {
+					// Dealing with multi-array definitions
+					if((context.eContainer as NestedAttributeRef).ref.eContainer instanceof CollectionObject){
+						(context.eContainer as NestedAttributeRef).ref.eContainer as CollectionObject
+					} else {
+						(context.eContainer as NestedAttributeRef).ref
+					}
+				}
+			
+			val rootElement = EcoreUtil2.getRootContainer(context)
+	            	
+            if(containerElement instanceof StructParameter) {
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            } else if (containerElement instanceof StructArray) {
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            } else if (containerElement instanceof StructMatrix) {
+            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[struct | struct === containerElement.type].map[struct | struct.attributes].flatten
+            	return Scopes.scopeFor(candidates)
+            } else {
+            	return IScope::NULLSCOPE;
+            }
+        }
+        return super.getScope(context, reference);
+    }
 }

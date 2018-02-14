@@ -50,48 +50,93 @@ IndividualObject:
 ;
 
 Array:
-	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
+	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{StructArray} 'array' '<' type=[Struct] ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
 ;
 
 Matrix:
-	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
+	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
 ;
 
+CollectionVariableElement returns CollectionObject:
+	name=ID
+;
 
 Variable:
-	IntVariable | DoubleVariable | BoolVariable
+	IntVariable | DoubleVariable | BoolVariable | StructVariable
 ;
 
 IntVariable:
-	'int' name=ID ('=' initExpression=Expression)?
+	'int' name=ID (',' vars+=IntVariableElement)* ('=' initExpression=Expression)?
+;
+
+IntVariableElement returns IntVariable:
+	name=ID
 ;
 
 DoubleVariable:
-	'double' name=ID ('=' initExpression=Expression)?
+	'double' name=ID (',' vars+=DoubleVariableElement)* ('=' initExpression=Expression)?
+;
+
+DoubleVariableElement returns DoubleVariable:
+	name=ID
 ;
 
 BoolVariable:
-	'bool' name=ID ('=' initExpression=Expression)?
+	'bool' name=ID (',' vars+=BoolVariableElement)* ('=' initExpression=Expression)?
+;
+
+BoolVariableElement returns BoolVariable:
+	name=ID
+;
+
+StructVariable:
+	type=[Struct] name=ID (',' vars+=StructVariableElement)* ('=' initExpression=Expression)?
+;
+
+StructVariableElement returns StructVariable:
+	name=ID
 ;
 
 MusketVariable:
-	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | Variable
+	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | MusketStructVariable | => Variable
 ;
 
 MusketIntVariable:
-	'int' name=ID '=' initExpression=SkeletonExpression
+	'int' name=ID (',' vars+=MusketIntVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketIntVariableElement returns MusketIntVariable:
+	name=ID
 ;
 
 MusketDoubleVariable:
-	'double' name=ID '=' initExpression=SkeletonExpression
+	'double' name=ID (',' vars+=MusketDoubleVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketDoubleVariableElement returns MusketDoubleVariable:
+	name=ID
 ;
 
 MusketBoolVariable:
-	'bool' name=ID '=' initExpression=SkeletonExpression
+	'bool' name=ID (',' vars+=MusketBoolVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketBoolVariableElement returns MusketBoolVariable:
+	name=ID
+;
+
+MusketStructVariable:
+	type=[Struct] name=ID (',' vars+=MusketStructVariableElement)* ('=' initExpression=SkeletonExpression)?
+;
+
+MusketStructVariableElement returns MusketStructVariable:
+	name=ID
 ;
 
 Constant:
@@ -116,13 +161,13 @@ Function:
 ;
 
 RegularFunction:
-	returnType=Type name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
+	(returnType=[Struct] | returnTypePrimitive=Type) name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
 
 LambdaFunction:
-	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' returnType=Type '{'
+	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=[Struct] | returnTypePrimitive=Type) '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
@@ -154,7 +199,9 @@ IteratorForLoop:
 IfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=FunctionStatement+
-	'}'
+	'}' ('else' '{'
+		elseStatements+=FunctionStatement+
+	'}')?
 ;
 
 CollectionObjectOrParam:
@@ -169,9 +216,11 @@ CollectionParameter:
 	{IntArrayParameter} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
 	{DoubleArrayParameter} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
 	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
+	{StructArrayParameter} 'array' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID |
 	{IntMatrixParameter} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
 	{DoubleMatrixParameter} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
-	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID
+	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
+	{StructMatrixParameter} 'matrix' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID
 ;
 
 IndividualParameter:
@@ -213,7 +262,9 @@ MusketIteratorForLoop:
 MusketIfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=MainFunctionStatement+
-	'}'
+	'}' ('else' '{'
+		elseStatements+=MainFunctionStatement+
+	'}')?
 ;
 
 MusketExpression:
@@ -226,19 +277,31 @@ SkeletonExpression:
 ;
 
 Skeleton:
+	MapSkeletonVariants |
+	FoldSkeletonVariants | 
+	ZipSkeletonVariants |
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
+	{ShiftPartitionsHorizontallySkeleton} 'shiftPartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
+	{ShiftPartitionsVerticallySkeleton} 'shiftPartitionsVertically' '(' param=SkeletonParameterInput ')' 
+;
+
+MapSkeletonVariants:
 	{MapSkeleton} 'map' ('<' options+=MapOption (',' options+=MapOption)* '>')? '(' param=SkeletonParameterInput ')' |
 	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
 	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
-	{MapLocalIndexInPlaceSkeleton} 'mapLocalIndexInPlace' '(' param=SkeletonParameterInput ')' |
+	{MapLocalIndexInPlaceSkeleton} 'mapLocalIndexInPlace' '(' param=SkeletonParameterInput ')'
+;
+
+FoldSkeletonVariants:
 	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' param=SkeletonParameterInput ')' |
-	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
-	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')' |
-	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
-	{RotatePartitionsHorizontallySkeleton} 'rotatePartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
-	{RotatePartitionsVerticallySkeleton} 'rotatePartitionsVertically' '(' param=SkeletonParameterInput ')' 
+	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')'
+;
+
+ZipSkeletonVariants:
+	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipInPlaceSkeleton} 'zipInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipIndexSkeleton} 'zipIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')'
 ;
 
 enum MapOption:
@@ -288,11 +351,18 @@ MusketAssignment:
 ;
 
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject|QUALIFIED_NAME] (
-		COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
-		COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
-	) |
-	=> value=[ReferableObject|QUALIFIED_NAME]
+	{CollectionElementRef} value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+	=> value=[ReferableObject] (tail = NestedAttributeRef)?
+;
+
+fragment CollectionRef*:
+	COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
+	COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
+;
+
+NestedAttributeRef:
+	{NestedCollectionElementRef} ('.') ref=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+	=> ('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
 ;
 
 ReturnStatement:
@@ -394,23 +464,23 @@ And returns Expression:
 BooleanExpression returns Expression:
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
 	BoolVal |
-	AdditionSubtraction
+	AdditionSubtraction |
+	StructVal
 ;
 
 // Arithmetic expressions
 AdditionSubtraction returns Expression: // Top-Level arithmetic expression
-	=> MultiplicationDivision ({Addition.left=current} OP_MATH_PLUS right=MultiplicationDivision)* |
-	MultiplicationDivision ({Subtraction.left=current} OP_MATH_MINUS right=MultiplicationDivision)*
+	MultiplicationDivision (({Addition.left=current} OP_MATH_PLUS | {Subtraction.left=current} OP_MATH_MINUS) right=MultiplicationDivision)*
 ;
 
 MultiplicationDivision returns Expression:
-	=> PrefixedExpression ({Multiplication.left=current} OP_MATH_MULT right=PrefixedExpression)* |
-	PrefixedExpression ({Division.left=current} OP_MATH_DIV right=PrefixedExpression)*
+	PrefixedExpression (({Multiplication.left=current} OP_MATH_MULT | {Division.left=current} OP_MATH_DIV | {Modulo.left=current} OP_MATH_MODULO) right=PrefixedExpression)*
 ;
 
 PrefixedExpression returns Expression:
 	{SignedArithmetic} '-' expression=ArithmeticExpression |
-	ArithmeticExpression
+	{TypeCast} '(' targetType=Type ')' expression=ArithmeticExpression |
+	=> ArithmeticExpression
 ;
 
 ArithmeticExpression returns Expression:
@@ -445,6 +515,10 @@ StringVal:
 	value=STRING
 ;
 
+StructVal:
+	{StructVal} '{' '}'
+;
+
 //-----------------------------------------------------------
 enum DistributionMode:
 	copy | dist | rowDist | columnDist
@@ -452,6 +526,11 @@ enum DistributionMode:
 
 enum Type:
 	int | double | bool | string
+;
+
+// synthetic extension of Type for non-instantiable types
+enum NonPrimitiveType returns Type: 
+	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct | structArray | structMatrix
 ;
 
 AssignmentOperator:
@@ -479,7 +558,7 @@ OP_ASSIGN_DIV:
 ;
 
 BooleanOperator:
-	OP_BOOL_LT | OP_BOOL_LTE | OP_BOOL_EQUALS | OP_BOOL_GTE | OP_BOOL_GT
+	OP_BOOL_LT | OP_BOOL_LTE | OP_BOOL_EQUALS | OP_BOOL_UNEQUALS | OP_BOOL_GTE | OP_BOOL_GT
 ;
 
 OP_BOOL_LT:
@@ -492,6 +571,10 @@ OP_BOOL_LTE:
 
 OP_BOOL_EQUALS:
 	'=='
+;
+
+OP_BOOL_UNEQUALS:
+	'!='
 ;
 
 OP_BOOL_GTE:
@@ -516,6 +599,10 @@ OP_MATH_MULT:
 
 OP_MATH_DIV:
 	'/'
+;
+
+OP_MATH_MODULO:
+	'%'
 ;
 
 OP_CONDITION_AND:
@@ -597,7 +684,3 @@ terminal COLL_LOCAL_OPEN:
 terminal COLL_LOCAL_CLOSE: 
 	']]'
 ;
-
-QUALIFIED_NAME:
-  ID ('.' ID)*
-; 

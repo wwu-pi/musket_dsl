@@ -23,14 +23,14 @@ array<Particle,16,dist> P;
 array<Particle,16,copy> oldP;
 
 Particle init_particles(int i, Particle p){
-    x = mkt::rand(0,1);
-    y = mkt::rand(0,1);
-    z = mkt::rand(0,1);
-    vx = 0.0;
-    vy = 0.0;
-    vz = 0.0;
-    mass = 1.0;
-    charge = 1.0 - 2.0 * (double) (i % 2);
+	p.x = mkt::rand(0,1);
+    p.y = mkt::rand(0,1);
+    p.z = mkt::rand(0,1);
+    p.vx = 0.0;
+    p.vy = 0.0;
+    p.vz = 0.0;
+    p.mass = 1.0;
+    p.charge = 1.0 - 2.0 * (double) (i % 2);
 }
 
 Particle calc_force(int curIndex, Particle curParticle) {
@@ -39,7 +39,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
     double az = 0.0;
 
     // calculate forces for the current particle
-    for (int j = 0; j < oldParticles.getSize(); j++) {
+    for (int j = 0; j < oldP.size(); j++) {
 
       // do not evaluate interaction with yourself.
       if (j != curIndex) {
@@ -48,18 +48,18 @@ Particle calc_force(int curIndex, Particle curParticle) {
         double dx, dy, dz, r2, r, qj_by_r3;
 
         // Here we absorb the minus sign by changing the order of i and j.
-        dx = curParticle.x - oldParticles[j].x;
-        dy = curParticle.y - oldParticles[j].y;
-        dz = curParticle.z - oldParticles[j].z;
+        dx = curParticle.x - oldP[j].x;
+        dy = curParticle.y - oldP[j].y;
+        dz = curParticle.z - oldP[j].z;
 
         r2 = dx * dx + dy * dy + dz * dz;
-        r = sqrtf(r2);
+        r = sqrt(r2);
 
         // Quench the force if the particles are too close.
         if (r < EPSILON){
           qj_by_r3 = 0.0;
         } else {
-          qj_by_r3 = oldParticles[j].charge / (r2 * r);
+          qj_by_r3 = oldP[j].charge / (r2 * r);
         }
 
         // accumulate the contribution from particle j.
@@ -90,14 +90,14 @@ Particle calc_force(int curIndex, Particle curParticle) {
 main{
 	P.mapIndexInPlace(init_particles());
 	
-	mkt::print('Initial Particle System:\n')
+	mkt::print('Initial Particle System:\n');
 	P.show();
 	
 	for (int i = 0; i < steps; ++i) {
 	    P.mapIndexInPlace(calc_force());	
-	    P.gather(oldP);
+	    oldP = P.gather();
   	}
   		
-	mkt::print('Final Particle System:\n')
+	mkt::print('Final Particle System:\n');
 	oldP.show();
 }
