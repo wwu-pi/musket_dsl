@@ -283,7 +283,7 @@ Skeleton:
 	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' param=SkeletonParameterInput ')' |
 	{ZipInPlaceSkeleton} 'zipInPlace' '(' param=SkeletonParameterInput ')' |
 	{ZipIndexSkeleton} 'zipIndex' '(' param=SkeletonParameterInput ')' |
-	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput ')' |
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
 	{RotatePartitionsHorizontallySkeleton} 'rotatePartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
 	{RotatePartitionsVerticallySkeleton} 'rotatePartitionsVertically' '(' param=SkeletonParameterInput ')' 
 ;

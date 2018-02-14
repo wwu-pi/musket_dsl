@@ -172,7 +172,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				GatherSkeleton:
 					if(call.params.size !== 0){ 
 						// gather has exactly zero arguments
-						error('Skeleton function call requires no arguments, ' + call.params.size + ' given!', 
+						error('Skeleton has no arguments, ' + call.params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
