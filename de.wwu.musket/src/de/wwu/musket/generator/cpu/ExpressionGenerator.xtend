@@ -30,6 +30,8 @@ import java.util.Map
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.TypeCast
+import de.wwu.musket.musket.Modulo
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -42,6 +44,7 @@ class ExpressionGenerator {
 			CompareExpression case expression.eqRight !==
 				null: '''(«expression.eqLeft.generateExpression(param_map)» «expression.op» «expression.eqRight.generateExpression(param_map)»)'''
 			SignedArithmetic: '''-(«expression.expression.generateExpression(param_map)»)'''
+			Modulo: '''(«expression.left.generateExpression(param_map)» % «expression.right.generateExpression(param_map)»)'''
 			Not: '''!«expression.expression.generateExpression(param_map)»'''
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
@@ -57,6 +60,7 @@ class ExpressionGenerator {
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
 			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
+			TypeCast: '''static_cast<«expression.targetType»>(«expression.expression.generateExpression(param_map)»)'''
 			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
 		}
 	}

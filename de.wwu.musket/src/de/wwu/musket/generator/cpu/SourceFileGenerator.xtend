@@ -1,6 +1,8 @@
 package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.MusketFunctionName
+import de.wwu.musket.musket.StructArray
+import de.wwu.musket.musket.StructMatrix
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
@@ -129,17 +131,18 @@ class SourceFileGenerator {
 		for (var p = 0; p < Config.processes; p++) {
 			result += '''if(«Config.var_pid» == «p»){
 			'''
-			for (a : resource.Arrays) {
-				if (a.ValuesAsString.size > 1) {
+			for (a : resource.Arrays.reject[it instanceof StructArray]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
 					val sizeLocal = a.sizeLocal
 					result +=
-						a.generateArrayInitializationForProcess(p, a.ValuesAsString.drop(sizeLocal * p).take(sizeLocal))
+						a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
 				}
 			}
 			result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
 		}
 
-		for (a : resource.CollectionObjects.filter[it.ValuesAsString.size < 2]) {
+		for (a : resource.CollectionObjects.reject[it instanceof StructArray || it instanceof StructMatrix].filter[it.ValuesAsString.size < 2]) {
 			result += "\n"
 			result += a.generateInitializationWithSingleValue
 		}

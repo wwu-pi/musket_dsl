@@ -26,6 +26,11 @@ import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.Matrix
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
+import de.wwu.musket.musket.StructArray
+import de.wwu.musket.musket.StructMatrix
+import org.eclipse.emf.common.util.EList
+import org.eclipse.emf.common.util.BasicEList
+import java.util.List
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -39,6 +44,10 @@ class ObjectExtension {
 
 	def static dispatch CppPrimitiveTypeAsString(BoolArray o) {
 		'bool'
+	}
+	
+	def static dispatch CppPrimitiveTypeAsString(StructArray o) {
+		o.name.toFirstUpper
 	}
 	
 	def static dispatch CppPrimitiveTypeAsString(IntMatrix o) {
@@ -115,29 +124,37 @@ class ObjectExtension {
 
 	// Value
 	// Array
-	def static dispatch ValuesAsString(IntArray a){
+	def static dispatch List<String> ValuesAsString(IntArray a){
 		a.values.map[v|v.toString]
 	}
 	
-	def static dispatch ValuesAsString(DoubleArray a){
+	def static dispatch List<String> ValuesAsString(DoubleArray a){
 		a.values.map[v|v.toString]
 	}
 	
-	def static dispatch ValuesAsString(BoolArray a){
+	def static dispatch List<String> ValuesAsString(BoolArray a){
 		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch List<String> ValuesAsString(StructArray a){
+		newArrayList('')
 	}
 	
 	// Matrix
-	def static dispatch ValuesAsString(IntMatrix a){
+	def static dispatch List<String> ValuesAsString(IntMatrix a){
 		a.values.map[v|v.toString]
 	}
 	
-	def static dispatch ValuesAsString(DoubleMatrix a){
+	def static dispatch List<String> ValuesAsString(DoubleMatrix a){
 		a.values.map[v|v.toString]
 	}
 	
-	def static dispatch ValuesAsString(BoolMatrix a){
+	def static dispatch List<String> ValuesAsString(BoolMatrix a){
 		a.values.map[v|v.toString]
+	}
+	
+	def static dispatch List<String> ValuesAsString(StructMatrix a){
+		newArrayList('')
 	}
 	
 	// Variable
