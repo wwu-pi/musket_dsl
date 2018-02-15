@@ -65,46 +65,6 @@ import org.eclipse.emf.ecore.EObject
 import static extension de.wwu.musket.util.CollectionHelper.*
 
 class TypeHelper {
-	
-	static dispatch def getStructType(StructArray obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructMatrix obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(Struct obj){
-		return obj.name
-	}
-	
-	static dispatch def getStructType(StructVariable obj){
-		if(obj.eContainer instanceof StructVariable) return (obj.eContainer as StructVariable).type.name
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(MusketStructVariable obj){
-		if(obj.eContainer instanceof MusketStructVariable) return (obj.eContainer as MusketStructVariable).type.name
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructArrayParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructMatrixParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(EObject obj){
-		return null
-	}
-	
-	// Helper to check the expression type of a collection
 	static dispatch def MusketType calculateCollectionType(IntArray obj){
 		return MusketType.INT
 	}

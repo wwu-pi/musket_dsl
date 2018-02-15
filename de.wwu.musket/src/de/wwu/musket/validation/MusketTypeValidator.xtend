@@ -398,8 +398,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + new MusketType(obj as Function) + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
-		}
-			
+		}		
 	}
 	
 	// Check function return type is present and correct 
@@ -415,7 +414,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
 				ZipInPlaceSkeleton:
 					if(new MusketType(call.value) != (skel.eContainer as SkeletonExpression).obj.calculateCollectionType){
-						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + new MusketType(call.value) + ' given!', 
+						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.calculateCollectionType + ', ' + new MusketType(call.value) + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_TYPE)
 					} 
