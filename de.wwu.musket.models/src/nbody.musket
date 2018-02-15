@@ -20,7 +20,7 @@ struct Particle{
 };
 
 array<Particle,16,dist> P = {};
-matrix<Particle,16,16,copy> oldP = {};
+array<Particle,16,copy> oldP = {};
 
 Particle init_particles(int i, Particle p){
 	p.x = mkt::rand(0,1);
@@ -49,7 +49,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
         double dx, dy, dz, r2, r, qj_by_r3;
 
         // Here we absorb the minus sign by changing the order of i and j.
-        dx = curParticle.x - oldP[j,2].x;
+        dx = curParticle.x - oldP[j].x;
         dy = curParticle.y - oldP[j].y;
         dz = curParticle.z - oldP[j].z;
 

@@ -5,8 +5,12 @@ package de.wwu.musket.scoping
 
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.IntVariable
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MusketConditionalForLoop
+import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketStructVariable
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Ref
@@ -54,22 +58,34 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 	}
 	
 	def getScopeFromPosition(EObject pos){
-	 	// Move to top level of nested statements to get function
+		// Iteratively move to top level of nested elements while collecting variable names in scope
 		var EObject obj = pos
 		var Collection<ReferableObject> inScope = newArrayList()
-		while(obj !== null) {
+		while(obj.eContainer !== null) {
+			val allElements = obj.eContainer.eContents
+			val filteredElements = allElements.subList(0, allElements.indexOf(obj)).toList
+			
 			// collect available elements in scope on this level but exclude non-instantiable struct type definition
-			// TODO exclude objects after current position
-			inScope.addAll(obj.eContents.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
+			inScope.addAll(filteredElements.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
+			
 			// Add nested names in multi attributes
-			inScope.addAll(obj.eContents.filter(IntVariable).map[it.vars].flatten.toList)
-			inScope.addAll(obj.eContents.filter(DoubleVariable).map[it.vars].flatten.toList)
-			inScope.addAll(obj.eContents.filter(BoolVariable).map[it.vars].flatten.toList)
-			inScope.addAll(obj.eContents.filter(StructVariable).map[it.vars].flatten.toList)
-			inScope.addAll(obj.eContents.filter(CollectionObject).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(IntVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(DoubleVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(BoolVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(StructVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(CollectionObject).map[it.vars].flatten.toList)
+			
+			// Special cases which add variable names to scope
+			switch(obj){
+				MusketConditionalForLoop: inScope.addAll(obj.init)
+				MusketIteratorForLoop: inScope.addAll(obj.iter)
+				ConditionalForLoop: inScope.addAll(obj.init)
+				IteratorForLoop: inScope.addAll(obj.iter)
+			}
 			
 			obj = obj.eContainer
-		} 
+		}
+
 		return Scopes.scopeFor(inScope)
 	}
 }
