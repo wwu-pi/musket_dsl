@@ -30,8 +30,10 @@ import java.util.Map
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.StandardFunctionCall
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -60,6 +62,7 @@ class ExpressionGenerator {
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
 			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
+			StandardFunctionCall: '''«expression.generateStandardFunctionCall»'''
 			TypeCast: '''static_cast<«expression.targetType»>(«expression.expression.generateExpression(param_map)»)'''
 			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
 		}
