@@ -5,7 +5,7 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class StructGenerator {
 	def static generateStructDeclaration(Struct s)'''
-		Struct «s.name.toFirstUpper»{
+		struct «s.name.toFirstUpper»{
 			«FOR m : s.attributes»
 				«m.CppPrimitiveTypeAsString» «m.name.toFirstLower»;
 			«ENDFOR»

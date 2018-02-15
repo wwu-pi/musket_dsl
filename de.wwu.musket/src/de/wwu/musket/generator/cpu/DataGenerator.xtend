@@ -26,7 +26,7 @@ class DataGenerator {
 		Matrix m) '''extern std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»;'''
 		
 	def static dispatch generateObjectDeclaration(
-		Struct s) '''//TODO struct unimplemented''' //TODO struct unimplemented
+		Struct s) '''''' // this is done in StructGenerator.xtend
 
 // Generate definitions	
 	// variables
@@ -46,7 +46,7 @@ class DataGenerator {
 		Matrix m) '''std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»{};'''
 		
 	def static dispatch generateObjectDefinition(
-		Struct s) '''//TODO struct unimplemented''' //TODO struct unimplemented
+		Struct s) '''''' // this is done in StructGenerator.xtend
 
 // Generate initialization
 	def static generateArrayInitializationForProcess(Array a, int p, Iterable<String> values) '''		
