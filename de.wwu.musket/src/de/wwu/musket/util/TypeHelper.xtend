@@ -62,6 +62,8 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
+import static extension de.wwu.musket.util.CollectionHelper.*
+
 class TypeHelper {
 	
 	static dispatch def getStructType(StructArray obj){
@@ -529,7 +531,7 @@ class TypeHelper {
 		if(exp.tail !== null) return exp.tail.calculateType
 		
 		// Type of collection _element_ 
-		if(exp.globalCollectionIndex?.size > 0 || exp.localCollectionIndex?.size > 0) return exp.value.calculateCollectionType
+		if(exp.isCollectionRef) return exp.value.calculateCollectionType
 		
 		// Other object references
 		return exp.value.calculateType

@@ -353,29 +353,29 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			switch skel {
 				MapSkeletonVariants: 
 					if(call.value.params.size >= indexParams+mapParamsOut && call.value.params.size > mapParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				ZipSkeletonVariants:
 					if(call.value.params.size > zipParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				FoldSkeletonVariants: 
 					if(call.value.params.size > foldParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				ShiftPartitionsHorizontallySkeleton,
 				ShiftPartitionsVerticallySkeleton: 
 					if(call.value.params.size > shiftParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 			}
 		}
 	}
 
-	private def validateParamType(Collection<ParameterInput> input, Collection<Parameter> target){
+	private def validateParamType(Iterable<ParameterInput> input, Iterable<Parameter> target){
 		for(var i=0; i < input.size; i++){
 			if(input.get(i).calculateType != target.get(i).calculateType){
 				error('Parameter does not match expected type ' + target.get(i).calculateType + '!', 

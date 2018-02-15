@@ -23,6 +23,8 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
+import static extension de.wwu.musket.util.CollectionHelper.*
+
 /**
  * This class contains custom scoping description.
  * 
@@ -35,14 +37,13 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 		if(context instanceof TailObjectRef){
 			val container = (context.eContainer as Ref)
 			val head = container.value 
-			val isCollectionRef = (container.localCollectionIndex?.size > 0 || container.globalCollectionIndex?.size > 0)
 			 
 			switch (head) {
 				MusketStructVariable: return Scopes::scopeFor((head as MusketStructVariable).type.attributes)
 				StructVariable: return Scopes::scopeFor((head as StructVariable).type.attributes)
 				StructParameter: return Scopes::scopeFor((head as StructParameter).type.attributes)
-				StructArray case isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
-				StructMatrix case isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
+				StructArray case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
+				StructMatrix case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
 				default: return IScope::NULLSCOPE
 			}
 		} else if(context instanceof ObjectRef){
