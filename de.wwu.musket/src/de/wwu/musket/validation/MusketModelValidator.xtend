@@ -17,11 +17,14 @@ import de.wwu.musket.musket.CollectionFunctionName
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.Ref
+import de.wwu.musket.musket.Array
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
 	public static val INVALID_ID = 'invalidIdentifier'
 	public static val INVALID_OPERATION = 'invalidOperation'
+	public static val INVALID_PARAMETER = 'invalidParameter'
 	
 	// Check variable/constant names are unique
 	@Check
@@ -75,23 +78,23 @@ class MusketModelValidator extends AbstractMusketValidator {
 	}
 	
 	// Check that constants are not reassigned
-//	@Check
-//	def checkAssignmentToConstant(Assignment assignment) {
-//		if(assignment.^var?.value instanceof Constant){
-//			error('Value cannot be assigned to constant!', 
-//				MusketPackage.eINSTANCE.assignment_Var,
-//				INVALID_OPERATION)
-//		}
-//	}
+	@Check
+	def checkAssignmentToConstant(Assignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.assignment_Var,
+				INVALID_OPERATION)
+		}
+	}
 	
-//	@Check
-//	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
-//		if(assignment.^var?.value instanceof Constant){
-//			error('Value cannot be assigned to constant!', 
-//				MusketPackage.eINSTANCE.musketAssignment_Var,
-//				INVALID_OPERATION)
-//		}
-//	}
+	@Check
+	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
+		if(assignment.^var?.value instanceof Constant){
+			error('Value cannot be assigned to constant!', 
+				MusketPackage.eINSTANCE.musketAssignment_Var,
+				INVALID_OPERATION)
+		}
+	}
 	
 	// Check collectionFunctionCalls match with collection type
 	@Check
@@ -133,6 +136,23 @@ class MusketModelValidator extends AbstractMusketValidator {
 			}
 			
 			counter++
+		}
+	}
+	
+	// Check collection access expression matches dimensions
+	@Check
+	def checkCollectionAccessIsNumeric(Ref ref) {
+		val dimensions = if (ref.value instanceof Array) 1 else if (ref.value instanceof Matrix) 2 else 0
+		
+		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex?.size !== dimensions){
+			error('Array element access expects 1 dimension, ' + ref.localCollectionIndex?.size + ' given!', 
+				MusketPackage.eINSTANCE.ref_LocalCollectionIndex,
+				INVALID_PARAMETER)
+		}
+		if(ref.globalCollectionIndex?.size > 0 && ref.globalCollectionIndex?.size !== dimensions){
+			error('Matrix element access expects 2 dimensions, ' + ref.globalCollectionIndex?.size + ' given!', 
+				MusketPackage.eINSTANCE.ref_GlobalCollectionIndex,
+				INVALID_PARAMETER)
 		}
 	}
 }

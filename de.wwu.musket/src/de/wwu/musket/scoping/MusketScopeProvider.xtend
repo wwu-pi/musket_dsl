@@ -43,7 +43,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 				StructVariable: return Scopes::scopeFor((head as StructVariable).type.attributes)
 				StructParameter: return Scopes::scopeFor((head as StructParameter).type.attributes)
 				StructArray case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
-				StructMatrix case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
+				StructMatrix case container.isCollectionRef: return Scopes::scopeFor((head as StructMatrix).type.attributes)
 				default: return IScope::NULLSCOPE
 			}
 		} else if(context instanceof ObjectRef){
