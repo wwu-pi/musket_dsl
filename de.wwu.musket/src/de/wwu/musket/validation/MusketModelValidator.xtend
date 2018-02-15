@@ -15,6 +15,8 @@ import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.CollectionFunctionName
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.ReturnStatement
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -109,5 +111,28 @@ class MusketModelValidator extends AbstractMusketValidator {
 			error('Constants are not allowed in structs!', 
 				const, null)
 		}
-	} 
+	}
+	
+	// Check for unreachable code
+	@Check
+	def checkUnreachableCodeAfterReturn(Function func) {
+		//  check for unreachable code
+		val iter = func.statement.iterator
+		var foundReturn = false
+		var counter = 0
+		while (iter.hasNext){
+			val currentStatement = iter.next
+			
+			if (!foundReturn && currentStatement instanceof ReturnStatement) {
+				foundReturn = true
+			} else if (foundReturn) {
+				error('Unreachable code!', 
+					func,
+					currentStatement.eContainingFeature,
+					counter)
+			}
+			
+			counter++
+		}
+	}
 }

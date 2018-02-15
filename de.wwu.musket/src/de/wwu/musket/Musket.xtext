@@ -351,8 +351,8 @@ fragment CollectionRef*:
 ;
 
 NestedAttributeRef:
-	{NestedCollectionElementRef} ('.') ref=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
-	=> ('.') ref=[ReferableObject] (tail = NestedAttributeRef)?
+	{NestedCollectionElementRef} ('.') value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+	=> ('.') value=[ReferableObject] (tail = NestedAttributeRef)?
 ;
 
 ReturnStatement:
@@ -515,11 +515,6 @@ enum DistributionMode:
 
 enum Type:
 	int | double | bool | string
-;
-
-// synthetic extension of Type for non-instantiable types
-enum NonPrimitiveType returns Type: 
-	intArray | doubleArray | boolArray | stringArray | intMatrix | doubleMatrix | boolMatrix | stringMatrix | struct | structArray | structMatrix
 ;
 
 AssignmentOperator:

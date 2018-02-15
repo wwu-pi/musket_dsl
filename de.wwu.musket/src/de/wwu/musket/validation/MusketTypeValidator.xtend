@@ -16,29 +16,45 @@ import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapSkeletonVariants
+import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
+import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.SkeletonExpression
-import de.wwu.musket.musket.Type
 import de.wwu.musket.musket.ZipInPlaceSkeleton
 import de.wwu.musket.musket.ZipIndexSkeleton
 import de.wwu.musket.musket.ZipOption
 import de.wwu.musket.musket.ZipSkeleton
 import de.wwu.musket.musket.ZipSkeletonVariants
+import de.wwu.musket.util.MusketType
+import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
+import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.Modulo
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
 	public static val INVALID_TYPE = 'invalidType'
 	public static val INVALID_OPTIONS = 'invalidOptions'
 	public static val INVALID_PARAMS = 'invalidParameters'
+	public static val INCOMPLETE_DECLARATION = 'incompleteDeclaration'
+	public static val INVALID_STATEMENT = 'invalidStatement'
+	
+	// Native parameters to skeletons
+	static val zipParamsMin = 0
+	static val mapParamsOut = 1
+	static val zipParamsOut = 2
+	static val foldParamsOut = 1
+	static val shiftParamsOut = 1
 	
 	// Check skeleton options
 	@Check
@@ -66,13 +82,6 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			val call = skel.param as InternalFunctionCall
 			// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
 			val indexParams = if ((skel.eContainer as SkeletonExpression).obj instanceof Array) 1 else 2
-			
-			// Native parameters to skeletons
-			val zipParamsMin = 0
-			val mapParamsOut = 1
-			val zipParamsOut = 2
-			val foldParamsOut = 1
-			val shiftParamsOut = 1
 			
 			switch skel {
 				MapSkeleton case !skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
@@ -206,14 +215,14 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			// Check skeleton type
 			switch skel {
 				MapSkeletonVariants: 
-					if(callingType !== call.value.params.last?.calculateType){
+					if(callingType != call.value.params.last?.calculateType){
 						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
 					
 				ZipSkeletonVariants: {
-						if(callingType !== call.value.params.last?.calculateType){
+						if(callingType != call.value.params.last?.calculateType){
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
@@ -223,7 +232,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							error('First argument needs to be a collection!',
 								MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
 								INVALID_PARAMS)
-						} else if(skel.zipWith.value?.calculateCollectionType !== call.value.params.get(call.value.params.size-2).calculateType){
+						} else if(skel.zipWith.value?.calculateCollectionType != call.value.params.get(call.value.params.size-2).calculateType){
 							error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
@@ -232,20 +241,20 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					
 				FoldSkeletonVariants: {
 						// Last two parameters need to match for fold skeleton
-						if(callingType !== call.value.params.last?.calculateType || callingType !== call.value.params.get(call.value.params.size-2)?.calculateType){
+						if(callingType != call.value.params.last?.calculateType || callingType != call.value.params.get(call.value.params.size-2)?.calculateType){
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 						// Check identity value parameter matches
-						if(call.value.params.last?.calculateType !== skel.identity.calculateType){
+						if(call.value.params.last?.calculateType != skel.identity.calculateType){
 							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as its input
-						if(call.value.calculateType !== callingType){
-							error('Return type ' + call.value.getReadableType + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
+						if(call.value.calculateType != callingType){
+							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -254,14 +263,14 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ShiftPartitionsHorizontallySkeleton,
 				ShiftPartitionsVerticallySkeleton: {
 						// Shifting functions need exactly one int parameter
-						if(call.value.params.last?.calculateType !== Type.INT){
+						if(call.value.params.last?.calculateType != MusketType.INT){
 							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 						// Shifting functions return one int value
-						if(call.value.calculateType !== Type.INT){
-							error('Return type ' + call.value.getReadableType + ' must be int for this skeleton!', 
+						if(call.value.calculateType != MusketType.INT){
+							error('Return type ' + new MusketType(call.value) + ' must be int for this skeleton!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -283,8 +292,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MapIndexSkeleton,
 				MapIndexInPlaceSkeleton,
 				MapLocalIndexInPlaceSkeleton: 
-					if(call.value.params.size >= 2 && call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT)
+					if(call.value.params.size >= 2 && call.value.params.get(call.value.params.size - 2)?.calculateType != MusketType.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
@@ -294,8 +303,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have 2 final parameters after index parameters
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 				ZipIndexSkeleton:
-					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType !== Type.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType !== Type.INT)
+					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType != MusketType.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
@@ -305,8 +314,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have index parameters as final parameters
 				FoldSkeleton,
 				FoldIndexSkeleton: 
-					if(call.value.params.size >= 1 && call.value.params.get(call.value.params.size - 1)?.calculateType !== Type.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 2)?.calculateType !== Type.INT)
+					if(call.value.params.size >= 1 && call.value.params.get(call.value.params.size - 1)?.calculateType != MusketType.INT &&
+						(isArray || call.value.params.get(call.value.params.size - 2)?.calculateType != MusketType.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
@@ -316,6 +325,65 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		}
 	}
 	
+	@Check
+	def checkSkeletonFunctionCustomParameterType(Skeleton skel) {
+		if (skel.param instanceof InternalFunctionCall){
+			val call = skel.param as InternalFunctionCall
+			// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
+			var indexParams = 0; 
+			switch skel {
+				MapSkeleton case !skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
+				MapInPlaceSkeleton,
+				ZipSkeleton case !skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
+				ZipInPlaceSkeleton,
+				FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX],
+				GatherSkeleton,
+				ShiftPartitionsHorizontallySkeleton,
+				ShiftPartitionsVerticallySkeleton:
+					indexParams = 0
+				default: indexParams = if ((skel.eContainer as SkeletonExpression).obj instanceof Array) {
+						1 
+					} else if ((skel.eContainer as SkeletonExpression).obj instanceof Matrix) {
+						2
+					} else { 
+						0
+					}
+				}
+				
+			switch skel {
+				MapSkeletonVariants: 
+					if(call.value.params.size >= indexParams+mapParamsOut && call.value.params.size > mapParamsOut - indexParams && call.params.size > 0){
+						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+					}
+					
+				ZipSkeletonVariants:
+					if(call.value.params.size > zipParamsOut - indexParams && call.params.size > 0){
+						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+					}
+					
+				FoldSkeletonVariants: 
+					if(call.value.params.size > foldParamsOut - indexParams && call.params.size > 0){
+						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+					}
+					
+				ShiftPartitionsHorizontallySkeleton,
+				ShiftPartitionsVerticallySkeleton: 
+					if(call.value.params.size > shiftParamsOut - indexParams && call.params.size > 0){
+						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+					}
+			}
+		}
+	}
+
+	private def validateParamType(Collection<ParameterInput> input, Collection<Parameter> target){
+		for(var i=0; i < input.size; i++){
+			if(input.get(i).calculateType != target.get(i).calculateType){
+				error('Parameter does not match expected type ' + target.get(i).calculateType + '!', 
+					input.get(i).eContainer, input.get(i).eContainingFeature, i)
+			}
+		}
+	} 
+		
 	// Check return type of functions is correct
 	@Check
 	def checkFunctionReturnType(ReturnStatement stmt) {
@@ -326,23 +394,56 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		} while(!(obj instanceof Function) && obj.eContainer !== null)
 		
 		// Check return type
-		if((obj as Function).calculateType !== stmt.value.calculateType){
-			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + (obj as Function).getReadableType + '!', 
+		if((obj as Function).calculateType != stmt.value.calculateType){
+			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + new MusketType(obj as Function) + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
 		}
 			
 	}
 	
-	// Check function parameter types are correct in call
+	// Check function return type is present and correct 
+	@Check
+	def checkReturnTypeForInPlaceSkeletons(Skeleton skel) {
+		if (skel.param instanceof InternalFunctionCall){
+			val call = skel.param as InternalFunctionCall
+			
+			switch skel {
+				MapSkeleton case skel.options.exists[it == MapOption.IN_PLACE],
+				MapIndexInPlaceSkeleton,
+				MapInPlaceSkeleton,
+				ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
+				ZipInPlaceSkeleton:
+					if(new MusketType(call.value) != (skel.eContainer as SkeletonExpression).obj.calculateCollectionType){
+						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + new MusketType(call.value) + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_TYPE)
+					} 
+			}
+		}
+	}
 	
-	// Check function return type is correct in call 
+	@Check
+	def checkReturnStatement(Function func) {
+		if(func.statement.size > 0 && func.statement.filter(ReturnStatement).toList == emptyList){
+			//  Return statement missing
+			error('Function has no return statement!', 
+				MusketPackage.eINSTANCE.function_Statement,
+				func.statement.size-1,
+				INCOMPLETE_DECLARATION)
+		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.calculateType != (func.statement.last as ReturnStatement).value.calculateType){
+			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
+				MusketPackage.eINSTANCE.function_Statement,
+				func.statement.size-1,
+				INVALID_TYPE)
+		}
+	}
 	
 	// Check IteratorForLoop parameter type matches
 	@Check
 	def checkIteratorForLoopParameterType(IteratorForLoop loop) {
-		if(loop.iter.calculateType !== loop.dataStructure.calculateCollectionType){
-			error('Iterator element type  ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
+		if(loop.iter.calculateType != loop.dataStructure.calculateCollectionType){
+			error('Iterator element type ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
 				MusketPackage.eINSTANCE.iteratorForLoop_Iter,
 				INVALID_TYPE)
 		}
@@ -350,10 +451,29 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	
 	@Check
 	def checkMusketIteratorForLoopParameterType(MusketIteratorForLoop loop) {
-		if(loop.iter.calculateType !== loop.dataStructure.calculateCollectionType){
-			error('Iterator element type  ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
+		if(loop.iter.calculateType != loop.dataStructure.calculateCollectionType){
+			error('Iterator element type ' + loop.iter.calculateType + ' does not match collection type ' + loop.dataStructure.calculateCollectionType + '!', 
 				MusketPackage.eINSTANCE.iteratorForLoop_Iter,
 				INVALID_TYPE)
+		}
+	}
+	
+	// Check assignment type
+	@Check
+	def checkAssignmentType(Assignment assign) {
+		if(assign.value.calculateType != assign.^var.calculateType){
+			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
+				MusketPackage.eINSTANCE.assignment_Value,
+				INVALID_TYPE)
+		}
+	}
+	
+	// Check modulo Operator only works on ints
+	@Check
+	def checkModuloOperator(Modulo modulo) {
+		if(modulo.left.calculateType != MusketType.INT || modulo.right.calculateType != MusketType.INT){
+			error('Modulo operator requires two int values, ' + modulo.left.calculateType + ' and ' + modulo.right.calculateType + ' given!', 
+				modulo, null, null)
 		}
 	}
 }
