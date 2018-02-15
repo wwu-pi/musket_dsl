@@ -10,7 +10,6 @@ import de.wwu.musket.musket.BoolMatrixParameter
 import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
-//import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
@@ -47,6 +46,7 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
+import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StandardFunctionCall
@@ -61,7 +61,6 @@ import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.MainRef
 
 class TypeHelper {
 	
@@ -174,7 +173,7 @@ class TypeHelper {
 			return null
 		}
 		
-		return obj.ref.calculateCollectionType
+		return obj.value.calculateCollectionType
 	}
 	
 	static dispatch def MusketType calculateCollectionType(MusketType t){
@@ -525,47 +524,16 @@ class TypeHelper {
 		return new MusketType(exp.type).toMatrix
 	}
 	
-	static dispatch def MusketType calculateType(ObjectRef exp){
-		// Type of nested collection _element_ 
-		if(exp.tail !== null && (exp.globalCollectionIndex !== null && exp.globalCollectionIndex.size > 0) || (exp.localCollectionIndex !== null && exp.globalCollectionIndex.size > 0)) return exp.tail.calculateCollectionType
-		
-		// Follow nested attributes
+	static dispatch def MusketType calculateType(Ref exp){
+		// Go down nested reference structure
 		if(exp.tail !== null) return exp.tail.calculateType
 		
 		// Type of collection _element_ 
-		if((exp.globalCollectionIndex !== null && exp.globalCollectionIndex.size > 0) || (exp.localCollectionIndex !== null && exp.globalCollectionIndex.size > 0)) return exp.ref.calculateCollectionType
+		if(exp.globalCollectionIndex?.size > 0 || exp.localCollectionIndex?.size > 0) return exp.value.calculateCollectionType
 		
 		// Other object references
-		return exp.ref.calculateType
-	}
-	
-	static dispatch def MusketType calculateType(MainRef exp){
-		if((exp.globalCollectionIndex !== null && exp.globalCollectionIndex.size > 0) || (exp.localCollectionIndex !== null && exp.globalCollectionIndex.size > 0)) return exp.ref.calculateCollectionType
-		
 		return exp.value.calculateType
 	}
-	
-//	static dispatch def MusketType calculateType(ObjectRef exp){
-//		// Follow nested attributes
-//		if(exp.tail !== null) return exp.tail.calculateType
-//		
-//		// Type of collection _element_ 
-//		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
-//		
-//		// Other object references
-//		return exp.value.calculateType
-//	}
-//	
-//	static dispatch def MusketType calculateType(NestedAttributeRef exp){
-//		// Follow nested attributes
-//		if(exp.tail !== null) return exp.tail.calculateType
-//		
-//		// Type of collection _element_ 
-//		if(exp instanceof NestedCollectionElementRef) return exp.value.calculateCollectionType
-//		
-//		// Other object references
-//		return exp.value.calculateType
-//	}
 	
 	static dispatch def MusketType calculateType(SignedArithmetic exp){
 		return exp.expression.calculateType

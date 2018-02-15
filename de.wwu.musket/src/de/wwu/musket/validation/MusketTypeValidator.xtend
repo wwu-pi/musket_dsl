@@ -206,78 +206,78 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		}
 	}
 	
-//	@Check
-//	def checkSkeletonFunctionImplicitParameterType(Skeleton skel) {
-//		if (skel.param instanceof InternalFunctionCall){
-//			val call = skel.param as InternalFunctionCall
-//			val callingType = (skel.eContainer as SkeletonExpression).obj.calculateCollectionType
-//			
-//			// Check skeleton type
-//			switch skel {
-//				MapSkeletonVariants: 
-//					if(callingType != call.value.params.last?.calculateType){
-//						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-//							MusketPackage.eINSTANCE.skeleton_Param,
-//							INVALID_PARAMS)
-//					}
-//					
-//				ZipSkeletonVariants: {
-//						if(callingType != call.value.params.last?.calculateType){
-//							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//						// zipWith parameter needs to match second but last parameters for zip skeleton, e.g. ints.zip(doubles, f(...)) -> f(..., double, int)
-//						if(!skel.zipWith.calculateType?.collection){
-//							error('First argument needs to be a collection!',
-//								MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
-//								INVALID_PARAMS)
-//						} else if(skel.zipWith.value?.calculateCollectionType != call.value.params.get(call.value.params.size-2).calculateType){
-//							error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//					}
-//					
-//				FoldSkeletonVariants: {
-//						// Last two parameters need to match for fold skeleton
-//						if(callingType != call.value.params.last?.calculateType || callingType != call.value.params.get(call.value.params.size-2)?.calculateType){
-//							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//						// Check identity value parameter matches
-//						if(call.value.params.last?.calculateType != skel.identity.calculateType){
-//							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-//								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
-//								INVALID_PARAMS)
-//						}
-//						// Fold function needs to return same type as its input
-//						if(call.value.calculateType != callingType){
-//							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//					}
-//				
-//				ShiftPartitionsHorizontallySkeleton,
-//				ShiftPartitionsVerticallySkeleton: {
-//						// Shifting functions need exactly one int parameter
-//						if(call.value.params.last?.calculateType != MusketType.INT){
-//							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//						// Shifting functions return one int value
-//						if(call.value.calculateType != MusketType.INT){
-//							error('Return type ' + new MusketType(call.value) + ' must be int for this skeleton!', 
-//								MusketPackage.eINSTANCE.skeleton_Param,
-//								INVALID_PARAMS)
-//						}
-//					}
-//			}
-//		}
-//	}
+	@Check
+	def checkSkeletonFunctionImplicitParameterType(Skeleton skel) {
+		if (skel.param instanceof InternalFunctionCall){
+			val call = skel.param as InternalFunctionCall
+			val callingType = (skel.eContainer as SkeletonExpression).obj.calculateCollectionType
+			
+			// Check skeleton type
+			switch skel {
+				MapSkeletonVariants: 
+					if(callingType != call.value.params.last?.calculateType){
+						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					
+				ZipSkeletonVariants: {
+						if(callingType != call.value.params.last?.calculateType){
+							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+						// zipWith parameter needs to match second but last parameters for zip skeleton, e.g. ints.zip(doubles, f(...)) -> f(..., double, int)
+						if(!skel.zipWith.calculateType?.collection){
+							error('First argument needs to be a collection!',
+								MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
+								INVALID_PARAMS)
+						} else if(skel.zipWith.value?.calculateCollectionType != call.value.params.get(call.value.params.size-2).calculateType){
+							error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+					}
+					
+				FoldSkeletonVariants: {
+						// Last two parameters need to match for fold skeleton
+						if(callingType != call.value.params.last?.calculateType || callingType != call.value.params.get(call.value.params.size-2)?.calculateType){
+							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+						// Check identity value parameter matches
+						if(call.value.params.last?.calculateType != skel.identity.calculateType){
+							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
+								INVALID_PARAMS)
+						}
+						// Fold function needs to return same type as its input
+						if(call.value.calculateType != callingType){
+							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+					}
+				
+				ShiftPartitionsHorizontallySkeleton,
+				ShiftPartitionsVerticallySkeleton: {
+						// Shifting functions need exactly one int parameter
+						if(call.value.params.last?.calculateType != MusketType.INT){
+							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+						// Shifting functions return one int value
+						if(call.value.calculateType != MusketType.INT){
+							error('Return type ' + new MusketType(call.value) + ' must be int for this skeleton!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+					}
+			}
+		}
+	}
 	
 	@Check
 	def checkSkeletonFunctionIndexParameterType(Skeleton skel) {

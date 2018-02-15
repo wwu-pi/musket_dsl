@@ -1,6 +1,8 @@
 package de.wwu.musket.util
 
-class CollectionHelper<T> {
+import de.wwu.musket.musket.ObjectRef
+
+class CollectionHelper {
 	
 	static def <T> collectK(Iterable<T> iterable, int k){
 		var result = newArrayList();
@@ -11,5 +13,9 @@ class CollectionHelper<T> {
 			}
 		}
 		return result;
+	}
+	
+	static def isCollectionRef(ObjectRef ref){
+		return ref.localCollectionIndex?.size > 0 || ref.globalCollectionIndex?.size > 0
 	}
 }
