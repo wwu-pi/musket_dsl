@@ -46,7 +46,12 @@ Particle calc_force(int curIndex, Particle curParticle) {
 		if (j != curIndex) {
 
 			// Evaluate forces that j-particles exert on the i-particle.
-			double dx, dy, dz, r2, r, qj_by_r3;
+			double dx;
+			double dy;
+			double dz;
+			double r2;
+			double r;
+			double qj_by_r3;
 
 			// Here we absorb the minus sign by changing the order of i and j.
 			dx = curParticle.x - oldP[j].x;
