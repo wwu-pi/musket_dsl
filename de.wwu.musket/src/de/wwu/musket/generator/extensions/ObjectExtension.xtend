@@ -45,7 +45,7 @@ class ObjectExtension {
 	}
 	
 	def static dispatch CppPrimitiveTypeAsString(StructArray o) {
-		o.name.toFirstUpper
+		o.type.name.toFirstUpper
 	}
 	
 	def static dispatch CppPrimitiveTypeAsString(IntMatrix o) {
@@ -58,6 +58,10 @@ class ObjectExtension {
 
 	def static dispatch CppPrimitiveTypeAsString(BoolMatrix o) {
 		'bool'
+	}
+	
+	def static dispatch CppPrimitiveTypeAsString(StructMatrix o) {
+		o.type.name.toFirstUpper
 	}
 
 	def static dispatch CppPrimitiveTypeAsString(IntVariable o) {

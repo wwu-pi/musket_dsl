@@ -24,12 +24,12 @@ class HeaderFileGenerator {
 	def static headerFileContent(Resource resource) '''
 		#pragma once
 		
-		«FOR co : resource.CollectionObjects»
-			«co.generateObjectDeclaration»
-		«ENDFOR»
-		
 		«FOR s : resource.Structs»
 			«s.generateStructDeclaration»
 		«ENDFOR»
+		
+		«FOR co : resource.CollectionObjects»
+			«co.generateObjectDeclaration»
+		«ENDFOR»		
 	'''
 }
