@@ -340,20 +340,28 @@ MusketAssignment:
 	var=ObjectRef OP_ASSIGN_EQUALS value=MusketExpression
 ;
 
+
 ObjectRef:
-	{CollectionElementRef} value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
-	=> value=[ReferableObject] (tail = NestedAttributeRef)?
+	MainRef ({ObjectRef.ref=current}  '.' tail=[Object] CollectionRef?)*
 ;
 
+MainRef:
+	{MainRef} value=[ReferableObject] CollectionRef?
+;
+//ObjectRef:
+//	{CollectionElementRef} value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+//	=> value=[ReferableObject] (tail = NestedAttributeRef)?
+//;
+//
 fragment CollectionRef*:
 	COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
 	COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
 ;
-
-NestedAttributeRef:
-	{NestedCollectionElementRef} ('.') value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
-	=> ('.') value=[ReferableObject] (tail = NestedAttributeRef)?
-;
+//
+//NestedAttributeRef:
+//	{NestedCollectionElementRef} ('.') value=[CollectionObject] CollectionRef (tail = NestedAttributeRef)? |
+//	=> ('.') value=[Object] (tail = NestedAttributeRef)?
+//;
 
 ReturnStatement:
 	'return' value=Expression

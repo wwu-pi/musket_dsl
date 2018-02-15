@@ -75,23 +75,23 @@ class MusketModelValidator extends AbstractMusketValidator {
 	}
 	
 	// Check that constants are not reassigned
-	@Check
-	def checkAssignmentToConstant(Assignment assignment) {
-		if(assignment.^var?.value instanceof Constant){
-			error('Value cannot be assigned to constant!', 
-				MusketPackage.eINSTANCE.assignment_Var,
-				INVALID_OPERATION)
-		}
-	}
+//	@Check
+//	def checkAssignmentToConstant(Assignment assignment) {
+//		if(assignment.^var?.value instanceof Constant){
+//			error('Value cannot be assigned to constant!', 
+//				MusketPackage.eINSTANCE.assignment_Var,
+//				INVALID_OPERATION)
+//		}
+//	}
 	
-	@Check
-	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
-		if(assignment.^var?.value instanceof Constant){
-			error('Value cannot be assigned to constant!', 
-				MusketPackage.eINSTANCE.musketAssignment_Var,
-				INVALID_OPERATION)
-		}
-	}
+//	@Check
+//	def checkMusketAssignmentToConstant(MusketAssignment assignment) {
+//		if(assignment.^var?.value instanceof Constant){
+//			error('Value cannot be assigned to constant!', 
+//				MusketPackage.eINSTANCE.musketAssignment_Var,
+//				INVALID_OPERATION)
+//		}
+//	}
 	
 	// Check collectionFunctionCalls match with collection type
 	@Check

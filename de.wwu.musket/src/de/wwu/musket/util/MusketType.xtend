@@ -76,8 +76,14 @@ class MusketType {
 	}
 	
 	override def String toString(){
-		if(structName !== null) return structName
-		return type.toString
+		val name = if(structName !== null) structName else type.toString
+		
+		if(isArray) {
+			return 'array<' + name + '>'
+		} else if(isMatrix) {
+			return 'matrix<' + name + '>'
+		}
+		return name;
 	}
 	
 	static def toFullType(Type t){
