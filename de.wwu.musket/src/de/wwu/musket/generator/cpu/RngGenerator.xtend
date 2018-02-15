@@ -46,7 +46,7 @@ class RngGenerator {
 						}'''
 				DoubleVal:
 					result +=
-						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString»_«higher.ValueAsString»;
+						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')»;
 						rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».push_back(std::uniform_real_distribution<double>(«lower.ValueAsString», «higher.ValueAsString»));
