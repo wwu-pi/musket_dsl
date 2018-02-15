@@ -40,6 +40,7 @@ import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.Ref
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -473,6 +474,21 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if(modulo.left.calculateType != MusketType.INT || modulo.right.calculateType != MusketType.INT){
 			error('Modulo operator requires two int values, ' + modulo.left.calculateType + ' and ' + modulo.right.calculateType + ' given!', 
 				modulo, null, null)
+		}
+	}
+	
+	// Check collection access expression is int
+	@Check
+	def checkCollectionAccessIsNumeric(Ref ref) {
+		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex.exists[it.calculateType != MusketType.INT]){
+			error('Collection element expression must be int!', 
+				MusketPackage.eINSTANCE.ref_LocalCollectionIndex,
+				INVALID_TYPE)
+		}
+		if(ref.globalCollectionIndex?.size > 0 && ref.globalCollectionIndex.exists[it.calculateType != MusketType.INT]){
+			error('Collection element expression must be int!', 
+				MusketPackage.eINSTANCE.ref_GlobalCollectionIndex,
+				INVALID_TYPE)
 		}
 	}
 }
