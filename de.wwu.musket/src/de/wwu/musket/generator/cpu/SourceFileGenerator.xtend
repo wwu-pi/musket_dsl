@@ -128,18 +128,20 @@ class SourceFileGenerator {
 	def static String generateInitializeDataStructures(Resource resource) {
 		var result = ""
 
-		for (var p = 0; p < Config.processes; p++) {
-			result += '''if(«Config.var_pid» == «p»){
-			'''
-			for (a : resource.Arrays.reject[it instanceof StructArray]) {
-				val values = a.ValuesAsString
-				if (values.size > 1) {
-					val sizeLocal = a.sizeLocal
-					result +=
-						a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
+		if(resource.Arrays.reject[it instanceof StructArray].exists[it.ValuesAsString.size > 1]){
+			for (var p = 0; p < Config.processes; p++) {
+				result += '''if(«Config.var_pid» == «p»){
+				'''
+				for (a : resource.Arrays.reject[it instanceof StructArray]) {
+					val values = a.ValuesAsString
+					if (values.size > 1) {
+						val sizeLocal = a.sizeLocal
+						result +=
+							a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
+					}
 				}
+				result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
 			}
-			result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
 		}
 
 		for (a : resource.CollectionObjects.reject[it instanceof StructArray || it instanceof StructMatrix].filter[it.ValuesAsString.size < 2]) {
