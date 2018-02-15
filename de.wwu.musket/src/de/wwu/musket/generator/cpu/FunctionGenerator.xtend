@@ -64,7 +64,7 @@ class FunctionGenerator {
 
 	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		«variable.CppPrimitiveTypeAsString» «variable.name» = «variable.initExpression.generateExpression(param_map)»;
+		«variable.CppPrimitiveTypeAsString» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(param_map)»«ENDIF»;
 	'''
 
 	def static dispatch generateStatement(FunctionCall functionCall, Skeleton skeleton, CollectionObject a,
@@ -123,6 +123,15 @@ class FunctionGenerator {
 	
 	def static dispatch generateControlStructure(IfClause ic, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		//TODO: FunctionGenerator.generateControlStructure: IfClause
+		if(«ic.condition.generateExpression(param_map)»){
+			«FOR s : ic.statements»
+				«s.generateFunctionStatement(skeleton, a, param_map)»
+			«ENDFOR»
+		} «IF !ic.elseStatements.empty» else {
+			«FOR es : ic.elseStatements»
+				«es.generateFunctionStatement(skeleton, a, param_map)»
+			«ENDFOR»
+		}
+		«ENDIF»
 	'''
 }
