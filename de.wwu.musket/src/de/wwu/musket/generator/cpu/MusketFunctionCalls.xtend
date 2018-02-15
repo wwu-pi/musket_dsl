@@ -19,5 +19,5 @@ class MusketFunctionCalls {
 		}
 	'''	
 	
-	def static generateRand(MusketFunctionCall mfc)'''rand_dist_«mfc.params.head.CppPrimitiveTypeAsString»_«mfc.params.head.ValueAsString»_«mfc.params.get(1).ValueAsString»[omp_get_thread_num()](«Config.var_rng_array»[omp_get_thread_num()])'''	
+	def static generateRand(MusketFunctionCall mfc)'''rand_dist_«mfc.params.head.CppPrimitiveTypeAsString»_«mfc.params.head.ValueAsString.replace('.', '_')»_«mfc.params.get(1).ValueAsString.replace('.', '_')»[omp_get_thread_num()](«Config.var_rng_array»[omp_get_thread_num()])'''	
 }
