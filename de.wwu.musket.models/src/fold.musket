@@ -1,9 +1,9 @@
 #config PLATFORM CPU
 #config PROCESSES 4
 
-array<int,16,dist> a = {7};
-array<int,16,dist> b;
-array<int,16,dist> c = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+array<int,16,dist> as = {7};
+array<int,16,dist> bs;
+array<int,16,dist> cs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 int sum(int a, int b){
 	return a + b;
@@ -16,12 +16,7 @@ int sum(int a, int b){
 main{
 
 	for(int i = 0; i < 3; i++){	
-		int a = c.fold(0,sum());
-		int b = c.fold(0,sum());	
+		int a = cs.fold(0,sum());
+		int b = cs.fold(0,sum());	
 	}
 }
-
-
-
-
-

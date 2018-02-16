@@ -14,7 +14,7 @@ int f(int i , int j){
 	double sum1 = 0;
  	double sum2 = 0;
 	if(1 + 2){
-		sum1 += 333;
+		sum1 += (double) 333;
 		f(2);
 	}
 	for(int i : a ){
