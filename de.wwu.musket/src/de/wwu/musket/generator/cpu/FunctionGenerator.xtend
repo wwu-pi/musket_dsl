@@ -60,10 +60,16 @@ class FunctionGenerator {
 	'''
 
 	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) '''
-	«getReturnString(returnStatement, skeleton, param_map)»«returnStatement.value.generateExpression(param_map)»;
-	'''
-
+		Map<String, String> param_map){
+		val lhs = getReturnString(returnStatement, skeleton, param_map)
+		val rhs = returnStatement.value.generateExpression(param_map)
+		if(lhs != rhs + ' = '){
+			return lhs + rhs
+		}else{
+			return ''
+		}
+	}
+	
 	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
 		«variable.CppPrimitiveTypeAsString» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(param_map)»«ENDIF»;
