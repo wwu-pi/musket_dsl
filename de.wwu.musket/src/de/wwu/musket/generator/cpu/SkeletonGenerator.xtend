@@ -135,6 +135,7 @@ class SkeletonGenerator {
 	}
 
 // MapIndexInPlace
+// Array
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Array a) '''
 		«IF a.distributionMode == DistributionMode.COPY»
 					«Config.var_elem_offset» = 0;
@@ -152,6 +153,7 @@ class SkeletonGenerator {
 		}
 	'''
 	
+// Matrix
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, Matrix m) '''
 		«IF m.distributionMode == DistributionMode.COPY»
 			«Config.var_row_offset» = 0;

@@ -81,8 +81,6 @@ class ExpressionGenerator {
 		«ENDIF»
 	'''
 
-//	def static dispatch generateCollectionElementRef(CollectionElementRef cer, Matrix m, Map<String, String> param_map) '''//TODO ExpressionGenerator.generateObjectRef: CollectionElementRef'''
-
 	def static dispatch generateObjectRef(CollectionObject co, Map<String, String> param_map) '''«co.name»'''
 
 	def static dispatch generateObjectRef(IndividualObject i, Map<String, String> param_map) '''«i.name»'''

@@ -32,6 +32,8 @@ import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 
+import static extension de.wwu.musket.util.CollectionHelper.*
+
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
@@ -54,7 +56,7 @@ class FunctionGenerator {
 // Statements
 	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		«assignment.^var.value.name» «assignment.operator» «assignment.value.generateExpression(param_map)»;
+		«IF param_map.containsKey(assignment.^var.value.name)»«param_map.get(assignment.^var.value.name)»«ELSE»«assignment.^var.value.name»«ENDIF»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
 	'''
 
 	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, CollectionObject a,

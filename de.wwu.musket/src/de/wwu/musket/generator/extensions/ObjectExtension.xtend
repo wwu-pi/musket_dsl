@@ -29,6 +29,8 @@ import de.wwu.musket.musket.StructMatrix
 import java.util.List
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.TailObjectRef
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -198,6 +200,16 @@ class ObjectExtension {
 		o.value.toString
 	}
 	
+	// structs
+	def static generateTail(TailObjectRef or){
+		var result = ''
+		var tor = or
+		while(tor !== null){
+			result += '.' + tor.value.name
+			tor = tor.tail
+		}
+		return result
+	}
 	
 	// for arrays
 	// for arrays
