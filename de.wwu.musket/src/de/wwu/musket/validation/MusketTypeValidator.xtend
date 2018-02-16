@@ -1,6 +1,7 @@
 package de.wwu.musket.validation
 
 import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.FoldIndexSkeleton
 import de.wwu.musket.musket.FoldOption
 import de.wwu.musket.musket.FoldSkeleton
@@ -17,10 +18,12 @@ import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapSkeletonVariants
 import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.ParameterInput
+import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
@@ -32,15 +35,10 @@ import de.wwu.musket.musket.ZipOption
 import de.wwu.musket.musket.ZipSkeleton
 import de.wwu.musket.musket.ZipSkeletonVariants
 import de.wwu.musket.util.MusketType
-import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
-import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
-import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.Modulo
-import de.wwu.musket.musket.Ref
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -54,7 +52,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	static val zipParamsMin = 0
 	static val mapParamsOut = 1
 	static val zipParamsOut = 2
-	static val foldParamsOut = 1
+	static val foldParamsOut = 2
 	static val shiftParamsOut = 1
 	
 	// Check skeleton options
@@ -161,7 +159,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						error('Referenced function requires at least ' + foldParamsOut + ' parameters, ' + call.value.params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-indexParams-foldParamsOut){
+					} else if(call.params.size !== call.value.params.size-foldParamsOut){
 						// Check provided argument count matches target function parameter count
 						error('Skeleton function call requires ' + (call.value.params.size-foldParamsOut) + ' arguments, ' + call.params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
@@ -255,7 +253,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						}
 						// Fold function needs to return same type as its input
 						if(call.value.calculateType != callingType){
-							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + 'for fold skeletons!', 
+							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + ' for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
@@ -303,20 +301,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				
 				// Those have 2 final parameters after index parameters
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
-				ZipIndexSkeleton:
+				ZipIndexSkeleton,
+				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
+				FoldIndexSkeleton: 
 					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT &&
 						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType != MusketType.INT)
-					){
-						error('Referenced function does not have correct amount or type of index parameters!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-					
-				// Those have index parameters as final parameters
-				FoldSkeleton,
-				FoldIndexSkeleton: 
-					if(call.value.params.size >= 1 && call.value.params.get(call.value.params.size - 1)?.calculateType != MusketType.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 2)?.calculateType != MusketType.INT)
 					){
 						error('Referenced function does not have correct amount or type of index parameters!', 
 							MusketPackage.eINSTANCE.skeleton_Param,

@@ -17,17 +17,17 @@ int f(int i , int j){
 		sum1 += (double) 333;
 		f(2);
 	}
-	for(int i : a ){
+	for(int k : a ){
 		a[j] = 42;
 	}
 	a.size();
-	sum1 += 333; 
-	sum1 /= std::pow(sum1, 2);
+	sum1 += 333.0; 
+	sum1 /= pow(sum1, 2);
 	return i+1;
 }
 
-bool g(array<int,copy> b, int p){
-	for(int x : b){
+bool g(array<int,copy> bs, int p){
+	for(double x : b){
 		return false;
 	}
 	return p > 2;
@@ -54,6 +54,6 @@ main{
 	
 	if(2 < 5){
 		c = a.map(g(a));
-		b.fold(0.0, sum());
+		a.fold(0, sum());
 	}
 }
