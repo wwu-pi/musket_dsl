@@ -15,23 +15,10 @@ int sum(int a, int b){
 
 main{
 
-for(int i = 0; i < 3; i++){
-
-int a=c.fold(0,sum());
-int b = c.fold(0,sum());
-
-}
-
-
-//c.mapInPlace(double_values(42));
-
-//int f;
-//f = c.fold(0, sum());
-
-//int a = c.fold(0, sum());
-
-//	int f = c.fold(0, sum());
-	
+	for(int i = 0; i < 3; i++){	
+		int a = c.fold(0,sum());
+		int b = c.fold(0,sum());	
+	}
 }
 
 

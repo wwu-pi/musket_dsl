@@ -26,13 +26,13 @@ int minusOne(int a){
 }
 
 double dotProduct(int i, int j, double Cij){
-    double sum = Cij;
+	double sum = Cij;
 
-    for (int k = 0; k < c.columsLocal(); k++) {
-      sum += a[[i,k]] * b[[k,j]]; // b transposed
-    }
+	for (int k = 0; k < c.columsLocal(); k++) {
+		sum += a[[i,k]] * b[[k,j]]; // b transposed
+	}
 
-    return sum;
+	return sum;
 }
 
 main{
@@ -43,17 +43,17 @@ main{
 	b.show();
 	c.show();
 	
-	a.rotatePartitionsHorizontally(negate());
-	b.rotatePartitionsVertically(negate());
+	a.shiftPartitionsHorizontally(negate());
+	b.shiftPartitionsVertically(negate());
 	
 	for (int i = 0; i < a.blocksInRow(); ++i) {
     	c.mapLocalIndexInPlace(dotProduct());
-    	a.rotatePartitionsHorizontally(minusOne());
-    	b.rotatePartitionsVertically(minusOne());
+    	a.shiftPartitionsHorizontally(minusOne());
+    	b.shiftPartitionsVertically(minusOne());
 	}
 
-	a.rotatePartitionsHorizontally(identity());
-	b.rotatePartitionsVertically(identity());
+	a.shiftPartitionsHorizontally(identity());
+	b.shiftPartitionsVertically(identity());
 	
 	c.show();
 }
