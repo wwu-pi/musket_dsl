@@ -3,7 +3,6 @@ package de.wwu.musket.generator.cpu
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
 import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
@@ -26,7 +25,6 @@ import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.Subtraction
 import java.util.Map
-
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
@@ -34,6 +32,7 @@ import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.StandardFunctionCall
+import static extension de.wwu.musket.util.CollectionHelper.*
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -50,7 +49,7 @@ class ExpressionGenerator {
 			Not: '''!«expression.expression.generateExpression(param_map)»'''
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
-			CollectionElementRef: '''«expression.generateCollectionElementRef(param_map)»'''
+			ObjectRef case expression.isCollectionRef: '''«expression.generateCollectionElementRef(param_map)»'''
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
@@ -68,7 +67,7 @@ class ExpressionGenerator {
 		}
 	}
 
-	def static generateCollectionElementRef(CollectionElementRef cer, Map<String, String> param_map) '''
+	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) '''
 		«IF cer.value instanceof Array»
 			//TODO: ExpressionGenerator.generateCollectionElementRef: Array
 		«ELSEIF cer.value instanceof Matrix»

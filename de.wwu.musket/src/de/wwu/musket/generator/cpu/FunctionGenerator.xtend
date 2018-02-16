@@ -13,6 +13,7 @@ import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapSkeleton
@@ -25,7 +26,6 @@ import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.IteratorForLoop
 import de.wwu.musket.musket.IfClause
 import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
@@ -92,13 +92,13 @@ class FunctionGenerator {
 	
 	def static generateObjectRef(ObjectRef or, Map<String, String> param_map) {
 		switch or {
-			CollectionElementRef: '''«or.generateCollectionElementRef(param_map)»'''
+			case or.isCollectionRef: '''«or.generateCollectionElementRef(param_map)»'''
 			ReferableObject: '''//TODO: FunctionGenerator.generateObjectRef: ReferableObject'''
 			default: '''//TODO: FunctionGenerator.generateObjectRef: default case'''
 		}
 	}
 	
-	def static generateCollectionElementRef(CollectionElementRef cer, Map<String, String> param_map) {
+	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) {
 		switch cer.value {		
 			Array: '''//TODO: FunctionGenerator.generateCollectionElementRef: array'''
 			Matrix: '''//TODO: FunctionGenerator.generateCollectionElementRef: matrix'''

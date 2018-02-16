@@ -40,6 +40,7 @@ import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.Ref
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -353,29 +354,29 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			switch skel {
 				MapSkeletonVariants: 
 					if(call.value.params.size >= indexParams+mapParamsOut && call.value.params.size > mapParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				ZipSkeletonVariants:
 					if(call.value.params.size > zipParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				FoldSkeletonVariants: 
 					if(call.value.params.size > foldParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 					
 				ShiftPartitionsHorizontallySkeleton,
 				ShiftPartitionsVerticallySkeleton: 
 					if(call.value.params.size > shiftParamsOut - indexParams && call.params.size > 0){
-						validateParamType(call.params.collectK(call.params.size), call.value.params.collectK(call.value.params.size))
+						validateParamType(call.params.take(call.params.size), call.value.params.take(call.value.params.size))
 					}
 			}
 		}
 	}
 
-	private def validateParamType(Collection<ParameterInput> input, Collection<Parameter> target){
+	private def validateParamType(Iterable<ParameterInput> input, Iterable<Parameter> target){
 		for(var i=0; i < input.size; i++){
 			if(input.get(i).calculateType != target.get(i).calculateType){
 				error('Parameter does not match expected type ' + target.get(i).calculateType + '!', 
@@ -398,8 +399,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + new MusketType(obj as Function) + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
-		}
-			
+		}		
 	}
 	
 	// Check function return type is present and correct 
@@ -415,7 +415,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
 				ZipInPlaceSkeleton:
 					if(new MusketType(call.value) != (skel.eContainer as SkeletonExpression).obj.calculateCollectionType){
-						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.structType + ', ' + new MusketType(call.value) + ' given!', 
+						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.calculateCollectionType + ', ' + new MusketType(call.value) + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_TYPE)
 					} 
@@ -425,14 +425,18 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	
 	@Check
 	def checkReturnStatement(Function func) {
-		if(func.statement.size > 0 && func.statement.filter(ReturnStatement).toList == emptyList){
+		if(func.returnType !== null && func.statement.filter(ReturnStatement).toList == emptyList){
 			//  Return statement missing
 			error('Function has no return statement!', 
-				MusketPackage.eINSTANCE.function_Statement,
-				func.statement.size-1,
+				MusketPackage.eINSTANCE.function_ReturnType,
+				INCOMPLETE_DECLARATION)
+		} else if(func.statement.filter(ReturnStatement).toList == emptyList){
+			//  Primitive return statement missing
+			error('Function has no return statement!', 
+				MusketPackage.eINSTANCE.function_ReturnTypePrimitive,
 				INCOMPLETE_DECLARATION)
 		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.calculateType != (func.statement.last as ReturnStatement).value.calculateType){
-			error('Return type ' + func.statement.last.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
+			error('Return type ' + (func.statement.last as ReturnStatement).value.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
 				MusketPackage.eINSTANCE.function_Statement,
 				func.statement.size-1,
 				INVALID_TYPE)
@@ -461,7 +465,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	// Check assignment type
 	@Check
 	def checkAssignmentType(Assignment assign) {
-		if(assign.value.calculateType != assign.^var.calculateType){
+		if(assign.value?.calculateType != assign.^var?.calculateType){
 			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
 				MusketPackage.eINSTANCE.assignment_Value,
 				INVALID_TYPE)
@@ -474,6 +478,21 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if(modulo.left.calculateType != MusketType.INT || modulo.right.calculateType != MusketType.INT){
 			error('Modulo operator requires two int values, ' + modulo.left.calculateType + ' and ' + modulo.right.calculateType + ' given!', 
 				modulo, null, null)
+		}
+	}
+	
+	// Check collection access expression is int
+	@Check
+	def checkCollectionAccessIsNumeric(Ref ref) {
+		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex.exists[it.calculateType != MusketType.INT]){
+			error('Collection element expression must be int!', 
+				MusketPackage.eINSTANCE.ref_LocalCollectionIndex,
+				INVALID_TYPE)
+		}
+		if(ref.globalCollectionIndex?.size > 0 && ref.globalCollectionIndex.exists[it.calculateType != MusketType.INT]){
+			error('Collection element expression must be int!', 
+				MusketPackage.eINSTANCE.ref_GlobalCollectionIndex,
+				INVALID_TYPE)
 		}
 	}
 }

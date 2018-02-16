@@ -10,7 +10,6 @@ import de.wwu.musket.musket.BoolMatrixParameter
 import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
-import de.wwu.musket.musket.CollectionElementRef
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
@@ -47,6 +46,7 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
+import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StandardFunctionCall
@@ -61,50 +61,10 @@ import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.NestedAttributeRef
-import de.wwu.musket.musket.NestedCollectionElementRef
+
+import static extension de.wwu.musket.util.CollectionHelper.*
 
 class TypeHelper {
-	
-	static dispatch def getStructType(StructArray obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructMatrix obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(Struct obj){
-		return obj.name
-	}
-	
-	static dispatch def getStructType(StructVariable obj){
-		if(obj.eContainer instanceof StructVariable) return (obj.eContainer as StructVariable).type.name
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(MusketStructVariable obj){
-		if(obj.eContainer instanceof MusketStructVariable) return (obj.eContainer as MusketStructVariable).type.name
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructArrayParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(StructMatrixParameter obj){
-		return obj.type.name
-	}
-	
-	static dispatch def getStructType(EObject obj){
-		return null
-	}
-	
-	// Helper to check the expression type of a collection
 	static dispatch def MusketType calculateCollectionType(IntArray obj){
 		return MusketType.INT
 	}
@@ -169,11 +129,12 @@ class TypeHelper {
 		return new MusketType(obj.type).toMatrix
 	}
 		
-	static dispatch def MusketType calculateCollectionType(CollectionElementRef obj){
-		return null // a collection _element_ is no collection itself
-	}
-	
 	static dispatch def MusketType calculateCollectionType(ObjectRef obj){
+		if((obj.globalCollectionIndex !== null && obj.globalCollectionIndex.size > 0) || (obj.localCollectionIndex !== null && obj.globalCollectionIndex.size > 0)) {
+			// A collection _element_ has no collection type
+			return null
+		}
+		
 		return obj.value.calculateCollectionType
 	}
 	
@@ -525,23 +486,12 @@ class TypeHelper {
 		return new MusketType(exp.type).toMatrix
 	}
 	
-	static dispatch def MusketType calculateType(ObjectRef exp){
-		// Follow nested attributes
+	static dispatch def MusketType calculateType(Ref exp){
+		// Go down nested reference structure
 		if(exp.tail !== null) return exp.tail.calculateType
 		
 		// Type of collection _element_ 
-		if(exp instanceof CollectionElementRef) return exp.value.calculateCollectionType
-		
-		// Other object references
-		return exp.value.calculateType
-	}
-	
-	static dispatch def MusketType calculateType(NestedAttributeRef exp){
-		// Follow nested attributes
-		if(exp.tail !== null) return exp.tail.calculateType
-		
-		// Type of collection _element_ 
-		if(exp instanceof NestedCollectionElementRef) return exp.value.calculateCollectionType
+		if(exp.isCollectionRef) return exp.value.calculateCollectionType
 		
 		// Other object references
 		return exp.value.calculateType

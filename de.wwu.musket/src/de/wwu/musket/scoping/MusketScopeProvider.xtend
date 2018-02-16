@@ -3,27 +3,31 @@
  */
 package de.wwu.musket.scoping
 
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.FunctionStatement
 import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.IntVariable
-import de.wwu.musket.musket.StructVariable
-import de.wwu.musket.musket.MusketPackage
-import de.wwu.musket.musket.NestedAttributeRef
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MusketConditionalForLoop
+import de.wwu.musket.musket.MusketIteratorForLoop
+import de.wwu.musket.musket.MusketStructVariable
 import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
 import de.wwu.musket.musket.StructParameter
+import de.wwu.musket.musket.StructVariable
+import de.wwu.musket.musket.TailObjectRef
 import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
-import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
-import de.wwu.musket.musket.CollectionObject
+
+import static extension de.wwu.musket.util.CollectionHelper.*
 
 /**
  * This class contains custom scoping description.
@@ -33,62 +37,55 @@ import de.wwu.musket.musket.CollectionObject
  */
 class MusketScopeProvider extends AbstractMusketScopeProvider {
 
-    override getScope(EObject context, EReference reference) {
-		// Assign statement -> allowed reference values
-		if ((context instanceof ObjectRef || context instanceof Function || context instanceof FunctionStatement) && reference == MusketPackage.eINSTANCE.objectRef_Value){
+	override getScope(EObject context, EReference reference) {
+		if(context instanceof TailObjectRef){
+			val container = (context.eContainer as Ref)
+			val head = container.value 
+			 
+			switch (head) {
+				MusketStructVariable: return Scopes::scopeFor((head as MusketStructVariable).type.attributes)
+				StructVariable: return Scopes::scopeFor((head as StructVariable).type.attributes)
+				StructParameter: return Scopes::scopeFor((head as StructParameter).type.attributes)
+				StructArray case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
+				StructMatrix case container.isCollectionRef: return Scopes::scopeFor((head as StructMatrix).type.attributes)
+				default: return IScope::NULLSCOPE
+			}
+		} else if(context instanceof ObjectRef){
+			return getScopeFromPosition(context) 
+		}
 
-			// Move to top level of nested statements to get function
-			var EObject obj = context
-			var Collection<ReferableObject> inScope = newArrayList()
-			while(obj !== null) {
-				// collect available elements in scope on this level but exclude non-instantiable struct type definition
-				inScope.addAll(obj.eContents.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
-				// Add nested names in multi attributes
-				inScope.addAll(obj.eContents.filter(IntVariable).map[it.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(DoubleVariable).map[it.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(BoolVariable).map[it.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(StructVariable).map[it.vars].flatten.toList)
-				inScope.addAll(obj.eContents.filter(CollectionObject).map[it.vars].flatten.toList)
-				
-				obj = obj.eContainer
-
-			} 
-			return Scopes.scopeFor(inScope)
-            
-		// Nested refences -> allowed references
-        } else if (context instanceof NestedAttributeRef && reference == MusketPackage.eINSTANCE.nestedAttributeRef_Value) {
-			val ReferableObject containerElement = 
-				if(context.eContainer instanceof ObjectRef) {
-					// Dealing with multi-array definitions
-					if((context.eContainer as ObjectRef).value.eContainer instanceof CollectionObject){
-						(context.eContainer as ObjectRef).value.eContainer as CollectionObject
-					} else {
-						(context.eContainer as ObjectRef).value
-					}
-				} else if(context.eContainer instanceof NestedAttributeRef) {
-					// Dealing with multi-array definitions
-					if((context.eContainer as NestedAttributeRef).value.eContainer instanceof CollectionObject){
-						(context.eContainer as NestedAttributeRef).value.eContainer as CollectionObject
-					} else {
-						(context.eContainer as NestedAttributeRef).value
-					}
-				}
+		return super.getScope(context, reference);
+	}
+	
+	def getScopeFromPosition(EObject pos){
+		// Iteratively move to top level of nested elements while collecting variable names in scope
+		var EObject obj = pos
+		var Collection<ReferableObject> inScope = newArrayList()
+		while(obj.eContainer !== null) {
+			val allElements = obj.eContainer.eContents
+			val filteredElements = allElements.subList(0, allElements.indexOf(obj)).toList
 			
-			val rootElement = EcoreUtil2.getRootContainer(context)
-	            	
-            if(containerElement instanceof StructParameter) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
-            	return Scopes.scopeFor(candidates)
-            } else if (containerElement instanceof StructArray) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
-            	return Scopes.scopeFor(candidates)
-            } else if (containerElement instanceof StructMatrix) {
-            	val candidates = EcoreUtil2.getAllContentsOfType(rootElement, Struct).filter[it === containerElement.type].map[it.attributes].flatten
-            	return Scopes.scopeFor(candidates)
-            } else {
-            	return IScope::NULLSCOPE;
-            }
-        }
-        return super.getScope(context, reference);
-    }
+			// collect available elements in scope on this level but exclude non-instantiable struct type definition
+			inScope.addAll(filteredElements.filter(ReferableObject).filter[!(it instanceof Struct)].toList)
+			
+			// Add nested names in multi attributes
+			inScope.addAll(filteredElements.filter(IntVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(DoubleVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(BoolVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(StructVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(CollectionObject).map[it.vars].flatten.toList)
+			
+			// Special cases which add variable names to scope
+			switch(obj){
+				MusketConditionalForLoop: inScope.addAll(obj.init)
+				MusketIteratorForLoop: inScope.addAll(obj.iter)
+				ConditionalForLoop: inScope.addAll(obj.init)
+				IteratorForLoop: inScope.addAll(obj.iter)
+			}
+			
+			obj = obj.eContainer
+		}
+
+		return Scopes.scopeFor(inScope)
+	}
 }
