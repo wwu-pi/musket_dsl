@@ -1,0 +1,28 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+matrix<int,4,4,dist> ads = {7};
+matrix<int,4,4,dist> bds;
+matrix<int,4,4,dist> cds = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+matrix<int,4,4,copy> acs = {7};
+matrix<int,4,4,copy> bcs;
+matrix<int,4,4,copy> ccs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+int init(int row, int col, int x){
+	return row * 4 + col;
+}
+
+main{
+
+	ads.show();
+	bds.show();	
+	acs.show();
+		bcs.show();
+	
+	cds.mapIndexInPlace(init());
+	ccs.mapIndexInPlace(init());
+	
+	cds.show();
+	ccs.show();	
+}
