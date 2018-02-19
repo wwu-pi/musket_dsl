@@ -33,6 +33,7 @@ import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.StandardFunctionCall
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.DistributionMode
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -63,21 +64,43 @@ class ExpressionGenerator {
 			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
 			StandardFunctionCall: '''«expression.generateStandardFunctionCall»'''
 			TypeCast: '''static_cast<«expression.targetType»>(«expression.expression.generateExpression(param_map)»)'''
-			default: {throw new UnsupportedOperationException("ExpressionGenerator: ran into default case")}
+			default: '''/* WARNING: ExpressionGenerator: ran into default case") */'''
 		}
 	}
 
 	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) '''
+«««		ARRAY
 		«IF cer.value instanceof Array»
-			//TODO: ExpressionGenerator.generateCollectionElementRef: Array
+«««			LOCAL REF
+			«IF cer.localCollectionIndex.size == 1»
+				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)»]«cer?.tail.generateTail»
+«««			GLOBAL REF
+			«ELSE»
+«««				COPY
+				«IF (cer.value as Array).distributionMode == DistributionMode.COPY»
+					«cer.value.name»[«cer.globalCollectionIndex.head.generateExpression(param_map)»]«cer?.tail.generateTail»
+«««				DIST
+				«ELSE»
+					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
+				«ENDIF»
+			«ENDIF»
+«««		MATRIX
 		«ELSEIF cer.value instanceof Matrix»
+«««			LOCAL REF
 			«IF cer.localCollectionIndex.size == 2»
-				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]
+				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
+«««			GLOBAL REF
 			«ELSEIF cer.globalCollectionIndex.size == 2»
-				//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices
+«««					COPY
+					«IF (cer.value as Matrix).distributionMode == DistributionMode.COPY»
+						«cer.value.name»[«cer.globalCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.globalCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
+«««					DIST
+					«ELSE»
+						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed
+					«ENDIF»				
 			«ENDIF»
 		«ELSE»
-			«cer.value.name»
+			«cer.value.name»«cer?.tail.generateTail»
 		«ENDIF»
 	'''
 
