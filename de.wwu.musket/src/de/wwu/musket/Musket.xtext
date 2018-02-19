@@ -48,17 +48,25 @@ IndividualObject:
 	MusketVariable ';' | Constant ';'
 ;
 
-Array:
+PrimitiveArray:
 	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
 	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? 
+;
+
+Array:
+	PrimitiveArray |
 	{StructArray} 'array' '<' type=[Struct] ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
 ;
 
-Matrix:
+PrimitiveMatrix:
 	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
 	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
-	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? |
+	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+;
+
+Matrix:
+	PrimitiveMatrix |
 	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
 ;
 
