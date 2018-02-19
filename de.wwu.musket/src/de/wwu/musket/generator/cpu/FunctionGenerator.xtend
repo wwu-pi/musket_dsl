@@ -64,7 +64,7 @@ class FunctionGenerator {
 		val lhs = getReturnString(returnStatement, skeleton, param_map)
 		val rhs = returnStatement.value.generateExpression(param_map)
 		if(lhs != rhs + ' = '){
-			return lhs + rhs
+			return lhs + rhs + ';'
 		}else{
 			return ''
 		}
