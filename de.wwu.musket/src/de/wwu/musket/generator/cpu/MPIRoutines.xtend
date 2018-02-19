@@ -8,6 +8,11 @@ class MPIRoutines {
 		MPI_Gather(«send_buffer», «Config.tmp_size_t», MPI_BYTE, «recv_buffer», «Config.tmp_size_t», MPI_BYTE, 0, MPI_COMM_WORLD);
 	'''
 	
+	def static generateMPIAllgather(String send_buffer, int count, String type, String recv_buffer) '''
+		«Config.tmp_size_t» = «count» * sizeof(«type»);
+		MPI_Allgather(«send_buffer», «Config.tmp_size_t», MPI_BYTE, «recv_buffer», «Config.tmp_size_t», MPI_BYTE, MPI_COMM_WORLD);
+	'''
+	
 	def static generateMPIIsend(int source, String send_buffer, int count, String type, int target, String request) '''
 		«Config.tmp_size_t» = «count» * sizeof(«type»);
 		«val tag = ((source + target) * (source + target + 1)) / 2 + target»

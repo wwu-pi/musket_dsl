@@ -29,10 +29,12 @@ import java.util.Map.Entry
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIrecv
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
+import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIAllgather
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.cpu.Parameter.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.GatherSkeleton
 
 class SkeletonGenerator {
 	
@@ -51,6 +53,7 @@ class SkeletonGenerator {
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
 			ShiftPartitionsHorizontallySkeleton: generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj as Matrix)
 			ShiftPartitionsVerticallySkeleton: generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj as Matrix)
+			GatherSkeleton: generateGatherSkeleton(s, s.skeleton as GatherSkeleton, target)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
 	}
@@ -361,4 +364,8 @@ class SkeletonGenerator {
 		}
 		return param_map
 	}
+	
+	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target) '''		
+		«generateMPIAllgather(se.obj.name + '.data()', se.obj.sizeLocal, se.obj.CppPrimitiveTypeAsString, target + '.data()')»
+	'''
 }

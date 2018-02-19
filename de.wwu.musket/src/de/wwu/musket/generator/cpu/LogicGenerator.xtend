@@ -21,6 +21,7 @@ import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.Expression
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''
@@ -80,6 +81,11 @@ class LogicGenerator {
 		s.generateMusketFunctionCall
 	}
 
-	def static dispatch generateStatement(MusketAssignment s) '''
-	'''
+	def static dispatch generateStatement(MusketAssignment s){
+		switch s.value{
+			Expression: '''«s.^var.value.name» = «(s.value as Expression).generateExpression(null)»'''
+			SkeletonExpression: (s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value.name)
+			default: '''// TODO: LogicGenerator: generateStatement: MusketAssignment'''
+		}
+	}
 }
