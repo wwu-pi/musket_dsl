@@ -28,6 +28,7 @@ import java.util.Map
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
@@ -50,7 +51,7 @@ class ExpressionGenerator {
 			Not: '''!«expression.expression.generateExpression(param_map)»'''
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
-			ObjectRef case expression.isCollectionRef: '''«expression.generateCollectionElementRef(param_map)»'''
+			ObjectRef case expression.isCollectionRef: '''«expression.generateCollectionElementRef(param_map).toString.removeLineBreak»'''
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
@@ -68,7 +69,7 @@ class ExpressionGenerator {
 		}
 	}
 
-	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) '''
+	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map)'''
 «««		ARRAY
 		«IF cer.value instanceof Array»
 «««			LOCAL REF
