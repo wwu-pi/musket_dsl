@@ -51,7 +51,7 @@ class ExpressionGenerator {
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
 			ObjectRef case expression.isCollectionRef: '''«expression.generateCollectionElementRef(param_map)»'''
-			ObjectRef: '''«expression.value.generateObjectRef(param_map)»'''
+			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
 			ExternalFunctionCall:
