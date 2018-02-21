@@ -17,6 +17,7 @@ import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
