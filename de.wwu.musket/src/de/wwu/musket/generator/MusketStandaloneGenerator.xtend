@@ -17,17 +17,27 @@ class MusketStandaloneGenerator {
 	private static final Logger logger = LogManager.getLogger(MusketStandaloneGenerator)
 
 	def static void main(String[] args) {
-		
+
 		logger.info("Start standalone Musket generator.")
 		val injector = new MusketStandaloneSetup().createInjectorAndDoEMFRegistration()
 
 		// obtain a resourceset from the injector
 		val resourceSet = injector.getInstance(XtextResourceSet)
 
-		// load a resource by URI, in this case from the file system
-		val resource = resourceSet.getResource(
-			URI.createFileURI("/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/nbody.musket"),
-			true)
+		val models = #[
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/double.musket',
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/fold.musket',
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/frobenius.musket',
+//			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/fss.musket',
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/matmult.musket',
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/nbody.musket',
+			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/plus-row.musket'
+		]
+
+		for (String s : models) {
+			logger.info("Generate: " + s + '.')
+			// load a resource by URI, in this case from the file system
+			val resource = resourceSet.getResource(URI.createFileURI(s), true)
 
 			// Validation
 			val validator = (resource as XtextResource).getResourceServiceProvider().getResourceValidator()
@@ -39,10 +49,10 @@ class MusketStandaloneGenerator {
 			// Code Generator
 			val generator = injector.getInstance(GeneratorDelegate)
 			val fsa = injector.getInstance(JavaIoFileSystemAccess)
-			fsa.setOutputPath("../src-gen/" + resource.ProjectName.toString + "/")			
+			fsa.setOutputPath("../src-gen/" + resource.ProjectName.toString + "/")
 			generator.doGenerate(resource, fsa)
-
-			logger.info("Musket standalone generator done.")
+			logger.info("Generate: " + s + '. Done.')
 		}
+		logger.info("Musket standalone generator done.")
 	}
-	
+}
