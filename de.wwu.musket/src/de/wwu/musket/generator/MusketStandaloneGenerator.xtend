@@ -25,13 +25,13 @@ class MusketStandaloneGenerator {
 		val resourceSet = injector.getInstance(XtextResourceSet)
 
 		val models = #[
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/double.musket',
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/fold.musket',
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/frobenius.musket',
-//			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/fss.musket',
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/matmult.musket',
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/nbody.musket',
-			'/home/fabian/gitlab/lspi-research/musket-dsl/de.wwu.musket.models/src/plus-row.musket'
+			'../de.wwu.musket.models/src/double.musket',
+			'../de.wwu.musket.models/src/fold.musket',
+			'../de.wwu.musket.models/src/frobenius.musket',
+//			'../de.wwu.musket.models/src/fss.musket',
+			'../de.wwu.musket.models/src/matmult.musket',
+			'../de.wwu.musket.models/src/nbody.musket',
+			'../de.wwu.musket.models/src/plus-row.musket'
 		]
 
 		for (String s : models) {
