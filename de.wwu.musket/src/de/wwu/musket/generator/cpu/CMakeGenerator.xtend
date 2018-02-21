@@ -23,11 +23,15 @@ class CMakeGenerator {
 
 	def static CMakeListstxtContent(Resource resource) '''
 		cmake_minimum_required(VERSION 3.5)
-		project(«resource.ProjectName»)
+		project(«resource.ProjectName» VERSION 1.0.0 LANGUAGES CXX)
 		
 		# required macros
-		include(CheckCXXCompilerFlag)
-		
+		SET( CMAKE_CXX_FLAGS_DEV "-O0 -g -march=native -m64 -Wall -Wextra -Wpedantic -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during DEV builds." FORCE )
+		SET( CMAKE_CXX_FLAGS_TEST "-O3 -g -march=native -m64 -Wall -Wextra -Wpedantic -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during TEST builds." FORCE )
+		SET( CMAKE_CXX_FLAGS_VTUNE "-O3 -g -DNDEBUG -march=native -m64 -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during VTUNE builds." FORCE )
+		SET( CMAKE_CXX_FLAGS_BENCHMARKPALMA "-O3 -DNDEBUG -march=broadwell -m64 -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
+		SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-O3 -DNDEBUG -march=haswell -m64 -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
+				
 		# output path for binaries and libraries
 		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 		set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
@@ -38,30 +42,7 @@ class CMakeGenerator {
 		string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
 		
 		find_package(OpenMP REQUIRED)
-		
-		# check supported flags
-		CHECK_CXX_COMPILER_FLAG(-Wall compiler_flag_wall)
-		CHECK_CXX_COMPILER_FLAG(-m64 compiler_flag_m64)
-		CHECK_CXX_COMPILER_FLAG(-fno-strict-aliasing compiler_flag_fno_strict_aliasing)
-		CHECK_CXX_COMPILER_FLAG(-DMPICH_IGNORE_CXX_SEEK compiler_flag_dmpich_ignore_cxx_seek)
-		
-		# set the supported flags
-		if(compiler_flag_wall)
-		    set(COMPILER_OPTIONS ${COMPILER_OPTIONS} -Wall)
-		endif(compiler_flag_wall)
-		
-		if(compiler_flag_m64)
-		    set(COMPILER_OPTIONS ${COMPILER_OPTIONS} -m64)
-		endif(compiler_flag_m64)
-		
-		if(compiler_flag_fno_strict_aliasing)
-		    set(COMPILER_OPTIONS ${COMPILER_OPTIONS} -fno-strict-aliasing)
-		endif(compiler_flag_fno_strict_aliasing)
-		
-		if(compiler_flag_dmpich_ignore_cxx_seek)
-		    set(COMPILER_OPTIONS ${COMPILER_OPTIONS} -DMPICH_IGNORE_CXX_SEEK)
-		endif(compiler_flag_dmpich_ignore_cxx_seek)
-		
+				
 		add_executable(«resource.ProjectName» ${PROJECT_SOURCE_DIR}/src/«resource.ProjectName».cpp)
 		    target_include_directories(«resource.ProjectName» PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
 		    target_compile_options(«resource.ProjectName» PRIVATE ${COMPILER_OPTIONS} ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
