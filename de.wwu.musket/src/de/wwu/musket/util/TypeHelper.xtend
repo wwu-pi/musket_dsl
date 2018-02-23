@@ -3,31 +3,22 @@ package de.wwu.musket.util
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
 import de.wwu.musket.musket.BoolArray
-import de.wwu.musket.musket.BoolArrayParameter
 import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolMatrix
-import de.wwu.musket.musket.BoolMatrixParameter
-import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
 import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.DoubleArrayParameter
 import de.wwu.musket.musket.DoubleConstant
 import de.wwu.musket.musket.DoubleMatrix
-import de.wwu.musket.musket.DoubleMatrixParameter
-import de.wwu.musket.musket.DoubleParameter
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.IntArray
-import de.wwu.musket.musket.IntArrayParameter
 import de.wwu.musket.musket.IntConstant
 import de.wwu.musket.musket.IntMatrix
-import de.wwu.musket.musket.IntMatrixParameter
-import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.InternalFunctionCall
@@ -50,10 +41,7 @@ import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
-import de.wwu.musket.musket.StructMatrixParameter
-import de.wwu.musket.musket.StructParameter
 import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
@@ -61,6 +49,10 @@ import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.ExternalFunctionCall
+import de.wwu.musket.musket.CollectionParameter
+import de.wwu.musket.musket.IndividualParameter
+import de.wwu.musket.musket.MatrixType
+import de.wwu.musket.musket.ArrayType
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArray obj){
@@ -95,38 +87,10 @@ class TypeHelper {
 		return new MusketType(obj.type).toMatrix
 	}
 	
-	static dispatch def MusketType calculateCollectionType(IntArrayParameter obj){
-		return MusketType.INT
+	static dispatch def MusketType calculateCollectionType(CollectionParameter obj){
+		return new MusketType(obj.type)
 	}
 	
-	static dispatch def MusketType calculateCollectionType(DoubleArrayParameter obj){
-		return MusketType.DOUBLE
-	}
-	
-	static dispatch def MusketType calculateCollectionType(BoolArrayParameter obj){
-		return MusketType.BOOL
-	}
-	
-	static dispatch def MusketType calculateCollectionType(StructArrayParameter obj){
-		return new MusketType(obj.type).toArray
-	}
-	
-	static dispatch def MusketType calculateCollectionType(IntMatrixParameter obj){
-		return MusketType.INT
-	}
-	
-	static dispatch def MusketType calculateCollectionType(DoubleMatrixParameter obj){
-		return MusketType.DOUBLE
-	}
-	
-	static dispatch def MusketType calculateCollectionType(BoolMatrixParameter obj){
-		return MusketType.BOOL
-	}
-	
-	static dispatch def MusketType calculateCollectionType(StructMatrixParameter obj){
-		return new MusketType(obj.type).toMatrix
-	}
-		
 	static dispatch def MusketType calculateCollectionType(ObjectRef obj){
 		if((obj.globalCollectionIndex !== null && obj.globalCollectionIndex.size > 0) || (obj.localCollectionIndex !== null && obj.globalCollectionIndex.size > 0)) {
 			// A collection _element_ has no collection type
@@ -219,52 +183,16 @@ class TypeHelper {
 		return MusketType.BOOL
 	}
 	
-	static dispatch def MusketType calculateType(IntParameter exp){
-		return MusketType.INT
-	}
-	
-	static dispatch def MusketType calculateType(DoubleParameter exp){
-		return MusketType.DOUBLE
-	}
-	
-	static dispatch def MusketType calculateType(BoolParameter exp){
-		return MusketType.BOOL
-	}
-	
-	static dispatch def MusketType calculateType(StructParameter exp){
+	static dispatch def MusketType calculateType(IndividualParameter exp){
 		return new MusketType(exp.type)
 	}
 	
-	static dispatch def MusketType calculateType(IntArrayParameter exp){
-		return MusketType.INT_ARRAY
-	}
-	
-	static dispatch def MusketType calculateType(DoubleArrayParameter exp){
-		return MusketType.DOUBLE_ARRAY
-	}
-	
-	static dispatch def MusketType calculateType(BoolArrayParameter exp){
-		return MusketType.BOOL_ARRAY
-	}
-	
-	static dispatch def MusketType calculateType(StructArrayParameter exp){
-		return new MusketType(exp.type).toArray
-	}
-	
-	static dispatch def MusketType calculateType(IntMatrixParameter exp){
-		return MusketType.INT_MATRIX
-	}
-	
-	static dispatch def MusketType calculateType(DoubleMatrixParameter exp){
-		return MusketType.DOUBLE_MATRIX
-	}
-	
-	static dispatch def MusketType calculateType(BoolMatrixParameter exp){
-		return MusketType.BOOL_MATRIX
-	}
-	
-	static dispatch def MusketType calculateType(StructMatrixParameter exp){
-		return new MusketType(exp.type).toMatrix
+	static dispatch def MusketType calculateType(CollectionParameter exp){
+		if(exp.type instanceof ArrayType){
+			return new MusketType(exp.type as ArrayType).toArray
+		} else if (exp.type instanceof MatrixType){
+			return new MusketType(exp.type as MatrixType).toMatrix
+		}
 	}
 	
 	static dispatch def MusketType calculateType(IntArray exp){

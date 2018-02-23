@@ -419,11 +419,6 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Function has no return statement!', 
 				MusketPackage.eINSTANCE.function_ReturnType,
 				INCOMPLETE_DECLARATION)
-		} else if(func.statement.filter(ReturnStatement).toList == emptyList){
-			//  Primitive return statement missing
-			error('Function has no return statement!', 
-				MusketPackage.eINSTANCE.function_ReturnTypePrimitive,
-				INCOMPLETE_DECLARATION)
 		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.calculateType != (func.statement.last as ReturnStatement).value.calculateType){
 			error('Return type ' + (func.statement.last as ReturnStatement).value.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
 				MusketPackage.eINSTANCE.function_Statement,

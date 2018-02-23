@@ -20,6 +20,6 @@ main{
 	as.show();
 	as.mapInPlace(square());
 	double f = as.fold(0.0, sum());
-	f = sqrt(f);
+	f = std::sqrt(f);
 	mkt::print("Frobenius norm is %.5f.\n", f);
 }

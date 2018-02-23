@@ -18,7 +18,6 @@ import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
-import de.wwu.musket.musket.StructParameter
 import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.TailObjectRef
 import java.util.Collection
@@ -28,6 +27,12 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.CollectionParameter
+import de.wwu.musket.musket.StructArrayType
+import de.wwu.musket.musket.StructMatrixType
+import de.wwu.musket.musket.StructType
+import de.wwu.musket.musket.IndividualParameter
 
 /**
  * This class contains custom scoping description.
@@ -45,7 +50,9 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			switch (head) {
 				MusketStructVariable: return Scopes::scopeFor((head as MusketStructVariable).type.attributes)
 				StructVariable: return Scopes::scopeFor((head as StructVariable).type.attributes)
-				StructParameter: return Scopes::scopeFor((head as StructParameter).type.attributes)
+				CollectionParameter case head.type instanceof StructArrayType: return Scopes::scopeFor((head.type as StructArrayType).type.attributes)
+				CollectionParameter case head.type instanceof StructMatrixType: return Scopes::scopeFor((head.type as StructMatrixType).type.attributes)
+				IndividualParameter case head.type instanceof StructType: return Scopes::scopeFor((head.type as StructType).type.attributes)  
 				StructArray case container.isCollectionRef: return Scopes::scopeFor((head as StructArray).type.attributes)
 				StructMatrix case container.isCollectionRef: return Scopes::scopeFor((head as StructMatrix).type.attributes)
 				default: return IScope::NULLSCOPE

@@ -178,15 +178,42 @@ Function:
 ;
 
 RegularFunction:
-	(returnType=[Struct] | returnTypePrimitive=Type) name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
+	(returnType=Type) name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
 		(statement+=FunctionStatement)*
 	'}'
 ;
 
 LambdaFunction:
-	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=[Struct] | returnTypePrimitive=Type) '{'
+	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=Type) '{'
 		(statement+=FunctionStatement)*
 	'}'
+;
+
+Type:
+	CollectionType | IndividualType
+;
+	
+CollectionType:
+	ArrayType | MatrixType
+;
+
+ArrayType:
+	{IntArrayType} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' |
+	{DoubleArrayType} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' | 
+	{BoolArrayType} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' |
+	{StructArrayType} 'array' '<' type=[Struct] ',' distributionMode=DistributionMode '>'
+;
+
+MatrixType:
+	{IntMatrixType} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' |
+	{DoubleMatrixType} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' | 
+	{BoolMatrixType} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' |
+	{StructMatrixType} 'matrix' '<' type=[Struct] ',' distributionMode=DistributionMode '>' 
+;
+
+IndividualType:
+	{PrimitiveType} type=PrimitiveTypeLiteral | 
+	{StructType} type=[Struct]
 ;
 
 FunctionStatement:
@@ -236,21 +263,11 @@ Parameter:
 ;
 
 CollectionParameter:
-	{IntArrayParameter} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
-	{DoubleArrayParameter} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
-	{BoolArrayParameter} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
-	{StructArrayParameter} 'array' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID |
-	{IntMatrixParameter} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' name=ID |
-	{DoubleMatrixParameter} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' name=ID | 
-	{BoolMatrixParameter} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' name=ID |
-	{StructMatrixParameter} 'matrix' '<' type=[Struct] ',' distributionMode=DistributionMode '>' name=ID
+	type=CollectionType name=ID
 ;
 
 IndividualParameter:
-	{IntParameter} 'int' name=ID |
-	{DoubleParameter} 'double' name=ID | 
-	{BoolParameter} 'bool' name=ID |
-	{StructParameter} type=[Struct] name=ID
+	type=IndividualType name=ID
 ;
 	
 //-----------------------------------------------------------
@@ -392,15 +409,7 @@ InternalFunctionCall:
 ;
 
 ExternalFunctionCall:
-	namespace=ID '::' function=FunctionID ('<' type+=ExternalType (',' type+=ExternalType)* '>')? '(' (params+=Expression (',' params+=Expression)*)? ')'
-;
-
-ExternalType:
-	ExternalCollectionType | {ExternalType} anyType=ID | primitiveType=Type
-;
-
-ExternalCollectionType:
-	('array' | 'matrix') '<' type+=ExternalType (',' type+=ExternalType)* '>'
+	namespace=ID '::' function=ID ('<' type+=Type (',' type+=Type)* '>')? '(' (params+=Expression (',' params+=Expression)*)? ')'
 ;
 
 CollectionFunctionCall:
@@ -504,7 +513,7 @@ enum DistributionMode:
 	copy | dist | rowDist | columnDist
 ;
 
-enum Type:
+enum PrimitiveTypeLiteral:
 	auto | int | double | bool | string
 ;
 
@@ -611,45 +620,6 @@ BOOL returns ecore::EBoolean:
 
 HEADERFILE returns ecore::EString:
 	ID '.h'
-;
-
-FunctionID: ID | FunctionWhitelist;
-
-FunctionWhitelist: 
-	// stdlib
-	'atof' | 'atoi' | 'atol' | 'atoll' | 'strtod' | 'strtof' | 'strtol' | 'strtold' | 'strtoll' | 'strtoul' | 'strtoull' |
-	'rand' | 'srand' |
-	'calloc' | 'free' | 'mallow' | 'realloc' |
-	'abort' | 'atexit' | 'at_quick_exit' | 'exit' | 'getenv' | 'quick_exit' | 'system' |
-	'bsearch' | 'qsort' |
-	'abs' | 'div' | 'labs' | 'ldiv' | 'llabs' | 'lldiv' |
-	'mblen' | 'mbtowc' | 'wctomb' | 'mbstowcs' | 'wcstombs' |
-	// stdio
-	'remove' | 'rename' | 'tmpfile' | 'tmpnam' |
-	'fclose' | 'fflush' | 'fopen' | 'freopen' | 'setbuf' | 'setvbuf' |
-	'fprintf' | 'fscanf' | 'printf' | 'scanf' | 'snprintf' | 'sprintf' | 'sscanf' | 'vfprintf' | 'vfscanf' | 'vprintf' | 'vscanf' | 'vsnprintf' | 'vsprintf' | 'vsscanf' |
-	'fgetc' | 'fgets' | 'fputc' | 'fputs' | 'getc' | 'getchar' | 'gets' | 'putc' | 'putchar' | 'puts' | 'ungetc' |
-	'fread' | 'fwrite' |
-	'fgetpos' | 'fseek' | 'fsetpos' | 'ftell' | 'rewind' |
-	'clearerr' | 'feof' | 'ferror' | 'perror' |
-	// math
-	'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'atan2' |
-	'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' |
-	'exp' | 'frexp' | 'ldexp' | 'log' | 'log10' | 'modf' | 'exp2' | 'expm1' | 'ilogb' | 'log1p' | 'log2' | 'logb' | 'scalbn' | 'scalbln' |
-	'pow' | 'sqrt' | 'cbrt' | 'hypot' |
-	'erf' | 'erfc' | 'tgamma' | 'lgamma' |
-	'ceil' | 'floor' | 'fmod' | 'trunc' | 'round' | 'lround' | 'llround' | 'rint' | 'lrint' | 'llrint' | 'nearbyint' | 'remainder' | 'remquo' |
-	'copysign' | 'nan' | 'nextafter' | 'nexttoward' |
-	'fdim' | 'fmax' | 'fmin' |
-	'fabs' | 'fma' |
-	'fpclassify' | 'isfinite' | 'isinf' | 'isnan' | 'isnormal' | 'signbit' |
-	'isgreater' | 'isgreaterequal' | 'isless' | 'islessequal' | 'islessgreater' | 'isunordered' |
-	// string
-	'memcpy' | 'memmove' | 'strcpy' | 'strncpy' |
-	'strcat' | 'strncat' |
-	'memcmp' | 'strcmp' | 'strcoll' | 'strncmp' | 'strxfrm' |
-	'memchr' | 'strchr' | 'strcspn' | 'strpbrk' | 'strrchr' | 'strspn' | 'strstr' | 'strtok' |
-	'memset' | 'strerror' | 'strlen'
 ;
 
 terminal COLL_GLOBAL_OPEN: 
