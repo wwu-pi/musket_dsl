@@ -220,17 +220,17 @@ Fish calcWeightedFish(Fish f){
 
 array<double,DIMENSIONS> calcBarycenterFold(array<double,DIMENSIONS> arr, Fish f){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		arr += f.position[i];
+		arr[i] += f.position[i];
 	}
 	return arr;
 }
 
 double calcBarycenterMap(double sum_weight, double x){
+	double result = x;
 	if(sum_weight != 0){
-		return x / sum_weight;
-	}else{
-		return x;
+		result = x / sum_weight;
 	}
+	return result;
 }
 
 Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_last_iteration, Fish f){
@@ -240,7 +240,7 @@ Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_las
 		distance += (f.position[i] - barycenter_copy[i]) * (f.position[i] - barycenter_copy[i]);
 	}
 	
-	distance = sqrt(distance);
+	distance = std::sqrt(distance);
 	
 	if(distance != 0.0){
 		double rand_factor = mkt::rand(0.0, 1.0);

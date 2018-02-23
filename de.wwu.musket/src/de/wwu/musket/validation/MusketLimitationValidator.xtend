@@ -5,6 +5,8 @@ import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.Function
 
 class MusketLimitationValidator extends AbstractMusketValidator {
 	
@@ -17,6 +19,18 @@ class MusketLimitationValidator extends AbstractMusketValidator {
 			error('Collections in structs must be copy distributed!', 
 				MusketPackage.eINSTANCE.collectionObject_DistributionMode,
 				INVALID_OPTION)
+		}
+	}
+	
+	// Only allow a single return statement at the end of a function
+	@Check
+	def checkFunctionHasSingleReturnStatement(ReturnStatement statement) {
+		val container = statement.eContainer
+		if(!(container instanceof Function) || (container as Function).statement.indexOf(statement) != (container as Function).statement.length - 1){
+				error('Only one return statement is allowed and must be placed at the end of a function!', 
+					statement,
+					null,
+					-1)
 		}
 	}
 }
