@@ -155,4 +155,29 @@ class MusketModelValidator extends AbstractMusketValidator {
 				INVALID_PARAMETER)
 		}
 	}
+	
+	// Ensure constants in array/matrix dimensions are positive
+	@Check
+	def checkPositiveValuesInCollectionDimensions(Array array){
+		if(array.size?.ref?.value < 0) {
+			error('Array dimensions must be positive!', 
+				MusketPackage.eINSTANCE.array_Size,
+				INVALID_PARAMETER)
+		}
+		
+	}
+	
+	@Check
+	def checkPositiveValuesInCollectionDimensions(Matrix matrix){
+		if(matrix.rows?.ref?.value < 0) {
+			error('Matrix dimensions must be positive!', 
+				MusketPackage.eINSTANCE.matrix_Rows,
+				INVALID_PARAMETER)
+		}
+		if(matrix.cols?.ref?.value < 0) {
+			error('Matrix dimensions must be positive!', 
+				MusketPackage.eINSTANCE.matrix_Cols,
+				INVALID_PARAMETER)
+		}
+	}
 }

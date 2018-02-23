@@ -49,25 +49,29 @@ IndividualObject:
 ;
 
 PrimitiveArray:
-	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? 
+	{IntArray} 'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
+	{DoubleArray} 'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
+	{BoolArray} 'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? 
 ;
 
 Array:
 	PrimitiveArray |
-	{StructArray} 'array' '<' type=[Struct] ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
+	{StructArray} 'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
 ;
 
 PrimitiveMatrix:
-	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
-	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
-	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
+	{IntMatrix} 'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
+	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
+	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
 ;
 
 Matrix:
 	PrimitiveMatrix |
-	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
+	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
+;
+
+IntRef:
+	(ref=[IntConstant] | value=INT)
 ;
 
 CollectionVariableElement returns CollectionObject:
@@ -147,9 +151,19 @@ MusketStructVariableElement returns MusketStructVariable:
 ;
 
 Constant:
-	{IntConstant} 'const' 'int' name=ID '=' value=SIGNED_INT |
-	{DoubleConstant} 'const' 'double' name=ID '=' value=SIGNED_DOUBLE | 
-	{BoolConstant} 'const' 'bool' name=ID '=' value=BOOL
+	IntConstant | DoubleConstant | BoolConstant
+;
+
+IntConstant: 
+	'const' 'int' name=ID '=' value=SIGNED_INT
+;
+
+DoubleConstant:
+	'const' 'double' name=ID '=' value=SIGNED_DOUBLE
+;
+
+BoolConstant:
+	'const' 'bool' name=ID '=' value=BOOL
 ;
 
 Struct:
