@@ -22,7 +22,6 @@ import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
-import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
@@ -39,6 +38,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.Expression
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -365,7 +365,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		}
 	}
 
-	private def validateParamType(Iterable<ParameterInput> input, Iterable<Parameter> target){
+	private def validateParamType(Iterable<Expression> input, Iterable<Parameter> target){
 		for(var i=0; i < input.size; i++){
 			if(input.get(i).calculateType != target.get(i).calculateType){
 				error('Parameter does not match expected type ' + target.get(i).calculateType + '!', 

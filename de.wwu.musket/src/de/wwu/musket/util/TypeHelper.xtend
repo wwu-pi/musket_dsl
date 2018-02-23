@@ -41,7 +41,6 @@ import de.wwu.musket.musket.MusketStructVariable
 import de.wwu.musket.musket.Not
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Or
-import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
@@ -50,7 +49,6 @@ import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StringVal
-import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructArrayParameter
 import de.wwu.musket.musket.StructMatrix
@@ -142,11 +140,6 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateCollectionType(CollectionObject obj){
-		println("try to calculate collection type for " + obj)
-		return null;
-	}
-	
-	static dispatch def MusketType calculateCollectionType(ParameterInput obj){
 		println("try to calculate collection type for " + obj)
 		return null;
 	}
