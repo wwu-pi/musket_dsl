@@ -610,8 +610,16 @@ OP_CONDITION_NOT:
 ;
 
 //-----------------------------------------------------------
-DOUBLE returns ecore::EDouble:
-	INT '.' INT
+terminal fragment SIGN: 
+	'+' | '-'
+;
+
+SIGNED_DOUBLE returns ecore::EDouble:
+	SIGN? INT '.' INT
+;
+
+SIGNED_INT returns ecore::EInt:
+	SIGN? INT
 ;
 	
 BOOL returns ecore::EBoolean:
