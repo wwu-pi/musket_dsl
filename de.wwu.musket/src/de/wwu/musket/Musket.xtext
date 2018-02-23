@@ -481,6 +481,7 @@ ArithmeticExpression returns Expression:
 	ObjectRef |
 	IntVal |
 	DoubleVal |
+	StringVal |
 	FunctionCall
 ;
 
