@@ -53,17 +53,17 @@ array<double,DIMENSIONS,copy> barycenter_copy;
 // init
 Fish initFish(Fish f){
 	f.fitness = mkt::double_min(); //std::numeric_limits<double>::min();
-	f.candidate_fitness = std::numeric_limits<double>::min();
+	f.candidate_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
 	f.weight = WEIGHT_LOWER_BOUND;
 	f.fitness_variation = 0.0;
-	f.best_fitness = std::numeric_limits<double>::min();
+	f.best_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
 	
 	for(int i = 0; i < DIMENSIONS; ++i){
-		position[i] = mkt::rand(INIT_LOWER_BOUND, INIT_UPPER_BOUND);
-		candidate_position = 0.0;
-		position_last_iteration = 0.0;
-		displacement = 0.0;
-		best_position[i] = 0.0;
+		f.position[i] = mkt::rand(INIT_LOWER_BOUND, INIT_UPPER_BOUND);
+		f.candidate_position[i] = 0.0;
+		//position_last_iteration = 0.0;
+		f.displacement[i] = 0.0;
+		f.best_position[i] = 0.0;
 	}
 	
 	return f;
@@ -73,9 +73,10 @@ Fish initFish(Fish f){
 Fish evaluateFitness(Fish f){
 	
 	double sum = 0.0;
-	for (size_t j = 0; j < DIMENSIONS; ++j) {
+	for (int j = 0; j < DIMENSIONS; ++j) {
 		double value = f.position[j];
-		sum += (std::pow(value, 2) - 10 * std::cos(2 * PI * value));
+		value = std::pow(value, 2) - 10 * std::cos(2 * PI * value);
+		sum += std::pow(value, 2) - 10 * std::cos(2 * PI * value);
 	}
 	f.fitness = -(10 * DIMENSIONS + sum);
 	
@@ -93,7 +94,7 @@ Fish evaluateFitness(Fish f){
 
 Fish individualMovement(double step_size, Fish f){
 	// update position
-	for (size_t i = 0; i < DIMENSIONS; ++i) {
+	for (int i = 0; i < DIMENSIONS; ++i) {
 		double rand_factor = mkt::rand(-1.0, 1.0);
 
 		double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND);
@@ -111,7 +112,7 @@ Fish individualMovement(double step_size, Fish f){
 	
 	// fitness function
 	double sum = 0.0;
-	for (size_t j = 0; j < DIMENSIONS; ++j) {
+	for (int j = 0; j < DIMENSIONS; ++j) {
 		double value = f.candidate_position[i];
 		sum += (std::pow(value, 2) - 10 * std::cos(2 * PI * value));
 	}
