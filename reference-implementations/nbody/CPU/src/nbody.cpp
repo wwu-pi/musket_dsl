@@ -81,17 +81,10 @@
 		
 		#pragma omp parallel for simd
 		for(size_t counter = 0; counter < 4; ++counter){
-			int tid = omp_get_thread_num();
-			
-			std::mt19937 engine(counter + offset);
-			std::uniform_real_distribution<double> unif(0.0, 1.0);			
-			
-		  //P[counter].x = rand_dist_double_0_1[tid](random_engines[tid]);
-		  //P[counter].y = rand_dist_double_0_1[tid](random_engines[tid]);
-		  //P[counter].z = rand_dist_double_0_1[tid](random_engines[tid]);
-		  P[counter].x = unif(engine);
-		  P[counter].y = unif(engine);
-		  P[counter].z = unif(engine);
+			int tid = omp_get_thread_num();			
+		  P[counter].x = rand_dist_double_0_1[tid](random_engines[tid]);
+		  P[counter].y = rand_dist_double_0_1[tid](random_engines[tid]);
+		  P[counter].z = rand_dist_double_0_1[tid](random_engines[tid]);
 		  P[counter].vx = 0.0;
 		  P[counter].vy = 0.0;
 		  P[counter].vz = 0.0;
