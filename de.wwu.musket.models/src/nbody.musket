@@ -1,9 +1,9 @@
 #config PLATFORM CPU
-#config PROCESSES 2
-#config CORES 4
+#config PROCESSES 4
+#config CORES 8
 #config MODE debug
 
-const int steps = 10;
+const int steps = 5;
 
 const double EPSILON = 0.0000000001;
 const double DT = 0.01;
@@ -96,8 +96,10 @@ Particle calc_force(int curIndex, Particle curParticle) {
 main{
 	P.mapIndexInPlace(init_particles());
 	
+	oldP = P.gather();
+	
 	mkt::print('Initial Particle System:\n');
-	P.show();
+	oldP.show();
 	
 	for (int i = 0; i < steps; ++i) {
 		P.mapIndexInPlace(calc_force());	
