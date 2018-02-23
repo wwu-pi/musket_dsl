@@ -100,7 +100,7 @@ class FunctionGenerator {
 	
 	def static generateObjectRef(ObjectRef or, Map<String, String> param_map) {
 		switch or {
-			case or.isCollectionRef: '''«or.generateCollectionElementRef(param_map)»'''
+			case or.isCollectionElementRef: '''«or.generateCollectionElementRef(param_map)»'''
 			ReferableObject: '''//TODO: FunctionGenerator.generateObjectRef: ReferableObject'''
 			default: '''//TODO: FunctionGenerator.generateObjectRef: default case'''
 		}

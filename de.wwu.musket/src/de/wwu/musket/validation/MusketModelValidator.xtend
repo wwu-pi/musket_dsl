@@ -19,6 +19,9 @@ import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.CollectionParameter
+import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.MatrixType
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -142,7 +145,8 @@ class MusketModelValidator extends AbstractMusketValidator {
 	// Check collection access expression matches dimensions
 	@Check
 	def checkCollectionAccessIsNumeric(Ref ref) {
-		val dimensions = if (ref.value instanceof Array) 1 else if (ref.value instanceof Matrix) 2 else 0
+		val dimensions = if (ref.value instanceof Array || (ref.value instanceof CollectionParameter && (ref.value as CollectionParameter).type instanceof ArrayType)) 1 
+					else if (ref.value instanceof Matrix || (ref.value instanceof CollectionParameter && (ref.value as CollectionParameter).type instanceof MatrixType)) 2 else 0
 		
 		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex?.size !== dimensions){
 			error('Array element access expects 1 dimension, ' + ref.localCollectionIndex?.size + ' given!', 

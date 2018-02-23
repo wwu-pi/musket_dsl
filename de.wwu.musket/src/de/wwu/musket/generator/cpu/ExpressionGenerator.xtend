@@ -51,7 +51,7 @@ class ExpressionGenerator {
 			Not: '''!«expression.expression.generateExpression(param_map)»'''
 			And: '''(«expression.leftExpression.generateExpression(param_map)» && «expression.rightExpression.generateExpression(param_map)»)'''
 			Or: '''(«expression.leftExpression.generateExpression(param_map)» || «expression.rightExpression.generateExpression(param_map)»)'''
-			ObjectRef case expression.isCollectionRef: '''«expression.generateCollectionElementRef(param_map).toString.removeLineBreak»'''
+			ObjectRef case expression.isCollectionElementRef: '''«expression.generateCollectionElementRef(param_map).toString.removeLineBreak»'''
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''

@@ -53,6 +53,7 @@ import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.ReferableObject
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArray obj){
@@ -88,11 +89,11 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateCollectionType(CollectionParameter obj){
-		return new MusketType(obj.type)
+		return new MusketType(obj.type).toSingleValued
 	}
 	
 	static dispatch def MusketType calculateCollectionType(ObjectRef obj){
-		if((obj.globalCollectionIndex !== null && obj.globalCollectionIndex.size > 0) || (obj.localCollectionIndex !== null && obj.globalCollectionIndex.size > 0)) {
+		if(obj.isCollectionElementRef) {
 			// A collection _element_ has no collection type
 			return null
 		}
@@ -104,7 +105,7 @@ class TypeHelper {
 		return t.toSingleValued;
 	}
 	
-	static dispatch def MusketType calculateCollectionType(CollectionObject obj){
+	static dispatch def MusketType calculateCollectionType(ReferableObject obj){
 		println("try to calculate collection type for " + obj)
 		return MusketType.AUTO;
 	}
@@ -232,7 +233,7 @@ class TypeHelper {
 		if(exp.tail !== null) return exp.tail.calculateType
 		
 		// Type of collection _element_ 
-		if(exp.isCollectionRef) return exp.value.calculateCollectionType
+		if(exp.isCollectionElementRef) return exp.value.calculateCollectionType
 		
 		// Other object references
 		return exp.value.calculateType
