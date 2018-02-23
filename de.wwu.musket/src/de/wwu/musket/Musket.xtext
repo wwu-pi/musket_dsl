@@ -49,8 +49,8 @@ IndividualObject:
 ;
 
 PrimitiveArray:
-	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{IntArray} 'array' '<' 'int' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
+	{DoubleArray} 'array' '<' 'double' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
 	{BoolArray} 'array' '<' 'bool' ',' size=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? 
 ;
 
@@ -60,8 +60,8 @@ Array:
 ;
 
 PrimitiveMatrix:
-	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=INT (',' values+=INT)* '}')? |
-	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=DOUBLE (',' values+=DOUBLE)* '}')? | 
+	{IntMatrix} 'matrix' '<' 'int' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
+	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
 	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=INT ',' cols=INT ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
 ;
 
@@ -147,8 +147,8 @@ MusketStructVariableElement returns MusketStructVariable:
 ;
 
 Constant:
-	{IntConstant} 'const' 'int' name=ID '=' value=INT |
-	{DoubleConstant} 'const' 'double' name=ID '=' value=DOUBLE | 
+	{IntConstant} 'const' 'int' name=ID '=' value=SIGNED_INT |
+	{DoubleConstant} 'const' 'double' name=ID '=' value=SIGNED_DOUBLE | 
 	{BoolConstant} 'const' 'bool' name=ID '=' value=BOOL
 ;
 
@@ -501,11 +501,11 @@ BoolVal:
 ;
 
 IntVal:
-	value=INT
+	value=SIGNED_INT
 ;
 
 DoubleVal:
-	value=DOUBLE
+	value=SIGNED_DOUBLE
 ;
       
 StringVal:
@@ -610,7 +610,7 @@ OP_CONDITION_NOT:
 ;
 
 //-----------------------------------------------------------
-terminal fragment SIGN: 
+fragment SIGN: 
 	'+' | '-'
 ;
 
