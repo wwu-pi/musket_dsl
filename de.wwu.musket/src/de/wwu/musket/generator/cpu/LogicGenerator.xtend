@@ -39,9 +39,11 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(MusketIteratorForLoop s) '''
+		// TODO: LogicGenerator: generateStatement(MusketIteratorForLoop)
 	'''
 
 	def static dispatch generateStatement(MusketIfClause s) '''
+		// TODO: LogicGenerator: generateStatement(MusketIfClause)
 	'''
 
 	def static dispatch generateStatement(SkeletonExpression s) '''
@@ -64,6 +66,7 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(Assignment s) '''
+		// TODO: LogicGenerator: generateStatement(Assignment)
 	'''
 
 	def static dispatch generateStatement(CollectionFunctionCall s) '''
@@ -75,6 +78,7 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(ExternalFunctionCall s) '''
+		// TODO: LogicGenerator: generateStatement(ExternalFunctionCall)
 	'''
 
 	def static dispatch generateStatement(MusketFunctionCall s) {
@@ -83,7 +87,7 @@ class LogicGenerator {
 
 	def static dispatch generateStatement(MusketAssignment s){
 		switch s.value{
-			Expression: '''«s.^var.value.name» = «(s.value as Expression).generateExpression(null)»'''
+			Expression: '''«s.^var.value.name» = «(s.value as Expression).generateExpression(null)»;'''
 			SkeletonExpression: (s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value.name)
 			default: '''// TODO: LogicGenerator: generateStatement: MusketAssignment'''
 		}
