@@ -447,7 +447,7 @@ enum CollectionFunctionName:
 ;
 
 enum MusketFunctionName:
-	print | rand
+	print | rand | double_min
 ;
 
 // Expression tree
