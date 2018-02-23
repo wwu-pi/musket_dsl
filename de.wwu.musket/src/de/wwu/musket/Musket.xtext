@@ -382,19 +382,23 @@ ReturnStatement:
 ;
 
 FunctionCall:
-	InternalFunctionCall | StandardFunctionCall | ExternalFunctionCall | CollectionFunctionCall | MusketFunctionCall
+	InternalFunctionCall | ExternalFunctionCall | CollectionFunctionCall | MusketFunctionCall
 ;
 
 InternalFunctionCall:
 	value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
-StandardFunctionCall:
-	value=StandardFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+ExternalFunctionCall:
+	namespace=ID '::' function=FunctionID ('<' type+=ExternalType (',' type+=ExternalType)* '>')? '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
-ExternalFunctionCall:
-	namespace=ID '::' function=FunctionID '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+ExternalType:
+	ExternalCollectionType | {ExternalType} anyType=ID | primitiveType=Type
+;
+
+ExternalCollectionType:
+	('array' | 'matrix') '<' type+=ExternalType (',' type+=ExternalType)* '>'
 ;
 
 CollectionFunctionCall:
@@ -402,44 +406,7 @@ CollectionFunctionCall:
 ;
 
 MusketFunctionCall:
-	'mkt::'value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
-;
-
-enum StandardFunctionName: // Whitelisting allowed function names from http://www.cplusplus.com/reference/
-	// stdlib
-	atof | atoi | atol | atoll | strtod | strtof | strtol | strtold | strtoll | strtoul | strtoull |
-	rand | srand | 
-	calloc | free | mallow | realloc | 
-	abort | atexit | at_quick_exit | exit | getenv | quick_exit | system | 
-	bsearch | qsort |
-	abs | div | labs | ldiv | llabs | lldiv |
-	mblen | mbtowc | wctomb | mbstowcs | wcstombs |
-	// stdio
-	remove | rename | tmpfile | tmpnam |
-	fclose | fflush | fopen | freopen | setbuf | setvbuf |
-	fprintf | fscanf | printf | scanf | snprintf | sprintf | sscanf | vfprintf | vfscanf | vprintf | vscanf | vsnprintf | vsprintf | vsscanf | 
-	fgetc | fgets | fputc | fputs | getc | getchar | gets | putc | putchar | puts | ungetc |
-	fread | fwrite | 
-	fgetpos | fseek | fsetpos | ftell | rewind |
-	clearerr | feof | ferror | perror |
-	// math
-	cos | sin | tan | acos | asin | atan | atan2 |
-	cosh | sinh | tanh | acosh | asinh | atanh | 
-	exp | frexp | ldexp | log | log10 | modf | exp2 | expm1 | ilogb | log1p | log2 | logb | scalbn | scalbln | 
-	pow | sqrt | cbrt | hypot | 
-	erf | erfc | tgamma | lgamma | 
-	ceil | floor | fmod | trunc | round | lround | llround | rint | lrint | llrint | nearbyint | remainder | remquo | 
-	copysign | nan | nextafter | nexttoward | 
-	fdim | fmax | fmin | 
-	fabs | fma | 
-	fpclassify | isfinite | isinf | isnan | isnormal | signbit | 
-	isgreater | isgreaterequal | isless | islessequal | islessgreater | isunordered |
-	// string
-	memcpy | memmove | strcpy | strncpy | 
-	strcat | strncat | 
-	memcmp | strcmp | strcoll | strncmp | strxfrm | 
-	memchr | strchr | strcspn | strpbrk | strrchr | strspn | strstr | strtok | 
-	memset | strerror | strlen 
+	'mkt::' value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
 ;
 
 enum CollectionFunctionName:
