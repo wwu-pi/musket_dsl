@@ -214,9 +214,17 @@ IteratorForLoop:
 IfClause:
 	'if' '(' condition=CompareExpression ')' '{'
 		statements+=FunctionStatement+
-	'}' ('else' '{'
+	'}' 
+	(elseIfClauses+=ElseIfClause)*
+	('else' '{'
 		elseStatements+=FunctionStatement+
 	'}')?
+;
+
+ElseIfClause:
+	'else' 'if' '(' condition=CompareExpression ')' '{'
+		statements+=FunctionStatement+
+	'}' 
 ;
 
 CollectionObjectOrParam:

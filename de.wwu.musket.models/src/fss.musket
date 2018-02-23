@@ -120,7 +120,7 @@ Fish individualMovement(double step_size, Fish f){
 	
 	// update values
 	if(f.candidate_fitness > f.fitness){
-		f.fitness_variation = f.candaidate_fitness - f.fitness;
+		f.fitness_variation = f.candidate_fitness - f.fitness;
 		f.fitness = f.candidate_fitness;
 		
 		//	mkt::copy(f.candidate_position, f.position);
