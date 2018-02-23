@@ -1,7 +1,5 @@
-	// reference implementation for nbody simulation with 2 processes and 4 cores per process
+	// sequential reference implementation for nbody simulation
 	
-	#include <mpi.h>
-	#include <omp.h>
 	#include <array>
 	#include <sstream>
 	#include <chrono>
@@ -10,10 +8,7 @@
 	
 	
 	// constants and global vars
-	const size_t number_of_processes = 4;
 	const int steps = 5;
-	int process_id = -1;
-	size_t tmp_size_t = 0;
 	
 	const double EPSILON = 0.0000000001;
 	const double DT = 0.01;
@@ -31,64 +26,18 @@
 	};	
 
 	// data structures
-	std::array<Particle, 4> P;
+	std::array<Particle, 16> P;
 	std::array<Particle, 16> oldP;
 
 	int main(int argc, char** argv) {
 	
-		// mpi setup
-		MPI_Init(&argc, &argv);
-		
-		int mpi_world_size = 0;
-		MPI_Comm_size(MPI_COMM_WORLD, &mpi_world_size);
-		
-		if(mpi_world_size != number_of_processes){
-			MPI_Finalize();
-			return EXIT_FAILURE;
-		}
-		
-		MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
-		
-		if(process_id == 0){
-			printf("Run Nbody\n\n");			
-		}
-		
-		// prepare random engines and distributions
-		
-		std::vector<std::mt19937> random_engines;
-		random_engines.reserve(4);
+		printf("Run Nbody\n\n");			
 
-		for(size_t counter = 0; counter < 8; ++counter){
-			random_engines.push_back(std::mt19937(process_id * 8 + counter));
-		}
-		
-		std::vector<std::uniform_real_distribution<double>> rand_dist_double_0_1;
-		rand_dist_double_0_1.reserve(8);
-		
-		for(size_t counter = 0; counter < 8; ++counter){
-			rand_dist_double_0_1.push_back(std::uniform_real_distribution<double>(0, 1));
-		}
-		
-		// init particles		
-		int offset = 0;		
-		if(process_id == 1){
-			offset = 4;
-		}else if(process_id == 2){
-			offset = 8;
-		}else if(process_id == 3){
-			offset = 12;
-		}
-		
-		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 4; ++counter){
-			int tid = omp_get_thread_num();
 			
-			std::mt19937 engine(counter + offset);
-			std::uniform_real_distribution<double> unif(0.0, 1.0);			
-			
-		  //P[counter].x = rand_dist_double_0_1[tid](random_engines[tid]);
-		  //P[counter].y = rand_dist_double_0_1[tid](random_engines[tid]);
-		  //P[counter].z = rand_dist_double_0_1[tid](random_engines[tid]);
+
+		for(size_t counter = 0; counter < 16; ++counter){
+			std::mt19937 engine(counter);
+			std::uniform_real_distribution<double> unif(0.0, 1.0);
 		  P[counter].x = unif(engine);
 		  P[counter].y = unif(engine);
 		  P[counter].z = unif(engine);
@@ -96,7 +45,7 @@
 		  P[counter].vy = 0.0;
 		  P[counter].vz = 0.0;
 		  P[counter].mass = 1.0;
-		  P[counter].charge = 1.0 - 2.0 * static_cast<double>((counter + offset) % 2);
+		  P[counter].charge = 1.0 - 2.0 * static_cast<double>(counter % 2);
 		}
 			
 		// start main program
@@ -104,11 +53,9 @@
 		
 		
 		// gather P into oldP show initial particle system		
-		tmp_size_t = 4 * sizeof(Particle);
-		MPI_Allgather(P.data(), tmp_size_t, MPI_BYTE, oldP.data(), tmp_size_t,MPI_BYTE, MPI_COMM_WORLD);
+		std::copy(P.begin(), P.end(), oldP.begin());
 		
-		if (process_id == 0) {
-			std::ostringstream s1;
+		std::ostringstream s1;
 			s1 << "[";
 			for (int i = 0; i < 16 - 1; i++) {
 				s1 << oldP[i].x << ", ";
@@ -119,17 +66,15 @@
 			s1 << oldP[16 - 1].x << ", " << oldP[16 - 1].y << ", " << oldP[16 - 1].z << "]" << std::endl;
 			s1 << std::endl;
 			printf("%s", s1.str().c_str());
-		}
 		
 		
 		// start main loop
 		for(int step = 0; step < steps; ++step){
 		
 			// calc force		
-			#pragma omp parallel for simd
-			for(size_t counter = 0; counter < 4; ++counter){
+			for(size_t counter = 0; counter < 16; ++counter){
 				
-				int curIndex = counter + offset;
+				int curIndex = counter;
 				Particle curParticle = P[counter];
 			
 				double ax = 0.0;
@@ -185,36 +130,31 @@
 			} // end calc force
 		
 			// gather particles
-			MPI_Allgather(P.data(), tmp_size_t, MPI_BYTE, oldP.data(), tmp_size_t,MPI_BYTE, MPI_COMM_WORLD);
+			std::copy(P.begin(), P.end(), oldP.begin());
 
 		} // end main loop
 		
 		// show final particle system
 		
-		if (process_id == 0) {
-			std::ostringstream s1;
-			s1 << "[";
+		std::ostringstream s2;
+			s2 << "[";
 			for (int i = 0; i < 16 - 1; i++) {
-				s1 << oldP[i].x << ", ";
-				s1 << oldP[i].y << ", ";
-				s1 << oldP[i].z;
-				s1 << "; ";
+				s2 << oldP[i].x << ", ";
+				s2 << oldP[i].y << ", ";
+				s2 << oldP[i].z;
+				s2 << "; ";
 			}
-			s1 << oldP[16 - 1].x << ", " << oldP[16 - 1].y << ", " << oldP[16 - 1].z << "]" << std::endl;
-			s1 << std::endl;
-			printf("%s", s1.str().c_str());
-		}
+			s2 << oldP[16 - 1].x << ", " << oldP[16 - 1].y << ", " << oldP[16 - 1].z << "]" << std::endl;
+			s2 << std::endl;
+			printf("%s", s2.str().c_str());
 		
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 	
 		// final output
-		if(process_id == 0){
 			printf("Execution time: %.5fs\n", seconds);
-			printf("Threads: %i\n", omp_get_max_threads());
-			printf("Processes: %i\n", mpi_world_size);
-		}
+			printf("Threads: %i\n", 1);
+			printf("Processes: %i\n", 1);
 		
-		MPI_Finalize();
 		return EXIT_SUCCESS;
 	}
