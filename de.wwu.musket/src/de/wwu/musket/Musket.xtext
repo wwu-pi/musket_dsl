@@ -329,12 +329,6 @@ enum ZipOption:
 	index | localIndex | inPlace
 ;
 
-ParameterInput:
-	FunctionCall |
-	ObjectRef |
-	PrimitiveVal
-;
-
 SkeletonParameterInput:
 	FunctionCall | 
 	LambdaFunction
@@ -386,11 +380,11 @@ FunctionCall:
 ;
 
 InternalFunctionCall:
-	value=[Function] '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+	value=[Function] '(' (params+=Expression (',' params+=Expression)*)? ')'
 ;
 
 ExternalFunctionCall:
-	namespace=ID '::' function=FunctionID ('<' type+=ExternalType (',' type+=ExternalType)* '>')? '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+	namespace=ID '::' function=FunctionID ('<' type+=ExternalType (',' type+=ExternalType)* '>')? '(' (params+=Expression (',' params+=Expression)*)? ')'
 ;
 
 ExternalType:
@@ -406,7 +400,7 @@ CollectionFunctionCall:
 ;
 
 MusketFunctionCall:
-	'mkt::' value=MusketFunctionName '(' (params+=ParameterInput (',' params+=ParameterInput)*)? ')'
+	'mkt::' value=MusketFunctionName '(' (params+=Expression (',' params+=Expression)*)? ')'
 ;
 
 enum CollectionFunctionName:
