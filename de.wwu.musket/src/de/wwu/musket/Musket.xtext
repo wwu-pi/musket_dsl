@@ -505,7 +505,7 @@ enum DistributionMode:
 ;
 
 enum Type:
-	int | double | bool | string
+	auto | int | double | bool | string
 ;
 
 AssignmentOperator:

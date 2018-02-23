@@ -113,7 +113,7 @@ Fish individualMovement(double step_size, Fish f){
 	// fitness function
 	double sum = 0.0;
 	for (int j = 0; j < DIMENSIONS; ++j) {
-		double value = f.candidate_position[i];
+		double value = f.candidate_position[j];
 		sum += (std::pow(value, 2) - 10 * std::cos(2 * PI * value));
 	}
 	f.candidate_fitness = -(10 * DIMENSIONS + sum);
@@ -170,6 +170,7 @@ double maxFitnessVariation(double max_fitness_variation, Fish f){
 	} else {
 		return f.fitness_variation;
 	}
+	return 0.0;
 }
 
 
@@ -180,7 +181,7 @@ double sumFitnessVariation(double sum_fitness_variation, Fish f){
 
 Fish calcDisplacementMap(Fish f){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		f.displacement[i] * f.fitness_variation;
+		f.displacement[i] *= f.fitness_variation;
 	}
 	return f;
 }

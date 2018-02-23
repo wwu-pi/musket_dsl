@@ -60,6 +60,7 @@ import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.ExternalFunctionCall
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArray obj){
@@ -141,7 +142,7 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateCollectionType(CollectionObject obj){
 		println("try to calculate collection type for " + obj)
-		return null;
+		return MusketType.AUTO;
 	}
 	
 	static dispatch def MusketType calculateType(IntVal exp){
@@ -170,6 +171,7 @@ class TypeHelper {
 		switch exp.value {
 			case PRINT: return MusketType.STRING
 			case RAND: return MusketType.DOUBLE
+			case DOUBLE_MIN: return MusketType.DOUBLE
 		}
 	}
 	
@@ -398,8 +400,13 @@ class TypeHelper {
 		return exp.value.calculateType
 	}
 	
+	static dispatch def MusketType calculateType(ExternalFunctionCall call){
+		// We cannot know this
+		return MusketType.AUTO
+	}
+	
 	static dispatch def MusketType calculateType(EObject exp){ // Else case
 		println("try to calculate type for unknown object " + exp)
-		return null
+		return MusketType.AUTO
 	}
 }

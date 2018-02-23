@@ -7,6 +7,7 @@ import java.util.Objects
 
 class MusketType {
 	
+	public static final MusketType AUTO = new MusketType(Type.AUTO)
 	public static final MusketType INT = new MusketType(Type.INT)
 	public static final MusketType DOUBLE = new MusketType(Type.DOUBLE)
 	public static final MusketType BOOL = new MusketType(Type.BOOL)
@@ -58,11 +59,11 @@ class MusketType {
 	}
 	
 	def isNumeric(){
-		return !isArray && !isMatrix && (type === Type.INT || type === Type.DOUBLE)
+		return !isArray && !isMatrix && (type === Type.AUTO || type === Type.INT || type === Type.DOUBLE)
 	}
 	
 	def isCollection() {
-		return isArray || isMatrix
+		return isArray || isMatrix || type === Type.AUTO
 	}
 	
 	override hashCode() {
@@ -71,6 +72,10 @@ class MusketType {
 	
 	override def equals(Object obj){
 		if(!(obj instanceof MusketType)) return false
+		
+		// Non-inferrable auto types are accepted
+		if(this.type === Type.AUTO || (obj as MusketType).type === Type.AUTO) return true;
+		
 		return this.type === (obj as MusketType).type && this.structName == (obj as MusketType).structName
 			&& this.isArray === (obj as MusketType).isArray && this.isMatrix === (obj as MusketType).isMatrix
 	}
