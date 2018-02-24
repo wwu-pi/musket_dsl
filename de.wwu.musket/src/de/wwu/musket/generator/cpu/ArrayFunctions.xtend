@@ -10,7 +10,7 @@ import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
 
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
-
+import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 
 class ArrayFunctions {
@@ -57,11 +57,11 @@ class ArrayFunctions {
 			«State.incCounter»
 			std::ostringstream «streamName»;
 			«streamName» << "«a.name»: " << std::endl << "[";
-			for (int i = 0; i < «a.size - 1»; i++) {
+			for (int i = 0; i < «a.size.concreteValue - 1»; i++) {
 				«streamName» << «generateShowElements(a, State.arrayName, "i")»;				
 				«streamName» << "; ";
 			}
-			«streamName» << «generateShowElements(a, State.arrayName, (a.size - 1).toString)» << "]" << std::endl;
+			«streamName» << «generateShowElements(a, State.arrayName, (a.size.concreteValue - 1).toString)» << "]" << std::endl;
 			«streamName» << std::endl;
 			printf("%s", «streamName».str().c_str());
 		}
@@ -82,8 +82,8 @@ class ArrayFunctions {
 		if («Config.var_pid» == 0) {
 			std::ostringstream «streamName»;
 			«streamName» << "«m.name»: " << std::endl;
-			«FOR i : 0..<m.rows BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
-				«FOR j : 0..<m.cols BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
+			«FOR i : 0..<m.rows.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
+				«FOR j : 0..<m.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
 					«IF m.blocksInRow == 1»
 						«streamName» << «State.arrayName»[«(i % m.rowsLocal) * m.colsLocal + (i / m.rowsLocal) * m.sizeLocal + (j / m.colsLocal) * m.sizeLocal + j % m.colsLocal»];									
 					«ELSE»

@@ -117,4 +117,13 @@ class MusketType {
 		return new MusketType(t)
 	}
 	
+	def getCppType(){
+		switch (type) {
+			case BOOL: return 'bool'
+			case DOUBLE: return 'double'
+			case INT: return 'int'
+			default: return 'auto'
+		}
+	}
+	
 }

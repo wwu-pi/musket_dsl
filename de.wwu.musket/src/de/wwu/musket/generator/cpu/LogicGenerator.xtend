@@ -13,13 +13,11 @@ import de.wwu.musket.musket.MusketIfClause
 import de.wwu.musket.musket.MusketIntVariable
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.SkeletonExpression
-import de.wwu.musket.musket.StandardFunctionCall
 
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
-import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.Expression
 
@@ -71,10 +69,6 @@ class LogicGenerator {
 
 	def static dispatch generateStatement(CollectionFunctionCall s) '''
 		«s.generateCollectionFunctionCall»
-	'''
-
-	def static dispatch generateStatement(StandardFunctionCall s) '''
-		«s.generateStandardFunctionCall»
 	'''
 
 	def static dispatch generateStatement(ExternalFunctionCall s) '''

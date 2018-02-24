@@ -3,34 +3,31 @@ package de.wwu.musket.generator.extensions
 import de.wwu.musket.generator.cpu.Config
 import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.BoolArray
-import de.wwu.musket.musket.BoolArrayParameter
 import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolMatrix
-import de.wwu.musket.musket.BoolParameter
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.DoubleArrayParameter
 import de.wwu.musket.musket.DoubleConstant
 import de.wwu.musket.musket.DoubleMatrix
-import de.wwu.musket.musket.DoubleParameter
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.IntArray
-import de.wwu.musket.musket.IntArrayParameter
 import de.wwu.musket.musket.IntConstant
 import de.wwu.musket.musket.IntMatrix
-import de.wwu.musket.musket.IntParameter
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.StructArray
 import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.TailObjectRef
+import de.wwu.musket.util.MusketType
 import java.util.List
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.TailObjectRef
+import static extension de.wwu.musket.util.MusketHelper.*
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
@@ -90,28 +87,12 @@ class ObjectExtension {
 		'bool'
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(IntArrayParameter o) {
-		'int'
+	def static dispatch CppPrimitiveTypeAsString(CollectionParameter o) {
+		return new MusketType(o.type).cppType
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(DoubleArrayParameter o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolArrayParameter o) {
-		'bool'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(IntParameter o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleParameter o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolParameter o) {
-		'bool'
+	def static dispatch CppPrimitiveTypeAsString(IndividualParameter o) {
+		return new MusketType(o.type).cppType
 	}
 	
 	def static dispatch CppPrimitiveTypeAsString(IntVal o) {
@@ -219,21 +200,21 @@ class ObjectExtension {
 	
 	def static dispatch sizeLocal(Array a) {
 		switch a.distributionMode {
-			case DIST: a.size / Config.processes
-			case COPY: a.size
-			default: a.size
+			case DIST: a.size.concreteValue / Config.processes
+			case COPY: a.size.concreteValue
+			default: a.size.concreteValue
 		}
 	}
 	
 	// for matrices
 	def static dispatch size(Matrix m) {
-		m.cols * m.rows
+		m.cols.concreteValue * m.rows.concreteValue
 	}
 	
 	def static dispatch sizeLocal(Matrix m) {
 		switch m.distributionMode {
-			case DIST: m.cols * m.rows / Config.processes
-			case COPY: m.cols * m.rows
+			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes
+			case COPY: m.cols.concreteValue * m.rows.concreteValue
 			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case ROW_DIST")
 			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case COLUMN_DIST")
 			default: 0
@@ -242,8 +223,8 @@ class ObjectExtension {
 	
 	def static rowsLocal(Matrix m) {
 		switch m.distributionMode {
-			case DIST: m.rows / m.blocksInRow
-			case COPY: m.rows
+			case DIST: m.rows.concreteValue / m.blocksInRow
+			case COPY: m.rows.concreteValue
 			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case ROW_DIST")
 			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case COLUMN_DIST")
 			default: 0
@@ -252,8 +233,8 @@ class ObjectExtension {
 	
 	def static colsLocal(Matrix m) {
 		switch m.distributionMode {
-			case DIST: m.cols / m.blocksInColumn
-			case COPY: m.cols
+			case DIST: m.cols.concreteValue / m.blocksInColumn
+			case COPY: m.cols.concreteValue
 			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
 			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
 			default: 0

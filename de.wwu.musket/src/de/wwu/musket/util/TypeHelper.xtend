@@ -2,12 +2,13 @@ package de.wwu.musket.util
 
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
+import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.BoolArray
 import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolMatrix
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
-import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.Division
 import de.wwu.musket.musket.DoubleArray
@@ -15,13 +16,16 @@ import de.wwu.musket.musket.DoubleConstant
 import de.wwu.musket.musket.DoubleMatrix
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.IntArray
 import de.wwu.musket.musket.IntConstant
 import de.wwu.musket.musket.IntMatrix
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketBoolVariable
@@ -37,6 +41,7 @@ import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.Ref
+import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.StringVal
@@ -48,12 +53,6 @@ import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.ExternalFunctionCall
-import de.wwu.musket.musket.CollectionParameter
-import de.wwu.musket.musket.IndividualParameter
-import de.wwu.musket.musket.MatrixType
-import de.wwu.musket.musket.ArrayType
-import de.wwu.musket.musket.ReferableObject
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArray obj){

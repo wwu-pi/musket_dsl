@@ -32,7 +32,6 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
-import de.wwu.musket.musket.StandardFunctionCall
 import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.DistributionMode
 
@@ -63,7 +62,6 @@ class ExpressionGenerator {
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
 			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
-			StandardFunctionCall: '''«expression.generateStandardFunctionCall»'''
 			TypeCast: '''static_cast<«expression.targetType»>(«expression.expression.generateExpression(param_map)»)'''
 			default: '''/* WARNING: ExpressionGenerator: ran into default case") */'''
 		}
