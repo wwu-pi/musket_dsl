@@ -511,7 +511,7 @@ StructVal:
 
 //-----------------------------------------------------------
 enum DistributionMode:
-	copy | dist | rowDist | columnDist
+	copy | dist | rowDist | columnDist | loc
 ;
 
 enum PrimitiveTypeLiteral:
