@@ -237,21 +237,24 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					}
 					
 				FoldSkeletonVariants: {
+						// user function: 	T func(..., T t, U u)
+						// call:			Us.func(t, func(...))
+						
 						// Last two parameters need to match for fold skeleton
-						if(callingType != call.value.params.last?.calculateType || callingType != call.value.params.get(call.value.params.size-2)?.calculateType){
+						if(callingType != call.value.params.last?.calculateType){
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
-						// Check identity value parameter matches
-						if(call.value.params.last?.calculateType != skel.identity.calculateType){
+						// Check identity value parameter matches second but last value
+						if(call.value.params.get(call.value.params.size-2)?.calculateType != skel.identity.calculateType){
 							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 								INVALID_PARAMS)
 						}
-						// Fold function needs to return same type as its input
-						if(call.value.calculateType != callingType){
-							error('Return type ' + new MusketType(call.value) + ' needs to match the input type ' + callingType + ' for fold skeletons!', 
+						// Fold function needs to return same type as its identity
+						if(call.value.calculateType != skel.identity.calculateType){
+							error('Return type ' + new MusketType(call.value) + ' needs to match the identity type ' + skel.identity.calculateType + ' for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
