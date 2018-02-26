@@ -29,11 +29,11 @@ import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
 import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.DistributionMode
+import static extension de.wwu.musket.generator.cpu.ExternalFunctionCallGenerator.*
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -54,8 +54,7 @@ class ExpressionGenerator {
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
-			ExternalFunctionCall:
-				throw new UnsupportedOperationException("ExpressionGenerator: ExternalFunctionCall")
+			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(param_map)»'''
 			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
 			PostIncrement: '''«expression.value.generateObjectRef(param_map)»++'''
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
