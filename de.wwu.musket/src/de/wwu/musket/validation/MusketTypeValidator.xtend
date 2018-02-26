@@ -37,6 +37,7 @@ import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Expression
+import de.wwu.musket.musket.CollectionObject
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -485,5 +486,17 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MusketPackage.eINSTANCE.ref_GlobalCollectionIndex,
 				INVALID_TYPE)
 		}
+	}
+	
+	// Check collection objects are instantiated with correct (primitive) types
+	@Check
+	def checkCollectionObjectInstantiationType(CollectionObject obj) {
+		if(obj.values?.size == 0) return;
+		
+		obj.values.forEach[if(it.calculateType != obj.calculateCollectionType){
+			error('Collection element type must be of type ' + obj.calculateCollectionType + '!', 
+				MusketPackage.eINSTANCE.collectionObject_Values,
+				obj.values.indexOf(it))
+		}]
 	}
 }
