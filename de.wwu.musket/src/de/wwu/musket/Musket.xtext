@@ -410,11 +410,15 @@ FunctionCall:
 ;
 
 InternalFunctionCall:
-	value=[Function] '(' (params+=Expression (',' params+=Expression)*)? ')'
+	value=[Function] FunctionParameters
 ;
 
 ExternalFunctionCall:
-	namespace=ID '::' function=ID ('<' type+=Type (',' type+=Type)* '>')? '(' (params+=Expression (',' params+=Expression)*)? ')'
+	namespaces+=Namespace+ function=ID FunctionParameters
+;
+
+Namespace:
+	name=ID ('<' templateTypes+=Type (',' templateTypes+=Type)* '>')? '::'
 ;
 
 CollectionFunctionCall:
@@ -422,7 +426,11 @@ CollectionFunctionCall:
 ;
 
 MusketFunctionCall:
-	'mkt::' value=MusketFunctionName '(' (params+=Expression (',' params+=Expression)*)? ')'
+	'mkt::' value=MusketFunctionName FunctionParameters
+;
+
+fragment FunctionParameters*:
+	'(' (params+=Expression (',' params+=Expression)*)? ')'
 ;
 
 enum CollectionFunctionName:
