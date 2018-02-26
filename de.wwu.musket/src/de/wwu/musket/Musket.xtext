@@ -74,6 +74,33 @@ IntRef:
 	(ref=[IntConstant] | value=INT)
 ;
 
+Type:
+	CollectionType | IndividualType
+;
+	
+CollectionType:
+	ArrayType | MatrixType
+;
+
+ArrayType:
+	{IntArrayType} 'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>' |
+	{DoubleArrayType} 'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' | 
+	{BoolArrayType} 'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>' |
+	{StructArrayType} 'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+MatrixType:
+	{IntMatrixType} 'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' |
+	{DoubleMatrixType} 'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' | 
+	{BoolMatrixType} 'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' |
+	{StructMatrixType} 'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' 
+;
+
+IndividualType:
+	{PrimitiveType} type=PrimitiveTypeLiteral | 
+	{StructType} type=[Struct]
+;
+
 CollectionVariableElement returns CollectionObject:
 	name=ID
 ;
@@ -187,33 +214,6 @@ LambdaFunction:
 	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=Type) '{'
 		(statement+=FunctionStatement)*
 	'}'
-;
-
-Type:
-	CollectionType | IndividualType
-;
-	
-CollectionType:
-	ArrayType | MatrixType
-;
-
-ArrayType:
-	{IntArrayType} 'array' '<' 'int' ',' distributionMode=DistributionMode '>' |
-	{DoubleArrayType} 'array' '<' 'double' ',' distributionMode=DistributionMode '>' | 
-	{BoolArrayType} 'array' '<' 'bool' ',' distributionMode=DistributionMode '>' |
-	{StructArrayType} 'array' '<' type=[Struct] ',' distributionMode=DistributionMode '>'
-;
-
-MatrixType:
-	{IntMatrixType} 'matrix' '<' 'int' ',' distributionMode=DistributionMode '>' |
-	{DoubleMatrixType} 'matrix' '<' 'double' ',' distributionMode=DistributionMode '>' | 
-	{BoolMatrixType} 'matrix' '<' 'bool' ',' distributionMode=DistributionMode '>' |
-	{StructMatrixType} 'matrix' '<' type=[Struct] ',' distributionMode=DistributionMode '>' 
-;
-
-IndividualType:
-	{PrimitiveType} type=PrimitiveTypeLiteral | 
-	{StructType} type=[Struct]
 ;
 
 FunctionStatement:

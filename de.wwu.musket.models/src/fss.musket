@@ -165,12 +165,13 @@ Fish feeding(double max_fitness_variation, Fish f){
 }
 
 double maxFitnessVariation(double max_fitness_variation, Fish f){
+	double result;
 	if(max_fitness_variation > f.fitness_variation){
-		return max_fitness_variation;
+		result = max_fitness_variation;
 	} else {
-		return f.fitness_variation;
+		result = f.fitness_variation;
 	}
-	return 0.0;
+	return result;
 }
 
 
@@ -186,7 +187,7 @@ Fish calcDisplacementMap(Fish f){
 	return f;
 }
 
-array<double, DIMENSIONS> calcDisplacementFold(array<double, DIMENSIONS> arr, Fish f){
+array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, Fish f){
 	for(int i = 0; i < DIMENSIONS; ++i){
 		arr[i] += f.displacement[i];
 	}
@@ -285,8 +286,8 @@ main{
 		
 		// update step size	
 		if (iteration > 0) {
-			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / static_cast<double>(ITERATIONS - 1));
-			step_size_vol = step_size_vol - ((STEP_SIZE_VOLITIVE_INITIAL - STEP_SIZE_VOLITIVE_FINAL) / static_cast<double>(ITERATIONS - 1));
+			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / (double)(ITERATIONS - 1));
+			step_size_vol = step_size_vol - ((STEP_SIZE_VOLITIVE_INITIAL - STEP_SIZE_VOLITIVE_FINAL) / (double)(ITERATIONS - 1));
 		}
 		
 		// individual movement
@@ -307,7 +308,7 @@ main{
 		double sum_fitness_variation = population.fold(0.0, sumFitnessVariation());
 		
 		population.mapInPlace(calcDisplacementMap());
-		instinctive_movement_vector = population.fold(array<double, DIMENSIONS, copy>{0.0}, calcDisplacementFold());
+		instinctive_movement_vector = population.fold(array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
 		
 		instinctive_movement_vector.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
 		
@@ -320,7 +321,7 @@ main{
 		
 		weighted_fishes = population.map(calcWeightedFishes());
 
-		barycenter = weighted_fishes.fold(array<double, DIMENSIONS, dist>{0.0}, calcBarycenterFold());
+		barycenter = weighted_fishes.fold(array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
 
 		barycenter.mapInPlace(calcBarycenterMap(sum_weight));
 		barycenter_copy = barycenter.gather();
