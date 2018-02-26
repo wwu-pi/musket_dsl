@@ -2,6 +2,7 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.MainBlock
 import de.wwu.musket.musket.MusketAssignment
@@ -14,12 +15,14 @@ import de.wwu.musket.musket.MusketIntVariable
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.SkeletonExpression
 
-import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
+import static extension de.wwu.musket.generator.cpu.CollectionFunctionsGenerator.*
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.Expression
+import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.IntVariable
+import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.Variable
 
 class LogicGenerator {
 	def static generateLogic(MainBlock mainBlock) '''
@@ -29,7 +32,7 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(MusketConditionalForLoop s) '''
-		for(«s.init.CppPrimitiveTypeAsString» «s.init.name» = «s.init.initExpression.generateExpression(null)»; «s.condition.generateExpression(null)»; «s.increment.generateExpression(null)»){
+		for(«s.init.calculateType.cppType» «s.init.name» = «s.init.initExpression.generateExpression(null)»; «s.condition.generateExpression(null)»; «s.increment.generateExpression(null)»){
 			«FOR mainstatement : s.statements»
 				«mainstatement.generateStatement()»
 			«ENDFOR»
@@ -58,9 +61,13 @@ class LogicGenerator {
 		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 
-	def static dispatch CharSequence generateStatement(MusketBoolVariable s) '''
+	def static dispatch generateStatement(MusketBoolVariable s) '''
 		bool «s.name» = true;
 		«s.initExpression.generateSkeletonExpression(s.name)»
+	'''
+
+	def static dispatch generateStatement(Variable v) '''
+		«v.calculateType.cppType» «v.name» «IF v.initExpression !== null» = «v.initExpression.generateExpression(null)»«ENDIF»;
 	'''
 
 	def static dispatch generateStatement(Assignment s) '''

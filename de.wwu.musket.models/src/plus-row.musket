@@ -11,5 +11,7 @@ int f(int r, int c, int i){
 
 // logic
 main{
+	m.show();
 	m.mapIndexInPlace(f());
+	m.show();
 }

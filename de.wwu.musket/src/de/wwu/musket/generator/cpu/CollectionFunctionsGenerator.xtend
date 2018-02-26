@@ -12,8 +12,9 @@ import de.wwu.musket.musket.StructMatrixType
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
-class ArrayFunctions {
+class CollectionFunctionsGenerator {
 
 	def static generateCollectionFunctionCall(CollectionFunctionCall afc) {
 		switch afc.function {
@@ -51,9 +52,9 @@ class ArrayFunctions {
 			«State.setArrayName(a.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
-			std::array<«a.CppPrimitiveTypeAsString», «a.type.size»> «State.arrayName»{};
+			std::array<«a.calculateCollectionType.cppType», «a.type.size»> «State.arrayName»{};
 			
-			«generateMPIGather(a.name + '.data()', a.type.sizeLocal, a.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
+			«generateMPIGather(a.name + '.data()', a.type.sizeLocal, a.calculateCollectionType.cppType, State.arrayName + '.data()')»
 		«ENDIF»
 				
 		if («Config.var_pid» == 0) {
@@ -77,9 +78,9 @@ class ArrayFunctions {
 			«State.setArrayName(m.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
-			std::array<«m.CppPrimitiveTypeAsString», «m.type.size»> «State.arrayName»{};
+			std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
 			
-			«generateMPIGather(m.name + '.data()', m.type.sizeLocal, m.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
+			«generateMPIGather(m.name + '.data()', m.type.sizeLocal, m.calculateCollectionType.cppType, State.arrayName + '.data()')»
 		«ENDIF»
 
 		«val streamName = 's' + State.counter»

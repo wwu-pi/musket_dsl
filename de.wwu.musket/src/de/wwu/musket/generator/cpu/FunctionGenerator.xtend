@@ -1,12 +1,27 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.ControlStructure
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.FunctionStatement
+import de.wwu.musket.musket.GatherSkeleton
+import de.wwu.musket.musket.IfClause
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.Statement
 import de.wwu.musket.musket.Variable
 import java.util.Map
@@ -14,25 +29,7 @@ import java.util.Map
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.Skeleton
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.MapSkeleton
-import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.MapInPlaceSkeleton
-import de.wwu.musket.musket.GatherSkeleton
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.MapIndexInPlaceSkeleton
-import de.wwu.musket.musket.ConditionalForLoop
-import de.wwu.musket.musket.IteratorForLoop
-import de.wwu.musket.musket.IfClause
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.ReferableObject
-import de.wwu.musket.musket.MatrixType
-import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
-import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
-
-import static extension de.wwu.musket.util.CollectionHelper.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class FunctionGenerator {
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
@@ -72,7 +69,7 @@ class FunctionGenerator {
 	
 	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		«variable.CppPrimitiveTypeAsString» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(param_map)»«ENDIF»;
+		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(param_map)»«ENDIF»;
 	'''
 
 	def static dispatch generateStatement(FunctionCall functionCall, Skeleton skeleton, CollectionObject a,
@@ -117,7 +114,7 @@ class FunctionGenerator {
 	// ControlStructures	
 	def static dispatch generateControlStructure(ConditionalForLoop cfl, Skeleton skeleton, CollectionObject a,
 		Map<String, String> param_map) '''
-		for(«cfl.init.CppPrimitiveTypeAsString» «cfl.init.name» = «cfl.init.initExpression.generateExpression(null)»; «cfl.condition.generateExpression(null)»; «cfl.increment.generateExpression(null)»){
+		for(«cfl.init.calculateType.cppType» «cfl.init.name» = «cfl.init.initExpression.generateExpression(null)»; «cfl.condition.generateExpression(null)»; «cfl.increment.generateExpression(null)»){
 			«FOR statement : cfl.statements»
 				«statement.generateFunctionStatement(skeleton, a, param_map)»
 			«ENDFOR»

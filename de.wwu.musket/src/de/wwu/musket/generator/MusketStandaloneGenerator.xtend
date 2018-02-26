@@ -49,7 +49,7 @@ class MusketStandaloneGenerator {
 			// Code Generator
 			val generator = injector.getInstance(GeneratorDelegate)
 			val fsa = injector.getInstance(JavaIoFileSystemAccess)
-			fsa.setOutputPath("../src-gen/" + resource.ProjectName.toString + "/")
+			fsa.setOutputPath("../src-gen/")
 			generator.doGenerate(resource, fsa)
 			logger.info("Generate: " + s + '. Done.')
 		}

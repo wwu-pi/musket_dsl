@@ -2,18 +2,14 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.BoolArrayType
 import de.wwu.musket.musket.BoolMatrixType
-import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DoubleArrayType
 import de.wwu.musket.musket.DoubleMatrixType
-import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.IntMatrixType
-import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
-import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
@@ -21,12 +17,11 @@ import java.util.List
 import java.util.Map
 import org.eclipse.emf.ecore.resource.Resource
 
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
-import de.wwu.musket.musket.Expression
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class FoldSkeletonGenerator {
 
@@ -52,7 +47,7 @@ class FoldSkeletonGenerator {
 
 	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, CollectionObject a) '''
 		void «((foldSkeleton.param as InternalFunctionCall).value as RegularFunction).name»(void *in, void *inout, int *len, MPI_Datatype *dptr){
-			«val type = a.CppPrimitiveTypeAsString»
+			«val type = a.calculateCollectionType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
 			«val param_map = createParameterLookupTable((foldSkeleton.param as InternalFunctionCall).value.params, (foldSkeleton.param as InternalFunctionCall).params)»
@@ -82,7 +77,7 @@ class FoldSkeletonGenerator {
 
 	def static generateReductionDeclaration(FoldSkeleton s, CollectionObject a) '''
 		«val param_map_red = createParameterLookupTableFoldReductionClause((s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.CppPrimitiveTypeAsString» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.calculateCollectionType.cppType» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 	'''
 
 	def static Map<String, String> createParameterLookupTableFoldReductionClause(Iterable<de.wwu.musket.musket.Parameter> parameters,
@@ -130,18 +125,18 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
 			if (se.skeleton instanceof FoldSkeleton) {
 				val alreadyProcessed = processed.exists [
-					it.obj.CppPrimitiveTypeAsString == se.obj.CppPrimitiveTypeAsString
+					it.obj.calculateCollectionType.cppType == se.obj.calculateCollectionType.cppType
 				]
 
 				if (!alreadyProcessed) {
 					val obj = se.obj
 					switch obj.type {
 						IntArrayType, IntMatrixType: result +=
-							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0;'''
+							'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0;'''
 						BoolArrayType, BoolMatrixType: result +=
-							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = true;'''
+							'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = true;'''
 						DoubleArrayType, DoubleMatrixType: result +=
-							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0.0;'''
+							'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0.0;'''
 					}
 					processed.add(se)
 				}

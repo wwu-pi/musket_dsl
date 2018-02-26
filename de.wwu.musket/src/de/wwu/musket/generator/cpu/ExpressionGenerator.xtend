@@ -28,13 +28,15 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import java.util.Map
 
-import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
 import static extension de.wwu.musket.generator.cpu.ExternalFunctionCallGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.generator.cpu.CollectionFunctionsGenerator.*
+import de.wwu.musket.musket.StringVal
+import de.wwu.musket.musket.BoolVal
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -55,6 +57,8 @@ class ExpressionGenerator {
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
+			StringVal: '''"«expression.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"'''
+			BoolVal: '''«expression.value»'''
 			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(param_map)»'''
 			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
 			PostIncrement: '''«expression.value.generateObjectRef(param_map)»++'''
@@ -62,8 +66,8 @@ class ExpressionGenerator {
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''
 			PreDecrement: '''--«expression.value.generateObjectRef(param_map)»'''
 			MusketFunctionCall: '''«expression.generateMusketFunctionCall»'''
-			TypeCast: '''static_cast<«expression.targetType»>(«expression.expression.generateExpression(param_map)»)'''
-			default: '''/* WARNING: ExpressionGenerator: ran into default case") */'''
+			TypeCast: '''static_cast<«expression.targetType.calculateType.cppType»>(«expression.expression.generateExpression(param_map)»)'''
+			default: '''// WARNING: ExpressionGenerator: ran into default case")'''
 		}
 	}
 

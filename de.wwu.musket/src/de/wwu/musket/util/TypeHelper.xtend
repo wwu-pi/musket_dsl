@@ -7,6 +7,7 @@ import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolMatrixType
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
+import de.wwu.musket.musket.CollectionInstantiation
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.CompareExpression
@@ -39,6 +40,7 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
+import de.wwu.musket.musket.PrimitiveType
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
@@ -52,7 +54,6 @@ import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.CollectionInstantiation
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArrayType obj){
@@ -115,6 +116,11 @@ class TypeHelper {
 		return MusketType.AUTO;
 	}
 	
+	// calculate type
+	static dispatch def MusketType calculateType(PrimitiveType exp){
+		return new MusketType(exp.type)
+	}
+	
 	static dispatch def MusketType calculateType(IntVal exp){
 		return MusketType.INT
 	}
@@ -140,7 +146,7 @@ class TypeHelper {
 		
 		switch exp.value {
 			case PRINT: return MusketType.STRING
-			case RAND: return MusketType.DOUBLE
+			case RAND: return MusketType.DOUBLE // could also be int, depends on input values for borders
 			case DOUBLE_MIN: return MusketType.DOUBLE
 		}
 	}
@@ -243,13 +249,13 @@ class TypeHelper {
 		// Other object references
 		return exp.value.calculateType
 	}
-	
+		
 	static dispatch def MusketType calculateType(SignedArithmetic exp){
 		return exp.expression.calculateType
 	}
 	
 	static dispatch def MusketType calculateType(TypeCast exp){
-		return new MusketType(exp.targetType)
+		return exp.targetType.calculateType
 	}
 	
 	static dispatch def MusketType calculateType(PostIncrement exp){

@@ -3,8 +3,8 @@ package de.wwu.musket.generator.cpu
 import de.wwu.musket.musket.Mode
 import de.wwu.musket.musket.MusketFunctionCall
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.IntVal
-import de.wwu.musket.musket.DoubleVal
+import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.util.MusketType
 
 class RngGenerator {
 	def static generateRandomEnginesArray(int cores, Mode mode) '''			
@@ -26,8 +26,8 @@ class RngGenerator {
 
 		val uniqueCalls = newArrayList
 
-		calls.forEach[e1| if(!uniqueCalls.exists[e2 | e1.params.get(0).CppPrimitiveTypeAsString ==
-					(e2 as MusketFunctionCall).params.get(0).CppPrimitiveTypeAsString &&
+		calls.forEach[e1| if(!uniqueCalls.exists[e2 | e1.params.get(0).calculateType.cppType ==
+					(e2 as MusketFunctionCall).params.get(0).calculateType.cppType &&
 					e1.params.get(0).ValueAsString == (e2 as MusketFunctionCall).params.get(0).ValueAsString &&
 					e1.params.get(0).ValueAsString == (e2 as MusketFunctionCall).params.get(0).ValueAsString]) uniqueCalls.add(e1)]
 
@@ -36,15 +36,15 @@ class RngGenerator {
 			val lower = rc.params.head
 			val higher = rc.params.get(1)
 
-			switch lower {
-				IntVal:
+			switch lower.calculateType {
+				case MusketType.INT:
 					result +=
 						'''std::vector<std::uniform_int_distribution<int>> rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString»;
 						rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString».push_back(std::uniform_int_distribution<int>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
-				DoubleVal:
+				case MusketType.DOUBLE:
 					result +=
 						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')»;
 						rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».reserve(«cores»);

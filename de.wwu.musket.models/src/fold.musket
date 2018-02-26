@@ -9,14 +9,21 @@ int sum(int a, int b){
 	return a + b;
 }
 
-//int double_values(int j, int i){
-//	return i + i + j;
-//}
-
 main{
-
+	
+	as.show();
+	bs.show();
+	cs.show();
+	
+	int a = 0;
+	int b = 0;
+	int c = 0;
+	
 	for(int i = 0; i < 3; i++){	
-		int a = cs.fold(0,sum());
-		int b = cs.fold(0,sum());	
+		a = as.fold(0,sum());
+		b = bs.fold(0,sum());	
+		c = cs.fold(0,sum());
 	}
+	
+	mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
 }
