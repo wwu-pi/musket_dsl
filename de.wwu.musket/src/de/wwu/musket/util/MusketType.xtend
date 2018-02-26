@@ -1,20 +1,21 @@
 package de.wwu.musket.util
 
-import de.wwu.musket.musket.PrimitiveTypeLiteral
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.Struct
-import java.util.Objects
-import de.wwu.musket.musket.Type
-import de.wwu.musket.musket.PrimitiveType
-import de.wwu.musket.musket.DoubleArrayType
-import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.BoolArrayType
-import de.wwu.musket.musket.StructArrayType
-import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.BoolMatrixType
+import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.DoubleArrayType
+import de.wwu.musket.musket.DoubleMatrixType
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.IntArrayType
+import de.wwu.musket.musket.IntMatrixType
+import de.wwu.musket.musket.PrimitiveType
+import de.wwu.musket.musket.PrimitiveTypeLiteral
+import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.StructArrayType
 import de.wwu.musket.musket.StructMatrixType
 import de.wwu.musket.musket.StructType
-import de.wwu.musket.musket.DoubleMatrixType
+import de.wwu.musket.musket.Type
+import java.util.Objects
 
 class MusketType {
 	
@@ -31,6 +32,7 @@ class MusketType {
 	public static final MusketType BOOL_MATRIX = new MusketType(PrimitiveTypeLiteral.BOOL).toMatrix
 	
 	protected PrimitiveTypeLiteral type = null
+	protected DistributionMode distributionMode = DistributionMode.COPY
 	protected String structName = null
 	protected boolean isArray = false
 	protected boolean isMatrix = false
@@ -41,14 +43,14 @@ class MusketType {
 	
 	new(Type t){
 		switch(t){
-			IntArrayType: { type = PrimitiveTypeLiteral.INT; isArray = true }
-			DoubleArrayType: { type = PrimitiveTypeLiteral.DOUBLE; isArray = true }
-			BoolArrayType: { type = PrimitiveTypeLiteral.BOOL; isArray = true }
-			StructArrayType: { structName = t.type.name; isArray = true }
-			IntMatrixType: { type = PrimitiveTypeLiteral.INT; isMatrix = true }
-			DoubleMatrixType: { type = PrimitiveTypeLiteral.DOUBLE; isMatrix = true }
-			BoolMatrixType: { type = PrimitiveTypeLiteral.BOOL; isMatrix = true }
-			StructMatrixType: { structName = t.type.name; isMatrix = true }
+			IntArrayType: { type = PrimitiveTypeLiteral.INT; toArray; distributionMode = t.distributionMode }
+			DoubleArrayType: { type = PrimitiveTypeLiteral.DOUBLE; toArray; distributionMode = t.distributionMode }
+			BoolArrayType: { type = PrimitiveTypeLiteral.BOOL; toArray; distributionMode = t.distributionMode }
+			StructArrayType: { structName = t.type.name; toArray; distributionMode = t.distributionMode }
+			IntMatrixType: { type = PrimitiveTypeLiteral.INT; toMatrix; distributionMode = t.distributionMode }
+			DoubleMatrixType: { type = PrimitiveTypeLiteral.DOUBLE; toMatrix; distributionMode = t.distributionMode }
+			BoolMatrixType: { type = PrimitiveTypeLiteral.BOOL; toMatrix; distributionMode = t.distributionMode }
+			StructMatrixType: { structName = t.type.name; toMatrix; distributionMode = t.distributionMode }
 			PrimitiveType: type = t.type
 			StructType: structName = t.type.name
 		}
@@ -88,6 +90,11 @@ class MusketType {
 		return this
 	}
 	
+	def toLocalCollection(){
+		distributionMode = DistributionMode.LOC
+		return this
+	}
+	
 	def isNumeric(){
 		return !isArray && !isMatrix && (type === PrimitiveTypeLiteral.AUTO || type === PrimitiveTypeLiteral.INT || type === PrimitiveTypeLiteral.DOUBLE)
 	}
@@ -97,26 +104,37 @@ class MusketType {
 	}
 	
 	override hashCode() {
-		Objects.hash(this.type, this.structName, this.isArray, this.isMatrix)
+		Objects.hash(this.type, this.structName, this.isArray, this.isMatrix, this.distributionMode)
 	}
 	
-	override def equals(Object obj){
+	private def equals(Object obj, boolean ignoreDistribution){
 		if(!(obj instanceof MusketType)) return false
 		
 		// Non-inferrable auto types are accepted
 		if(this.type === PrimitiveTypeLiteral.AUTO || (obj as MusketType).type === PrimitiveTypeLiteral.AUTO) return true;
 		
+		val isDistributionOK = ignoreDistribution || !(this.isArray || this.isMatrix) || this.distributionMode == (obj as MusketType).distributionMode
+	
 		return this.type === (obj as MusketType).type && this.structName == (obj as MusketType).structName
 			&& this.isArray === (obj as MusketType).isArray && this.isMatrix === (obj as MusketType).isMatrix
+			&& isDistributionOK
+	}
+	
+	override def equals(Object obj){
+		return this.equals(obj, false)
+	}
+	
+	def equalsIgnoreDistribution(Object obj){
+		return this.equals(obj, true)
 	}
 	
 	override def String toString(){
 		val name = if(structName !== null) structName else type.toString
 		
 		if(isArray) {
-			return 'array<' + name + '>'
+			return 'array<' + name + ',' + distributionMode + '>'
 		} else if(isMatrix) {
-			return 'matrix<' + name + '>'
+			return 'matrix<' + name + ',' + distributionMode + '>'
 		}
 		return name;
 	}

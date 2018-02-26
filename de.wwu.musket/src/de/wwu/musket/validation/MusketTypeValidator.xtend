@@ -247,14 +247,20 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								INVALID_PARAMS)
 						}
 						// Check identity value parameter matches second but last value
-						if(call.value.params.get(call.value.params.size-2)?.calculateType != skel.identity.calculateType){
-							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+						if(call.value.params.size >= 2 && !call.value.params.get(call.value.params.size-2)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as its identity
 						if(call.value.calculateType != skel.identity.calculateType){
 							error('Return type ' + new MusketType(call.value) + ' needs to match the identity type ' + skel.identity.calculateType + ' for fold skeletons!', 
+								MusketPackage.eINSTANCE.skeleton_Param,
+								INVALID_PARAMS)
+						}
+						// Fold function needs to return same type as second but last value
+						if(call.value.params.size >= 2 && call.value.calculateType != call.value.params.get(call.value.params.size-2)?.calculateType){
+							error('Return type ' + new MusketType(call.value) + ' needs to match the second but last parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + ' for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}

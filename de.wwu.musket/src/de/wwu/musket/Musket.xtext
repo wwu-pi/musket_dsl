@@ -42,7 +42,11 @@ Object:
 	CollectionObject | IndividualObject;
 	
 CollectionObject:
-	type = CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=PrimitiveVal (',' values+=PrimitiveVal)* '}')? ';'
+	type = CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' ArrayInstantiation)? ';'
+;
+
+fragment ArrayInstantiation*:
+	'{' (values+=PrimitiveVal (',' values+=PrimitiveVal)*)? '}'
 ;
 	
 IndividualObject:
@@ -337,8 +341,8 @@ MapSkeletonVariants:
 ;
 
 FoldSkeletonVariants:
-	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')' |
-	{FoldIndexSkeleton} 'foldIndex' '(' identity=PrimitiveVal ',' param=SkeletonParameterInput ')'
+	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=AnonymousVariable ',' param=SkeletonParameterInput ')' |
+	{FoldIndexSkeleton} 'foldIndex' '(' identity=AnonymousVariable ',' param=SkeletonParameterInput ')'
 ;
 
 ZipSkeletonVariants:
@@ -496,6 +500,14 @@ ArithmeticExpression returns Expression:
 	DoubleVal |
 	StringVal |
 	FunctionCall
+;
+
+AnonymousVariable:
+	CollectionInstantiation | StructVal | PrimitiveVal
+;
+
+CollectionInstantiation:
+	type=CollectionType ArrayInstantiation
 ;
 
 PrimitiveVal:

@@ -314,12 +314,12 @@ main{
 		
 		instinctive_movement_vector_copy = instinctive_movement_vector.gather();
 		
-		population.mapInPlace(instinctive_movement());
+		population.mapInPlace(instinctiveMovement());
 		
 		// collective volitive movement
 		double sum_weight = population.fold(0.0, sumWeight());
 		
-		weighted_fishes = population.map(calcWeightedFishes());
+		weighted_fishes = population.map(calcWeightedFish());
 
 		barycenter = weighted_fishes.fold(array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
 

@@ -52,6 +52,7 @@ import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.CollectionInstantiation
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArrayType obj){
@@ -83,7 +84,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateCollectionType(StructMatrixType obj){
-		return new MusketType(obj.type).toMatrix
+		return new MusketType(obj.type).toSingleValued
 	}
 	
 	static dispatch def MusketType calculateCollectionType(CollectionParameter obj){
@@ -227,7 +228,7 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateType(StructMatrixType exp){
-		return new MusketType(exp.type).toMatrix
+		return new MusketType(exp.type)
 	}
 	
 	static dispatch def MusketType calculateType(Ref exp){
@@ -334,6 +335,10 @@ class TypeHelper {
 	static dispatch def MusketType calculateType(ExternalFunctionCall call){
 		// We cannot know this
 		return MusketType.AUTO
+	}
+	
+	static dispatch def MusketType calculateType(CollectionInstantiation exp){
+		return new MusketType(exp.type).toLocalCollection
 	}
 	
 	static dispatch def MusketType calculateType(EObject exp){ // Else case
