@@ -109,6 +109,8 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateCollectionType(ReferableObject obj){
+		if(obj.eIsProxy) return null
+		
 		println("try to calculate collection type for " + obj)
 		return MusketType.AUTO;
 	}
@@ -342,6 +344,8 @@ class TypeHelper {
 	}
 	
 	static dispatch def MusketType calculateType(EObject exp){ // Else case
+		if(exp.eIsProxy) return null
+		
 		println("try to calculate type for unknown object " + exp)
 		return MusketType.AUTO
 	}
