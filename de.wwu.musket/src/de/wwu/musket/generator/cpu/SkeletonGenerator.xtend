@@ -1,14 +1,11 @@
 package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.FunctionCall
-import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
@@ -16,26 +13,22 @@ import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.Parameter
-import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
 import java.util.Map
-import java.util.Map.Entry
 
+import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIAllgather
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIrecv
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
-import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIAllgather
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
-import static extension de.wwu.musket.generator.cpu.Parameter.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.GatherSkeleton
+
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 
 class SkeletonGenerator {
 	
@@ -78,16 +71,9 @@ class SkeletonGenerator {
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
 		}
 	'''
-
-	def static generateParameter(Entry<String, ParameterInput> set) {
-		switch set.value {
-			DoubleArray: '''double «set.key» = «(set.value as DoubleArray).name»[«»];'''
-			default: ''''''
-		}
-	}
 	
 	def static Map<String, String> createParameterLookupTable(CollectionObject co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		if (parameters.length > inputs.size) {
@@ -95,26 +81,26 @@ class SkeletonGenerator {
 		}
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
 	
 	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Array co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_elem_offset» + «Config.var_loop_counter»)''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«co.name»[«Config.var_loop_counter»]''')
 		
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
 	
 	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(Matrix co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_row_offset» + «Config.var_loop_counter_rows»)''')
@@ -122,20 +108,9 @@ class SkeletonGenerator {
 		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«co.name»[«Config.var_loop_counter_rows» * «co.colsLocal» + «Config.var_loop_counter_cols»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
-	}
-
-	def static String asString(ParameterInput pi) {
-		switch pi {
-			FunctionCall: '''ERROR FUNCTION CALL'''
-			ObjectRef: '''«pi.value»'''
-			IntVal: '''«pi.value»'''
-			DoubleVal: '''«pi.value»'''
-			BoolVal: '''«pi.value»'''
-			default: ''''''
-		}
 	}
 
 // MapIndexInPlace
@@ -203,20 +178,20 @@ class SkeletonGenerator {
 	'''
 	
 	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Array co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter»''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«co.name»[«Config.var_loop_counter»]''')
 		
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
 
 	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(Matrix co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter_rows»''')
@@ -224,7 +199,7 @@ class SkeletonGenerator {
 		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«co.name»[«Config.var_loop_counter_rows» * «co.colsLocal» + «Config.var_loop_counter_cols»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateParameterInput.toString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
@@ -251,27 +226,27 @@ class SkeletonGenerator {
 	'''
 
 	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
 
 	def static Map<String, String> createParameterLookupTableFoldReductionClause(CollectionObject a,
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''omp_in''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
@@ -310,14 +285,14 @@ class SkeletonGenerator {
 	
 
 	def static Map<String, String> createParameterLookupTableShiftPartitionsHorizontally(Matrix m, int pid,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs) {
 
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).key»''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
@@ -354,14 +329,14 @@ class SkeletonGenerator {
 	'''
 	
 	def static Map<String, String> createParameterLookupTableShiftPartitionsVertically(Matrix m, int pid,
-		Iterable<Parameter> parameters, Iterable<ParameterInput> inputs) {
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs) {
 
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).value»''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
