@@ -1,13 +1,13 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
-import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructArrayType
+import de.wwu.musket.musket.StructMatrixType
 
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
 import static extension de.wwu.musket.util.MusketHelper.*
@@ -21,35 +21,39 @@ class ArrayFunctions {
 				generateSize(afc)
 			case SIZE_LOCAL:
 				generateSizeLocal(afc)
-			case SHOW:
-				generateShow(afc.^var)
+			case SHOW: {
+				switch (afc.^var.type){
+					ArrayType: generateShowArray(afc.^var)
+					MatrixType: generateShowMatrix(afc.^var)
+				}
+			}
 			case COLUMNS:
-				(afc.^var as Matrix).cols
+				(afc.^var.type as MatrixType).cols
 			case COLUMNS_LOCAL:
-				(afc.^var as Matrix).colsLocal
+				(afc.^var.type as MatrixType).colsLocal
 			case ROWS:
-				(afc.^var as Matrix).rows
+				(afc.^var.type as MatrixType).rows
 			case ROWS_LOCAL:
-				(afc.^var as Matrix).rowsLocal
+				(afc.^var.type as MatrixType).rowsLocal
 			case BLOCKS_IN_ROW:
-				(afc.^var as Matrix).blocksInRow
+				(afc.^var.type as MatrixType).blocksInRow
 			case BLOCKS_IN_COLUMN:
-				(afc.^var as Matrix).blocksInColumn
+				(afc.^var.type as MatrixType).blocksInColumn
 		}
 	}
 
-	def static generateSize(CollectionFunctionCall afc) '''«afc.^var.size»'''
+	def static generateSize(CollectionFunctionCall afc) '''«afc.^var.type.size»'''
 
-	def static generateSizeLocal(CollectionFunctionCall afc) '''«afc.^var.sizeLocal»'''
+	def static generateSizeLocal(CollectionFunctionCall afc) '''«afc.^var.type.sizeLocal»'''
 
-	def static dispatch generateShow(Array a) '''
-		«IF a.distributionMode == DistributionMode.COPY»
+	def static generateShowArray(CollectionObject a) '''
+		«IF a.type.distributionMode == DistributionMode.COPY»
 			«State.setArrayName(a.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
-			std::array<«a.CppPrimitiveTypeAsString», «a.size»> «State.arrayName»{};
+			std::array<«a.CppPrimitiveTypeAsString», «a.type.size»> «State.arrayName»{};
 			
-			«generateMPIGather(a.name + '.data()', a.sizeLocal, a.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
+			«generateMPIGather(a.name + '.data()', a.type.sizeLocal, a.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
 		«ENDIF»
 				
 		if («Config.var_pid» == 0) {
@@ -57,24 +61,25 @@ class ArrayFunctions {
 			«State.incCounter»
 			std::ostringstream «streamName»;
 			«streamName» << "«a.name»: " << std::endl << "[";
-			for (int i = 0; i < «a.size.concreteValue - 1»; i++) {
+			for (int i = 0; i < «(a.type as ArrayType).size.concreteValue - 1»; i++) {
 				«streamName» << «generateShowElements(a, State.arrayName, "i")»;				
 				«streamName» << "; ";
 			}
-			«streamName» << «generateShowElements(a, State.arrayName, (a.size.concreteValue - 1).toString)» << "]" << std::endl;
+			«streamName» << «generateShowElements(a, State.arrayName, ((a.type as ArrayType).size.concreteValue - 1).toString)» << "]" << std::endl;
 			«streamName» << std::endl;
 			printf("%s", «streamName».str().c_str());
 		}
 	'''
 
-	def static dispatch generateShow(Matrix m) '''
-		«IF m.distributionMode == DistributionMode.COPY»
+	def static generateShowMatrix(CollectionObject m) '''
+		«val type = m.type as MatrixType»
+		«IF m.type.distributionMode == DistributionMode.COPY»
 			«State.setArrayName(m.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
-			std::array<«m.CppPrimitiveTypeAsString», «m.size»> «State.arrayName»{};
+			std::array<«m.CppPrimitiveTypeAsString», «m.type.size»> «State.arrayName»{};
 			
-			«generateMPIGather(m.name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
+			«generateMPIGather(m.name + '.data()', m.type.sizeLocal, m.CppPrimitiveTypeAsString, State.arrayName + '.data()')»
 		«ENDIF»
 
 		«val streamName = 's' + State.counter»
@@ -82,12 +87,12 @@ class ArrayFunctions {
 		if («Config.var_pid» == 0) {
 			std::ostringstream «streamName»;
 			«streamName» << "«m.name»: " << std::endl;
-			«FOR i : 0..<m.rows.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
-				«FOR j : 0..<m.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
-					«IF m.blocksInRow == 1»
-						«streamName» << «State.arrayName»[«(i % m.rowsLocal) * m.colsLocal + (i / m.rowsLocal) * m.sizeLocal + (j / m.colsLocal) * m.sizeLocal + j % m.colsLocal»];									
+			«FOR i : 0..<type.rows.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
+				«FOR j : 0..<type.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
+					«IF type.blocksInRow == 1»
+						«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];									
 					«ELSE»
-						«streamName» << «State.arrayName»[«(i % m.rowsLocal) * m.colsLocal + (i / m.rowsLocal) * m.sizeLocal * m.blocksInColumn + (j / m.colsLocal) * m.sizeLocal + j % m.colsLocal»];
+						«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal * type.blocksInColumn + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];
 					«ENDIF»
 				«ENDFOR»
 			«ENDFOR»
@@ -99,9 +104,9 @@ class ArrayFunctions {
 
 	// helper
 	def static String generateShowElements(CollectionObject co, String arrayName, String index) {
-		switch co {
-			StructArray: co.type.generateShowStruct(arrayName, index)
-			StructMatrix: co.type.generateShowStruct(arrayName, index)
+		switch co.type {
+			StructArrayType: (co.type as StructArrayType).type.generateShowStruct(arrayName, index)
+			StructMatrixType: (co.type as StructMatrixType).type.generateShowStruct(arrayName, index)
 			default: '''«arrayName»[«index»]'''
 		}
 	}

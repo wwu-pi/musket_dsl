@@ -1,6 +1,6 @@
 package de.wwu.musket.generator.extensions
 
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.ConfigBlock
 import de.wwu.musket.musket.FoldSkeleton
@@ -8,7 +8,7 @@ import de.wwu.musket.musket.Model
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
-import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 
 class ModelElementAccess {
@@ -40,11 +40,11 @@ class ModelElementAccess {
 	}
 	
 	def static Arrays(Resource resource) {
-		resource.Model.data.filter(Array)
+		resource.Model.data.filter(CollectionObject).filter[it.type instanceof ArrayType]
 	}
 	
 	def static Matrices(Resource resource) {
-		resource.Model.data.filter(Matrix)
+		resource.Model.data.filter(CollectionObject).filter[it.type instanceof MatrixType]
 	}
 	
 	def static CollectionObjects(Resource resource) {

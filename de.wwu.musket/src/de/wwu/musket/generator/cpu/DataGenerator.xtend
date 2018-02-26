@@ -1,11 +1,11 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Constant
 import de.wwu.musket.musket.Variable
 
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.CollectionObject
 
@@ -17,14 +17,13 @@ class DataGenerator {
 	// constants
 	def static dispatch generateObjectDeclaration(Constant c) '''extern const «c.CppPrimitiveTypeAsString» «c.name»;'''
 
-	// Arrays objects
-	def static dispatch generateObjectDeclaration(
-		Array a) '''extern std::array<«a.CppPrimitiveTypeAsString», «a.sizeLocal»> «a.name»;'''
-		
-	// Matrix objects
-	def static dispatch generateObjectDeclaration(
-		Matrix m) '''extern std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»;'''
-		
+	def static dispatch generateObjectDeclaration(CollectionObject c){
+		switch(c.type){
+			ArrayType: '''extern std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»;'''
+			MatrixType: '''extern std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»;'''
+		}
+	}
+	
 	def static dispatch generateObjectDeclaration(
 		Struct s) '''''' // this is done in StructGenerator.xtend
 
@@ -38,18 +37,18 @@ class DataGenerator {
 		Constant c) '''const «c.CppPrimitiveTypeAsString» «c.name» = «c.ValueAsString»;'''
 
 	// Arrays objects
-	def static dispatch generateObjectDefinition(
-		Array a) '''std::array<«a.CppPrimitiveTypeAsString», «a.sizeLocal»> «a.name»{};'''
-		
-	// Arrays objects
-	def static dispatch generateObjectDefinition(
-		Matrix m) '''std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «m.name»{};'''
+	def static dispatch generateObjectDefinition(CollectionObject c){
+		switch(c.type){
+			ArrayType: '''std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»{};'''
+			MatrixType: '''std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»{};'''
+		}
+	}
 		
 	def static dispatch generateObjectDefinition(
 		Struct s) '''''' // this is done in StructGenerator.xtend
 
 // Generate initialization
-	def static generateArrayInitializationForProcess(Array a, int p, Iterable<String> values) '''		
+	def static generateArrayInitializationForProcess(CollectionObject a, int p, Iterable<String> values) '''		
 		«var value_id = 0»
 		«FOR v : values»
 			«a.name»[«value_id++»] = «v»;
@@ -58,7 +57,7 @@ class DataGenerator {
 	
 	def static generateInitializationWithSingleValue(CollectionObject a) '''
 		#pragma omp parallel for simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.sizeLocal»; ++«Config.var_loop_counter»){
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
 			«a.name»[«Config.var_loop_counter»] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
 		}
 	'''

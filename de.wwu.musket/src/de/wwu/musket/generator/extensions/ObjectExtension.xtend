@@ -1,65 +1,66 @@
 package de.wwu.musket.generator.extensions
 
 import de.wwu.musket.generator.cpu.Config
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.BoolArray
+import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.BoolArrayType
 import de.wwu.musket.musket.BoolConstant
-import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.BoolMatrixType
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.CollectionParameter
-import de.wwu.musket.musket.DoubleArray
+import de.wwu.musket.musket.DoubleArrayType
 import de.wwu.musket.musket.DoubleConstant
-import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.IndividualParameter
-import de.wwu.musket.musket.IntArray
+import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.IntConstant
-import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.MatrixType
+import de.wwu.musket.musket.StructArrayType
+import de.wwu.musket.musket.StructMatrixType
 import de.wwu.musket.musket.TailObjectRef
 import de.wwu.musket.util.MusketType
 import java.util.List
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 import static extension de.wwu.musket.util.MusketHelper.*
+import de.wwu.musket.musket.CollectionObject
 
 class ObjectExtension {
 	// get primitive cpp type as string for musket object element
-	def static dispatch CppPrimitiveTypeAsString(IntArray o) {
+	def static dispatch CppPrimitiveTypeAsString(IntArrayType o) {
 		'int'
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(DoubleArray o) {
+	def static dispatch CppPrimitiveTypeAsString(DoubleArrayType o) {
 		'double'
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(BoolArray o) {
+	def static dispatch CppPrimitiveTypeAsString(BoolArrayType o) {
 		'bool'
 	}
 	
-	def static dispatch CppPrimitiveTypeAsString(StructArray o) {
+	def static dispatch CppPrimitiveTypeAsString(StructArrayType o) {
 		o.type.name.toFirstUpper
 	}
 	
-	def static dispatch CppPrimitiveTypeAsString(IntMatrix o) {
+	def static dispatch CppPrimitiveTypeAsString(IntMatrixType o) {
 		'int'
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(DoubleMatrix o) {
+	def static dispatch CppPrimitiveTypeAsString(DoubleMatrixType o) {
 		'double'
 	}
 
-	def static dispatch CppPrimitiveTypeAsString(BoolMatrix o) {
+	def static dispatch CppPrimitiveTypeAsString(BoolMatrixType o) {
 		'bool'
 	}
 	
-	def static dispatch CppPrimitiveTypeAsString(StructMatrix o) {
+	def static dispatch CppPrimitiveTypeAsString(StructMatrixType o) {
 		o.type.name.toFirstUpper
 	}
 
@@ -108,38 +109,9 @@ class ObjectExtension {
 	}
 
 	// Value
-	// Array
-	def static dispatch List<String> ValuesAsString(IntArray a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(DoubleArray a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(BoolArray a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(StructArray a){
-		newArrayList('')
-	}
-	
-	// Matrix
-	def static dispatch List<String> ValuesAsString(IntMatrix a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(DoubleMatrix a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(BoolMatrix a){
-		a.values.map[v|v.toString]
-	}
-	
-	def static dispatch List<String> ValuesAsString(StructMatrix a){
-		newArrayList('')
+	def static List<String> ValuesAsString(CollectionObject o){
+		if (o.type instanceof StructArrayType || o.type instanceof StructMatrixType) return newArrayList('')
+		return o.values.map[v|v.toString]
 	}
 	
 	// Variable
@@ -194,11 +166,11 @@ class ObjectExtension {
 	
 	// for arrays
 	// for arrays
-	def static dispatch size(Array a) {
+	def static dispatch size(ArrayType a) {
 		a.size
 	}
 	
-	def static dispatch sizeLocal(Array a) {
+	def static dispatch sizeLocal(ArrayType a) {
 		switch a.distributionMode {
 			case DIST: a.size.concreteValue / Config.processes
 			case COPY: a.size.concreteValue
@@ -207,61 +179,61 @@ class ObjectExtension {
 	}
 	
 	// for matrices
-	def static dispatch size(Matrix m) {
+	def static dispatch size(MatrixType m) {
 		m.cols.concreteValue * m.rows.concreteValue
 	}
 	
-	def static dispatch sizeLocal(Matrix m) {
+	def static dispatch sizeLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes
 			case COPY: m.cols.concreteValue * m.rows.concreteValue
-			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case ROW_DIST")
-			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.sizeLocal: case COLUMN_DIST")
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
 	
-	def static rowsLocal(Matrix m) {
+	def static rowsLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.rows.concreteValue / m.blocksInRow
 			case COPY: m.rows.concreteValue
-			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case ROW_DIST")
-			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.rowsLocal: case COLUMN_DIST")
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.rowsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.rowsLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
 	
-	def static colsLocal(Matrix m) {
+	def static colsLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.cols.concreteValue / m.blocksInColumn
 			case COPY: m.cols.concreteValue
-			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
-			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
 	
-	def static blocksInRow(Matrix m) {
+	def static blocksInRow(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: Math.sqrt(Config.processes).intValue
 			case COPY: 1
-			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
-			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
 	
-	def static blocksInColumn(Matrix m) {
+	def static blocksInColumn(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: Math.sqrt(Config.processes).intValue
 			case COPY: 1
-			case ROW_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case ROW_DIST")
-			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExetension.colsLocal: case COLUMN_DIST")
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case COLUMN_DIST")
 			default: 0
 		}
 	}
 	
-	def static partitionPosition(Matrix m, int pid) {
+	def static partitionPosition(MatrixType m, int pid) {
 		switch m.distributionMode {
 			case DIST: (pid / m.blocksInColumn) -> (pid % m.blocksInColumn)
 			case COPY: 0 -> 0

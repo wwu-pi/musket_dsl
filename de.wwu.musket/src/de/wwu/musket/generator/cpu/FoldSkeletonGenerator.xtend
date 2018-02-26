@@ -1,16 +1,16 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.BoolArray
-import de.wwu.musket.musket.BoolMatrix
+import de.wwu.musket.musket.BoolArrayType
+import de.wwu.musket.musket.BoolMatrixType
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.DoubleArray
-import de.wwu.musket.musket.DoubleMatrix
+import de.wwu.musket.musket.DoubleArrayType
+import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.FunctionCall
-import de.wwu.musket.musket.IntArray
-import de.wwu.musket.musket.IntMatrix
+import de.wwu.musket.musket.IntArrayType
+import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.ObjectRef
@@ -134,12 +134,12 @@ class FoldSkeletonGenerator {
 
 				if (!alreadyProcessed) {
 					val obj = se.obj
-					switch obj {
-						IntArray, IntMatrix: result +=
+					switch obj.type {
+						IntArrayType, IntMatrixType: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0;'''
-						BoolArray, BoolMatrix: result +=
+						BoolArrayType, BoolMatrixType: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = true;'''
-						DoubleArray, DoubleMatrix: result +=
+						DoubleArrayType, DoubleMatrixType: result +=
 							'''«obj.CppPrimitiveTypeAsString» «Config.var_fold_result»_«obj.CppPrimitiveTypeAsString» = 0.0;'''
 					}
 					processed.add(se)

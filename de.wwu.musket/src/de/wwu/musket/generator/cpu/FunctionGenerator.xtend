@@ -1,6 +1,6 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.Array
+import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.ControlStructure
 import de.wwu.musket.musket.FunctionCall
@@ -27,7 +27,7 @@ import de.wwu.musket.musket.IteratorForLoop
 import de.wwu.musket.musket.IfClause
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.ReferableObject
-import de.wwu.musket.musket.Matrix
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
@@ -108,8 +108,8 @@ class FunctionGenerator {
 	
 	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) {
 		switch cer.value {		
-			Array: '''//TODO: FunctionGenerator.generateCollectionElementRef: array'''
-			Matrix: '''//TODO: FunctionGenerator.generateCollectionElementRef: matrix'''
+//			Array: '''//TODO: FunctionGenerator.generateCollectionElementRef: array'''
+//			Matrix: '''//TODO: FunctionGenerator.generateCollectionElementRef: matrix'''
 			default: '''//TODO: FunctionGenerator.generateCollectionElementRef: default case'''
 		}
 	}

@@ -1,8 +1,8 @@
 package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.MusketFunctionName
-import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructArrayType
+import de.wwu.musket.musket.StructMatrixType
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
@@ -128,14 +128,14 @@ class SourceFileGenerator {
 	def static String generateInitializeDataStructures(Resource resource) {
 		var result = ""
 
-		if(resource.Arrays.reject[it instanceof StructArray].exists[it.ValuesAsString.size > 1]){
+		if(resource.Arrays.reject[it.type instanceof StructArrayType].exists[it.ValuesAsString.size > 1]){
 			for (var p = 0; p < Config.processes; p++) {
 				result += '''if(«Config.var_pid» == «p»){
 				'''
-				for (a : resource.Arrays.reject[it instanceof StructArray]) {
+				for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
-						val sizeLocal = a.sizeLocal
+						val sizeLocal = a.type.sizeLocal
 						result +=
 							a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
 					}
@@ -144,7 +144,7 @@ class SourceFileGenerator {
 			}
 		}
 
-		for (a : resource.CollectionObjects.reject[it instanceof StructArray || it instanceof StructMatrix].filter[it.ValuesAsString.size < 2]) {
+		for (a : resource.CollectionObjects.reject[it.type instanceof StructArrayType || it.type instanceof StructMatrixType].filter[it.ValuesAsString.size < 2]) {
 			result += "\n"
 			result += a.generateInitializationWithSingleValue
 		}

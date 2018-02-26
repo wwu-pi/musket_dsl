@@ -2,7 +2,6 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.Addition
 import de.wwu.musket.musket.And
-import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
@@ -12,7 +11,6 @@ import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.IndividualObject
 import de.wwu.musket.musket.IntVal
-import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.Not
@@ -30,10 +28,12 @@ import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
+import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Modulo
 import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.MatrixType
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -69,14 +69,14 @@ class ExpressionGenerator {
 
 	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map)'''
 «««		ARRAY
-		«IF cer.value instanceof Array»
+		«IF cer.calculateContainerType.isArray»
 «««			LOCAL REF
 			«IF cer.localCollectionIndex.size == 1»
 				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)»]«cer?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSE»
 «««				COPY
-				«IF (cer.value as Array).distributionMode == DistributionMode.COPY»
+				«IF (cer.value as CollectionObject).type.distributionMode == DistributionMode.COPY»
 					«cer.value.name»[«cer.globalCollectionIndex.head.generateExpression(param_map)»]«cer?.tail.generateTail»
 «««				DIST
 				«ELSE»
@@ -84,15 +84,15 @@ class ExpressionGenerator {
 				«ENDIF»
 			«ENDIF»
 «««		MATRIX
-		«ELSEIF cer.value instanceof Matrix»
+		«ELSEIF cer.calculateContainerType.isMatrix»
 «««			LOCAL REF
 			«IF cer.localCollectionIndex.size == 2»
-				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
+				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «((cer.value as CollectionObject).type as MatrixType).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSEIF cer.globalCollectionIndex.size == 2»
 «««					COPY
-					«IF (cer.value as Matrix).distributionMode == DistributionMode.COPY»
-						«cer.value.name»[«cer.globalCollectionIndex.head.generateExpression(param_map)» * «(cer.value as Matrix).colsLocal» + «cer.globalCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
+					«IF (cer.value as CollectionObject).type.distributionMode == DistributionMode.COPY»
+						«cer.value.name»[«cer.globalCollectionIndex.head.generateExpression(param_map)» * «((cer.value as CollectionObject).type as MatrixType).colsLocal» + «cer.globalCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»
 «««					DIST
 					«ELSE»
 						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed
