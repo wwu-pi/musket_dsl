@@ -42,63 +42,15 @@ Object:
 	CollectionObject | IndividualObject;
 	
 CollectionObject:
-	Array ';' | Matrix ';';
+	type = CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=PrimitiveVal (',' values+=PrimitiveVal)* '}')? ';'
+;
 	
 IndividualObject:
 	MusketVariable ';' | Constant ';'
 ;
 
-PrimitiveArray:
-	{IntArray} 'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
-	{DoubleArray} 'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
-	{BoolArray} 'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')? 
-;
-
-Array:
-	PrimitiveArray |
-	{StructArray} 'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
-;
-
-PrimitiveMatrix:
-	{IntMatrix} 'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_INT (',' values+=SIGNED_INT)* '}')? |
-	{DoubleMatrix} 'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=SIGNED_DOUBLE (',' values+=SIGNED_DOUBLE)* '}')? | 
-	{BoolMatrix} 'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' values+=BOOL (',' values+=BOOL)* '}')?
-;
-
-Matrix:
-	PrimitiveMatrix |
-	{StructMatrix} 'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' name=ID (',' vars+=CollectionVariableElement)* ('=' '{' '}')?
-;
-
 IntRef:
 	(ref=[IntConstant] | value=INT)
-;
-
-Type:
-	CollectionType | IndividualType
-;
-	
-CollectionType:
-	ArrayType | MatrixType
-;
-
-ArrayType:
-	{IntArrayType} 'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>' |
-	{DoubleArrayType} 'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' | 
-	{BoolArrayType} 'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>' |
-	{StructArrayType} 'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>'
-;
-
-MatrixType:
-	{IntMatrixType} 'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' |
-	{DoubleMatrixType} 'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' | 
-	{BoolMatrixType} 'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' |
-	{StructMatrixType} 'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' 
-;
-
-IndividualType:
-	{PrimitiveType} type=PrimitiveTypeLiteral | 
-	{StructType} type=[Struct]
 ;
 
 CollectionVariableElement returns CollectionObject:
@@ -139,6 +91,59 @@ StructVariable:
 
 StructVariableElement returns StructVariable:
 	name=ID
+;
+
+Type:
+	CollectionType | IndividualType
+;
+	
+CollectionType:
+	ArrayType | MatrixType
+;
+
+ArrayType:
+	IntArrayType | DoubleArrayType | BoolArrayType | StructArrayType
+;
+
+IntArrayType:
+	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+DoubleArrayType:
+	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' 
+;
+
+BoolArrayType:
+	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>'
+;
+	
+StructArrayType:
+	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+MatrixType:
+	IntMatrixType | DoubleMatrixType | BoolMatrixType | StructMatrixType
+;
+
+IntMatrixType:
+	'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+DoubleMatrixType:
+	'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+;
+	 
+BoolMatrixType:
+	'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+StructMatrixType:
+	'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' 
+;
+
+IndividualType:
+	{PrimitiveType} type=PrimitiveTypeLiteral | 
+	{StructType} type=[Struct]
 ;
 
 MusketVariable:

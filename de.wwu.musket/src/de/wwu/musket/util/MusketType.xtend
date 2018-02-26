@@ -62,6 +62,14 @@ class MusketType {
 		new MusketType(f.returnType)
 	}
 	
+	def isArray() {
+		return isArray
+	}
+	
+	def isMatrix() {
+		return isMatrix
+	}
+	
 	def toArray(){
 		isArray = true
 		isMatrix = false

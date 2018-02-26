@@ -24,18 +24,18 @@ const int DIMENSIONS = 512;
 
 // Fish
 struct Fish{
-	array<double,DIMENSIONS,copy> position;
+	array<double,DIMENSIONS,loc> position;
 	double fitness;
 	
-	array<double,DIMENSIONS,copy> candidate_position;
+	array<double,DIMENSIONS,loc> candidate_position;
 	double candidate_fitness;
 	
-	array<double,DIMENSIONS,copy> displacement;	
+	array<double,DIMENSIONS,loc> displacement;	
 	double fitness_variation;
 	
 	double weight;
 	
-	array<double,DIMENSIONS,copy> best_position;
+	array<double,DIMENSIONS,loc> best_position;
 	double best_fitness;
 };
 
@@ -219,7 +219,7 @@ Fish calcWeightedFish(Fish f){
 	return f;
 }
 
-array<double,DIMENSIONS> calcBarycenterFold(array<double,DIMENSIONS> arr, Fish f){
+array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, Fish f){
 	for(int i = 0; i < DIMENSIONS; ++i){
 		arr[i] += f.position[i];
 	}

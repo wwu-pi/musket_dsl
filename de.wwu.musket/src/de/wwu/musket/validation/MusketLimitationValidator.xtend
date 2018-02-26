@@ -15,9 +15,9 @@ class MusketLimitationValidator extends AbstractMusketValidator {
 	// Check that collections in structs are copy-distributed
 	@Check
 	def checkCollectionsInStructsAreCopyDistributed(CollectionObject coll) {
-		if(coll.eContainer instanceof Struct && coll.distributionMode !== DistributionMode.COPY){
-			error('Collections in structs must be copy distributed!', 
-				MusketPackage.eINSTANCE.collectionObject_DistributionMode,
+		if(coll.eContainer instanceof Struct && coll.type.distributionMode !== DistributionMode.LOC){
+			error('Collections in structs must be local!', 
+				MusketPackage.eINSTANCE.collectionObject_Type,
 				INVALID_OPTION)
 		}
 	}

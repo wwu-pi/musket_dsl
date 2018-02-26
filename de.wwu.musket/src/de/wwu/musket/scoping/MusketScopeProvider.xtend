@@ -5,8 +5,10 @@ package de.wwu.musket.scoping
 
 import de.wwu.musket.musket.BoolVariable
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.DoubleVariable
+import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.IteratorForLoop
 import de.wwu.musket.musket.MusketConditionalForLoop
@@ -16,8 +18,9 @@ import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.Struct
-import de.wwu.musket.musket.StructArray
-import de.wwu.musket.musket.StructMatrix
+import de.wwu.musket.musket.StructArrayType
+import de.wwu.musket.musket.StructMatrixType
+import de.wwu.musket.musket.StructType
 import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.TailObjectRef
 import java.util.Collection
@@ -27,12 +30,6 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.Parameter
-import de.wwu.musket.musket.CollectionParameter
-import de.wwu.musket.musket.StructArrayType
-import de.wwu.musket.musket.StructMatrixType
-import de.wwu.musket.musket.StructType
-import de.wwu.musket.musket.IndividualParameter
 
 /**
  * This class contains custom scoping description.
@@ -53,8 +50,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 				CollectionParameter case head.type instanceof StructArrayType: return Scopes::scopeFor((head.type as StructArrayType).type.attributes)
 				CollectionParameter case head.type instanceof StructMatrixType: return Scopes::scopeFor((head.type as StructMatrixType).type.attributes)
 				IndividualParameter case head.type instanceof StructType: return Scopes::scopeFor((head.type as StructType).type.attributes)  
-				StructArray case container.isCollectionElementRef: return Scopes::scopeFor((head as StructArray).type.attributes)
-				StructMatrix case container.isCollectionElementRef: return Scopes::scopeFor((head as StructMatrix).type.attributes)
+				CollectionObject case head.type instanceof StructType && container.isCollectionElementRef: return Scopes::scopeFor((head.type as StructType).type.attributes)
 				default: return IScope::NULLSCOPE
 			}
 		} else if(context instanceof ObjectRef){

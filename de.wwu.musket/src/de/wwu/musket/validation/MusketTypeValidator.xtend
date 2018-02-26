@@ -1,6 +1,5 @@
 package de.wwu.musket.validation
 
-import de.wwu.musket.musket.Array
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.FoldIndexSkeleton
 import de.wwu.musket.musket.FoldOption
@@ -17,7 +16,6 @@ import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapSkeletonVariants
-import de.wwu.musket.musket.Matrix
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
@@ -80,7 +78,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if (skel.param instanceof InternalFunctionCall){
 			val call = skel.param as InternalFunctionCall
 			// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
-			val indexParams = if ((skel.eContainer as SkeletonExpression).obj instanceof Array) 1 else 2
+			val indexParams = if ((skel.eContainer as SkeletonExpression).obj.calculateType.isArray) 1 else 2
 			
 			switch skel {
 				MapSkeleton case !skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
@@ -282,7 +280,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	def checkSkeletonFunctionIndexParameterType(Skeleton skel) {
 		if (skel.param instanceof InternalFunctionCall){
 			val call = skel.param as InternalFunctionCall
-			val isArray = (skel.eContainer as SkeletonExpression).obj instanceof Array
+			val isArray = (skel.eContainer as SkeletonExpression).obj.calculateType.isArray
 			
 			// Check skeleton type
 			switch skel {
@@ -331,9 +329,9 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ShiftPartitionsHorizontallySkeleton,
 				ShiftPartitionsVerticallySkeleton:
 					indexParams = 0
-				default: indexParams = if ((skel.eContainer as SkeletonExpression).obj instanceof Array) {
+				default: indexParams = if ((skel.eContainer as SkeletonExpression).obj.calculateType.isArray) {
 						1 
-					} else if ((skel.eContainer as SkeletonExpression).obj instanceof Matrix) {
+					} else if ((skel.eContainer as SkeletonExpression).obj.calculateType.isMatrix) {
 						2
 					} else { 
 						0

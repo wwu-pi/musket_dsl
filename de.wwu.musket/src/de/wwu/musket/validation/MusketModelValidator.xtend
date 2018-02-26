@@ -1,27 +1,26 @@
 package de.wwu.musket.validation
 
+import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.CollectionFunctionName
+import de.wwu.musket.musket.Constant
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Model
+import de.wwu.musket.musket.MusketAssignment
 import de.wwu.musket.musket.MusketObject
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
+import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
+import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.Struct
 import java.util.Collection
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
-import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.Constant
-import de.wwu.musket.musket.MusketAssignment
-import de.wwu.musket.musket.CollectionFunctionCall
-import de.wwu.musket.musket.Matrix
-import de.wwu.musket.musket.CollectionFunctionName
-import de.wwu.musket.musket.Struct
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.Ref
-import de.wwu.musket.musket.Array
-import de.wwu.musket.musket.CollectionParameter
-import de.wwu.musket.musket.ArrayType
-import de.wwu.musket.musket.MatrixType
+
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -103,7 +102,7 @@ class MusketModelValidator extends AbstractMusketValidator {
 	@Check
 	def checkValidCollectionFunctionCall(CollectionFunctionCall call) {
 		val matrixFunctions = #[CollectionFunctionName.ROWS, CollectionFunctionName.ROWS_LOCAL, CollectionFunctionName.COLUMNS, CollectionFunctionName.COLUMNS_LOCAL, CollectionFunctionName.BLOCKS_IN_COLUMN, CollectionFunctionName.BLOCKS_IN_ROW]
-		if(!(call.^var instanceof Matrix) && matrixFunctions.contains(call.function)){
+		if(!call.^var.calculateType.isMatrix && matrixFunctions.contains(call.function)){
 			error(call.function + ' can only be applied to matrices!', 
 				MusketPackage.eINSTANCE.collectionFunctionCall_Function,
 				INVALID_OPERATION)
@@ -145,8 +144,8 @@ class MusketModelValidator extends AbstractMusketValidator {
 	// Check collection access expression matches dimensions
 	@Check
 	def checkCollectionAccessIsNumeric(Ref ref) {
-		val dimensions = if (ref.value instanceof Array || (ref.value instanceof CollectionParameter && (ref.value as CollectionParameter).type instanceof ArrayType)) 1 
-					else if (ref.value instanceof Matrix || (ref.value instanceof CollectionParameter && (ref.value as CollectionParameter).type instanceof MatrixType)) 2 else 0
+		val dimensions = if (ref.calculateContainerType.isArray) 1 
+					else if (ref.calculateContainerType.isMatrix) 2 else 0
 		
 		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex?.size !== dimensions){
 			error('Array element access expects 1 dimension, ' + ref.localCollectionIndex?.size + ' given!', 
@@ -162,25 +161,25 @@ class MusketModelValidator extends AbstractMusketValidator {
 	
 	// Ensure constants in array/matrix dimensions are positive
 	@Check
-	def checkPositiveValuesInCollectionDimensions(Array array){
+	def checkPositiveValuesInCollectionDimensions(ArrayType array){
 		if(array.size?.ref?.value < 0) {
 			error('Array dimensions must be positive!', 
-				MusketPackage.eINSTANCE.array_Size,
+				MusketPackage.eINSTANCE.arrayType_Size,
 				INVALID_PARAMETER)
 		}
 		
 	}
 	
 	@Check
-	def checkPositiveValuesInCollectionDimensions(Matrix matrix){
+	def checkPositiveValuesInCollectionDimensions(MatrixType matrix){
 		if(matrix.rows?.ref?.value < 0) {
 			error('Matrix dimensions must be positive!', 
-				MusketPackage.eINSTANCE.matrix_Rows,
+				MusketPackage.eINSTANCE.matrixType_Rows,
 				INVALID_PARAMETER)
 		}
 		if(matrix.cols?.ref?.value < 0) {
 			error('Matrix dimensions must be positive!', 
-				MusketPackage.eINSTANCE.matrix_Cols,
+				MusketPackage.eINSTANCE.matrixType_Cols,
 				INVALID_PARAMETER)
 		}
 	}
