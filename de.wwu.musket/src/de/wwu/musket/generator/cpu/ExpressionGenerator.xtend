@@ -5,12 +5,15 @@ import de.wwu.musket.musket.And
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CompareExpression
+import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.Division
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.IndividualObject
 import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.MatrixType
+import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.Not
@@ -22,18 +25,16 @@ import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.Subtraction
+import de.wwu.musket.musket.TypeCast
 import java.util.Map
+
 import static extension de.wwu.musket.generator.cpu.ArrayFunctions.*
+import static extension de.wwu.musket.generator.cpu.ExternalFunctionCallGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.generator.cpu.StandardFunctionCalls.*
-import static extension de.wwu.musket.util.TypeHelper.*
-import de.wwu.musket.musket.TypeCast
-import de.wwu.musket.musket.Modulo
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.MatrixType
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class ExpressionGenerator {
 	def static String generateExpression(Expression expression, Map<String, String> param_map) {
@@ -54,8 +55,7 @@ class ExpressionGenerator {
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
-			ExternalFunctionCall:
-				throw new UnsupportedOperationException("ExpressionGenerator: ExternalFunctionCall")
+			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(param_map)»'''
 			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
 			PostIncrement: '''«expression.value.generateObjectRef(param_map)»++'''
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
