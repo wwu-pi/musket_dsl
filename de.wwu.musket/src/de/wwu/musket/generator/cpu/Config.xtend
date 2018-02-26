@@ -6,7 +6,7 @@ import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
 class Config {
 	// project paths
-	public static final String base_path = "CPU/"
+	public static String base_path = ""
 	public static final String include_path = "include/"
 	public static final String source_path = "src/" // assumption that depth is only one folder
 	
@@ -47,5 +47,6 @@ class Config {
 
 	def static init(Resource resource) {
 		processes = resource.Processes
+		base_path = resource.ProjectName + "/CPU/"
 	}
 }
