@@ -14,7 +14,6 @@ import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.ParameterInput
 import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
@@ -26,6 +25,8 @@ import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
+import de.wwu.musket.musket.Expression
 
 class FoldSkeletonGenerator {
 
@@ -85,14 +86,14 @@ class FoldSkeletonGenerator {
 	'''
 
 	def static Map<String, String> createParameterLookupTableFoldReductionClause(Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''omp_in''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
@@ -151,27 +152,15 @@ class FoldSkeletonGenerator {
 	}
 
 	def static Map<String, String> createParameterLookupTable(Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<ParameterInput> inputs) {
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		param_map.put(parameters.drop(inputs.size).head.name, '''*inoutv''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''*inv''')
 
 		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).asString)
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 		return param_map
 	}
-
-	def static String asString(ParameterInput pi) {
-		switch pi {
-			FunctionCall: '''ERROR FUNCTION CALL'''
-			ObjectRef: '''«pi.value»'''
-			IntVal: '''«pi.value»'''
-			DoubleVal: '''«pi.value»'''
-			BoolVal: '''«pi.value»'''
-			default: ''''''
-		}
-	}
-
 }
