@@ -11,24 +11,37 @@ import static de.wwu.musket.generator.cpu.HeaderFileGenerator.generateHeaderFile
 import static de.wwu.musket.generator.cpu.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.SourceFileGenerator.generateSourceFile
 
+/** 
+ * This is the start of the CPU generator.
+ * <p>
+ * In this class all other generators are called, so that a working generated project is the result.
+ */
 class MusketCPUGenerator {
 
 	// general generator info
 	
 	private static final Logger logger = LogManager.getLogger(MusketCPUGenerator)
 
+/**
+ * This is the starting point for the CPU generator.
+ * All other generators are called from this method.
+ * There are file-related generators (such as headerFileGenerator) and functionality-related generators (such as skeletonGenerator).
+ * First all the file-related generators are called in this method.
+ * They call the other generators later as required.
+ */
 	def static void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		// this is the starting point for the CPU generator
 		logger.info("Start generation for CPU Platform.")
 
 		// config
 		Config.init(resource)
 
+		// run scripts 
 		generateRunScript(resource, fsa, context)
 
-		// CMake files
+		// build files
 		generateCMake(resource, fsa, context)
 		
+		// source code
 		generateHeaderFile(resource, fsa, context)
 		
 		generateSourceFile(resource, fsa, context)

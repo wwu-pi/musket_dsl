@@ -14,39 +14,71 @@ import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
+/**
+ * Generator for collection functions.
+ * <p>
+ * Entry point is the method generateCollectionFunctionCall(CollectionFunctionCall)
+ * Collection functions are functions provided by the distributed array and matrix, such as show() or size().
+ * For some functions the result can already be calculated by the generator (e.g. size()), while other functions
+ * have to do more work, such as show(), which for example needs to generate a gather statement for distributed types.
+ */
 class CollectionFunctionsGenerator {
 
-	def static generateCollectionFunctionCall(CollectionFunctionCall afc) {
-		switch afc.function {
+	/**
+	 * Entry point for the Collection Function call generator.
+	 * 
+	 * @param cfc the collection function call
+	 * @return generated code
+	 */
+	def static generateCollectionFunctionCall(CollectionFunctionCall cfc) {
+		switch cfc.function {
 			case SIZE:
-				generateSize(afc)
+				generateSize(cfc)
 			case SIZE_LOCAL:
-				generateSizeLocal(afc)
+				generateSizeLocal(cfc)
 			case SHOW: {
-				switch (afc.^var.type){
-					ArrayType: generateShowArray(afc.^var)
-					MatrixType: generateShowMatrix(afc.^var)
+				switch (cfc.^var.type) {
+					ArrayType: generateShowArray(cfc.^var)
+					MatrixType: generateShowMatrix(cfc.^var)
 				}
 			}
 			case COLUMNS:
-				(afc.^var.type as MatrixType).cols
+				(cfc.^var.type as MatrixType).cols
 			case COLUMNS_LOCAL:
-				(afc.^var.type as MatrixType).colsLocal
+				(cfc.^var.type as MatrixType).colsLocal
 			case ROWS:
-				(afc.^var.type as MatrixType).rows
+				(cfc.^var.type as MatrixType).rows
 			case ROWS_LOCAL:
-				(afc.^var.type as MatrixType).rowsLocal
+				(cfc.^var.type as MatrixType).rowsLocal
 			case BLOCKS_IN_ROW:
-				(afc.^var.type as MatrixType).blocksInRow
+				(cfc.^var.type as MatrixType).blocksInRow
 			case BLOCKS_IN_COLUMN:
-				(afc.^var.type as MatrixType).blocksInColumn
+				(cfc.^var.type as MatrixType).blocksInColumn
 		}
 	}
 
-	def static generateSize(CollectionFunctionCall afc) '''«afc.^var.type.size»'''
+	/**
+	 * Generates the size() method.
+	 * 
+	 * @param cfc the collection function call
+	 * @return generated code
+	 */
+	def static generateSize(CollectionFunctionCall cfc) '''«cfc.^var.type.size»'''
 
-	def static generateSizeLocal(CollectionFunctionCall afc) '''«afc.^var.type.sizeLocal»'''
+	/**
+	 * Generates the localSize() method.
+	 * 
+	 * @param cfc the collection function call
+	 * @return generated code
+	 */
+	def static generateSizeLocal(CollectionFunctionCall cfc) '''«cfc.^var.type.sizeLocal»'''
 
+	/**
+	 * Generates the show() method for arrays.
+	 * 
+	 * @param a the array
+	 * @return generated code
+	 */
 	def static generateShowArray(CollectionObject a) '''
 		«IF a.type.distributionMode == DistributionMode.COPY»
 			«State.setArrayName(a.name)»
@@ -72,6 +104,14 @@ class CollectionFunctionsGenerator {
 		}
 	'''
 
+	/**
+	 * Generates the show() method for matrices.
+	 * TODO: the method currently unrolls loops for the output. This leads to very large source files.
+	 * TODO: does not print structs correctly, yet.
+	 * 
+	 * @param m the matrix
+	 * @return generated code
+	 */
 	def static generateShowMatrix(CollectionObject m) '''
 		«val type = m.type as MatrixType»
 		«IF m.type.distributionMode == DistributionMode.COPY»
@@ -82,7 +122,7 @@ class CollectionFunctionsGenerator {
 			
 			«generateMPIGather(m.name + '.data()', m.type.sizeLocal, m.calculateCollectionType.cppType, State.arrayName + '.data()')»
 		«ENDIF»
-
+		
 		«val streamName = 's' + State.counter»
 		«State.incCounter»
 		if («Config.var_pid» == 0) {
@@ -97,13 +137,23 @@ class CollectionFunctionsGenerator {
 					«ENDIF»
 				«ENDFOR»
 			«ENDFOR»
-				
+			
 			«streamName» << std::endl;							
 			printf("%s", «streamName».str().c_str());
 		}
 	'''
 
 	// helper
+	/**
+	 * Helper used by the methods generateShowArray(CollectionObject) and generateShowMatrix(CollectionObject).
+	 * If the collection contains primitive values, the value can just be accessed.
+	 * If the collection contains structs, all the elements within the struct have to be shown. 
+	 * 
+	 * @param co the collection object
+	 * @param arrayName the name of the array in the generated cpp code (might be different than name of co if the values are gathered before).
+	 * @param index the index in the cpp code
+	 * @return generated code
+	 */
 	def static String generateShowElements(CollectionObject co, String arrayName, String index) {
 		switch co.type {
 			StructArrayType: (co.type as StructArrayType).type.generateShowStruct(arrayName, index)
@@ -112,6 +162,17 @@ class CollectionFunctionsGenerator {
 		}
 	}
 
+	/**
+	 * Helper used by the method generateShowElements(CollectionObject, String, String).
+	 * It generates the output for a struct, i.e. primitive values or if there is another nested struct,
+	 * method calls itself again.
+	 * TODO: this should not work if the struct contains another array or matrix
+	 * 
+	 * @param s the struct
+	 * @param arrayName the name of the array in the generated cpp code (might be different than name of co if the values are gathered before).
+	 * @param index the index in the cpp code
+	 * @return generated code
+	 */
 	def static String generateShowStruct(Struct s, String arrayName, String index) {
 		var result = '"["'
 
@@ -136,6 +197,11 @@ class CollectionFunctionsGenerator {
 		return result + ' << "]"'
 	}
 
+	/**
+	 * Internal state to keep track of temp counter and current array name. 
+	 * This can be nice to avoid setting variables in templates, since that produces an output.
+	 * The setter here return void so there is none.
+	 */
 	static class State {
 		static String arrayName;
 		static int counter = 0;

@@ -6,7 +6,20 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.util.MusketType
 
+/**
+ * Generates everything that is required to get random numbers.
+ * <p>
+ * Random engines are not thread-safe, therefore there are as many engines as threads, and each thread uses its own engine.
+ */
 class RngGenerator {
+	
+	/**
+	 * Generates the array with the random engines. In release mode, a random device is used for initialization. 
+	 * In debug mode, engines are initialized with a consecutive number process id * cores + thread id
+	 * 
+	 * @param cores the number of cores
+	 * @param mode the mode release or debug
+	 */
 	def static generateRandomEnginesArray(int cores, Mode mode) '''			
 		
 		«IF mode == Mode.RELEASE»
@@ -21,6 +34,14 @@ class RngGenerator {
 		«ENDIF»
 	'''
 
+	/**
+	 * Generates the array with distributions. For ints it is uniform_int_dist<int> and for double uniform_real_dist<double>.
+	 * There are multiple arrays based on the borders of each musket function call mkt::rand(lower, higher).
+	 * 
+	 * @param calls all musket function calls
+	 * @param cores number of cores
+	 * @return generated code
+	 */
 	def static generateDistributionArrays(Iterable<MusketFunctionCall> calls, int cores) {
 		var result = ''
 

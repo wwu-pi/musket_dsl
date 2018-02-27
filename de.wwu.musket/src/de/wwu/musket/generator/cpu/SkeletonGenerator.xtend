@@ -31,10 +31,24 @@ import static extension de.wwu.musket.util.TypeHelper.*
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 
+/**
+ * Generates the skeleton calls.
+ * <p>
+ * Entry point is the method generateSkeletonExpression(SkeletonExpression s, String target). 
+ * It is called by the LogicGenerator.
+ */
 class SkeletonGenerator {
 	
 	static var ShiftCounter = 0
 
+/**
+ * Starting point for the skeleton generator.
+ * It switches over the skeletons and calls the correct function.
+ * 
+ * @param s the skeleton expression
+ * @param target where to write the result of the skeleton expression
+ * @return generated skeleton call
+ */
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
 			MapSkeleton: {

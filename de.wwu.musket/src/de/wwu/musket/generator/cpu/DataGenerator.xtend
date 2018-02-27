@@ -10,6 +10,13 @@ import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.CollectionObject
 import static extension de.wwu.musket.util.TypeHelper.*
 
+/**
+ * Generates declaration, definition and initialization of data object.
+ * <p>
+ * The Generator handles arrays and matrices, global variables and constants, and structs.
+ * Methods for declarations and struct definitions are called by the header generator.
+ * Other definitions and initialization methods are called by the source file generator.
+ */
 class DataGenerator {
 // Generate declarations	
 	// variables
@@ -26,7 +33,13 @@ class DataGenerator {
 		}
 	}
 
-	def static dispatch generateObjectDeclaration(Struct s) '''''' // this is done in StructGenerator.xtend
+	def static dispatch generateObjectDeclaration(Struct s) '''
+		struct «s.name.toFirstUpper»{
+			«FOR m : s.attributes»
+				«m.calculateType.cppType» «m.name.toFirstLower»;
+			«ENDFOR»
+		};
+	''' // this is done in StructGenerator.xtend
 
 // Generate definitions	
 	// variables

@@ -5,6 +5,12 @@ import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
+/**
+ * Generates all musket function calls, that is all function that are specific for musket, such as print or rand.
+ * <p>
+ * For some functions as print it is necessary that the result is a block, in this case an if-clause with the print expression.
+ * However, musket functions might be a part of an expression, which makes it necessary that the result is just one line that can be used in a more complex expression.
+ */
 class MusketFunctionCalls {
 	def static generateMusketFunctionCall(MusketFunctionCall mfc){
 		switch mfc.value{
