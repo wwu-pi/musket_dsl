@@ -1,6 +1,6 @@
 #config PLATFORM CPU
-#config PROCESSES 2
-#config CORES 4
+#config PROCESSES 4
+#config CORES 8
 #config MODE debug
 
 const double PI = 3.141592653589793;

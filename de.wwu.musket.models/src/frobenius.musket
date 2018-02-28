@@ -1,5 +1,7 @@
 #config PLATFORM CPU
 #config PROCESSES 4
+#config CORES 8
+#config MODE debug
 
 matrix<double,32,32,dist> as;
 
