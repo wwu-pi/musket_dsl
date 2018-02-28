@@ -19,5 +19,5 @@ class ExternalFunctionCallGenerator {
 	 * @return the generated code
 	 */
 	def static generateExternalFunctionCall(ExternalFunctionCall efc,
-		Map<String, String> param_map) '''«FOR namespace : efc.namespaces SEPARATOR "::"»«namespace.name»«ENDFOR»«efc.function»«FOR p : efc.params BEFORE '(' SEPARATOR ',' AFTER ')'»«(p.generateExpression(param_map))»«ENDFOR»'''
+		Map<String, String> param_map) '''«FOR namespace : efc.namespaces SEPARATOR "::" AFTER "::"»«namespace.name»«ENDFOR»«efc.function»«FOR p : efc.params BEFORE '(' SEPARATOR ', ' AFTER ')'»«(p.generateExpression(param_map))»«ENDFOR»'''
 }
