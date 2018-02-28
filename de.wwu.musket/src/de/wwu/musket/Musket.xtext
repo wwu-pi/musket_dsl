@@ -341,8 +341,8 @@ MapSkeletonVariants:
 ;
 
 FoldSkeletonVariants:
-	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=AnonymousVariable ',' param=SkeletonParameterInput ')' |
-	{FoldIndexSkeleton} 'foldIndex' '(' identity=AnonymousVariable ',' param=SkeletonParameterInput ')'
+	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=Expression ',' param=SkeletonParameterInput ')' |
+	{FoldIndexSkeleton} 'foldIndex' '(' identity=Expression ',' param=SkeletonParameterInput ')'
 ;
 
 ZipSkeletonVariants:
@@ -471,7 +471,8 @@ BooleanExpression returns Expression:
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
 	BoolVal |
 	AdditionSubtraction |
-	StructVal
+	StructVal |
+	CollectionInstantiation
 ;
 
 // Arithmetic expressions
@@ -500,10 +501,6 @@ ArithmeticExpression returns Expression:
 	DoubleVal |
 	StringVal |
 	FunctionCall
-;
-
-AnonymousVariable:
-	CollectionInstantiation | StructVal | PrimitiveVal
 ;
 
 CollectionInstantiation:
