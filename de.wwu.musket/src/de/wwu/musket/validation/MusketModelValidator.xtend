@@ -144,16 +144,18 @@ class MusketModelValidator extends AbstractMusketValidator {
 	// Check collection access expression matches dimensions
 	@Check
 	def checkCollectionAccessIsNumeric(Ref ref) {
-		val dimensions = if (ref.calculateContainerType.isArray) 1 
-					else if (ref.calculateContainerType.isMatrix) 2 else 0
+		val dimensions = if (ref.value.calculateType.isArray) 1 
+					else if (ref.value.calculateType.isMatrix) 2 else 0
+		
+		val errorText = if(dimensions == 1) 'Array element access expects 1 dimension, ' else 'Matrix element access expects 2 dimensions, '
 		
 		if(ref.localCollectionIndex?.size > 0 && ref.localCollectionIndex?.size !== dimensions){
-			error('Array element access expects 1 dimension, ' + ref.localCollectionIndex?.size + ' given!', 
+			error(errorText + ref.localCollectionIndex?.size + ' given!', 
 				MusketPackage.eINSTANCE.ref_LocalCollectionIndex,
 				INVALID_PARAMETER)
 		}
 		if(ref.globalCollectionIndex?.size > 0 && ref.globalCollectionIndex?.size !== dimensions){
-			error('Matrix element access expects 2 dimensions, ' + ref.globalCollectionIndex?.size + ' given!', 
+			error(errorText + ref.globalCollectionIndex?.size + ' given!', 
 				MusketPackage.eINSTANCE.ref_GlobalCollectionIndex,
 				INVALID_PARAMETER)
 		}

@@ -69,7 +69,7 @@ class ExpressionGenerator {
 
 	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map)'''
 «««		ARRAY
-		«IF cer.calculateContainerType.isArray»
+		«IF cer.value.calculateType.isArray»
 «««			LOCAL REF
 			«IF cer.localCollectionIndex.size == 1»
 				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)»]«cer?.tail.generateTail»
@@ -84,7 +84,7 @@ class ExpressionGenerator {
 				«ENDIF»
 			«ENDIF»
 «««		MATRIX
-		«ELSEIF cer.calculateContainerType.isMatrix»
+		«ELSEIF cer.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF cer.localCollectionIndex.size == 2»
 				«cer.value.name»[«cer.localCollectionIndex.head.generateExpression(param_map)» * «((cer.value as CollectionObject).type as MatrixType).colsLocal» + «cer.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«cer?.tail.generateTail»

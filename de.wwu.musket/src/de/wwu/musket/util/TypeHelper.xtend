@@ -349,12 +349,4 @@ class TypeHelper {
 		println("try to calculate type for unknown object " + exp)
 		return MusketType.AUTO
 	}
-	
-	static def MusketType calculateContainerType(Ref exp){
-		// Go down nested reference structure
-		if(exp.tail !== null) return exp.tail.calculateContainerType
-		
-		// We want the _container_ type so we don't care if it is a collection element 
-		return exp.value.calculateType
-	}
 }
