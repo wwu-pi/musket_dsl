@@ -269,6 +269,16 @@ Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_las
 	return f;
 }
 
+double getBestSolution(double best_solution, Fish f){
+	double result = best_solution;
+	
+	if(f.best_fitness > best_solution){
+		result = f.best_fitness;
+	}
+	
+	return result;
+}
+
 main{
 	// init fish
 	population.mapInPlace(initFish());
@@ -329,9 +339,9 @@ main{
 		population.mapInPlace(volitiveMovement(step_size_vol, sum_weight, sum_weight_last_iteration));
 		sum_weight_last_iteration = sum_weight;
 	}
-  	
+
   	// get best solution
-  	double global_best_fitness = population.fold(0.0, getBestSolution());
+  	double global_best_fitness = population.fold(mkt::double_min(), getBestSolution());
   	
   	//print best solution
 	mkt::print('Best solution: %.5f\n', global_best_fitness);
