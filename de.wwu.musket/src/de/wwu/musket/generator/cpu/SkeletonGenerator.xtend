@@ -27,13 +27,28 @@ import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 
+/**
+ * Generates the skeleton calls.
+ * <p>
+ * Entry point is the method generateSkeletonExpression(SkeletonExpression s, String target). 
+ * It is called by the LogicGenerator.
+ */
 class SkeletonGenerator {
 	
 	static var ShiftCounter = 0
 
+/**
+ * Starting point for the skeleton generator.
+ * It switches over the skeletons and calls the correct function.
+ * 
+ * @param s the skeleton expression
+ * @param target where to write the result of the skeleton expression
+ * @return generated skeleton call
+ */
 	def static generateSkeletonExpression(SkeletonExpression s, String target) {
 		switch s.skeleton {
 			MapSkeleton: {
@@ -45,8 +60,8 @@ class SkeletonGenerator {
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
-			ShiftPartitionsHorizontallySkeleton: generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj as MatrixType)
-			ShiftPartitionsVerticallySkeleton: generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj as MatrixType)
+			ShiftPartitionsHorizontallySkeleton: generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj.type as MatrixType)
+			ShiftPartitionsVerticallySkeleton: generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj.type as MatrixType)
 			GatherSkeleton: generateGatherSkeleton(s, s.skeleton as GatherSkeleton, target)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
@@ -151,7 +166,7 @@ class SkeletonGenerator {
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
 			#pragma omp simd
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m as CollectionObject, param_map)»
+				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
 			}
 		}
 	'''
@@ -161,7 +176,7 @@ class SkeletonGenerator {
 		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
 		#pragma omp parallel for simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a as CollectionObject, param_map)»
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, param_map)»
 		}
 	'''
 	
@@ -172,7 +187,7 @@ class SkeletonGenerator {
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
 			#pragma omp simd
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m as CollectionObject, param_map)»
+				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
 			}
 		}
 	'''
@@ -212,24 +227,24 @@ class SkeletonGenerator {
 //	}
 
 	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject a, String target) '''	
-		«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»  = «s.identity.ValueAsString»;
+		«Config.var_fold_result»_«a.calculateType.cppType»  = «s.identity.ValueAsString»;
 		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		
-			#pragma omp parallel for simd reduction(«foldName»:«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»)
+			#pragma omp parallel for simd reduction(«foldName»:«Config.var_fold_result»_«a.calculateCollectionType.cppType»)
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
 			«val param_map = createParameterLookupTableFold(a, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, a, param_map)»
 		
 		}		
 		
-		MPI_Allreduce(&«Config.var_fold_result»_«a.CppPrimitiveTypeAsString», &«target», sizeof(«a.CppPrimitiveTypeAsString»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		MPI_Allreduce(&«Config.var_fold_result»_«a.calculateCollectionType.cppType», &«target», sizeof(«a.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 	'''
 
 	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.CppPrimitiveTypeAsString»''')
+		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
@@ -269,9 +284,9 @@ class SkeletonGenerator {
 					MPI_Request requests[2];
 					MPI_Status statuses[2] ;
 					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
-					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_target, "&requests[0]")»
+					std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»> «buffer_name»;
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
@@ -305,7 +320,7 @@ class SkeletonGenerator {
 				size_t «Config.var_shift_target» = «pid»;
 «««				generate Function Call
 				«val param_map = createParameterLookupTableShiftPartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m as CollectionObject, param_map)»
+				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
 				«Config.var_shift_target» = ((«pid / m.blocksInColumn» + «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				«Config.var_shift_source» = ((«pid / m.blocksInColumn» - «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				
@@ -314,14 +329,14 @@ class SkeletonGenerator {
 					MPI_Request requests[2];
 					MPI_Status statuses[2] ;
 					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
-					std::array<«m.CppPrimitiveTypeAsString», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(pid, (m as CollectionObject).name + '.data()', m.sizeLocal, m.CppPrimitiveTypeAsString, Config.var_shift_target, "&requests[0]")»
+					std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»> «buffer_name»;
+					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
 					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
-						«(m as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
+						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
 					}			
 				}
 			}
@@ -342,6 +357,6 @@ class SkeletonGenerator {
 	}
 	
 	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target) '''		
-		«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal, se.obj.CppPrimitiveTypeAsString, target + '.data()')»
+		«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal, se.obj.calculateCollectionType.cppType, target + '.data()')»
 	'''
 }

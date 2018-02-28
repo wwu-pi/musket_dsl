@@ -144,6 +144,12 @@ class MusketType {
 	}
 	
 	def getCppType(){
+		// struct
+		if(structName !== null){
+			return structName
+		}
+		
+		// primitive type
 		switch (type) {
 			case BOOL: return 'bool'
 			case DOUBLE: return 'double'

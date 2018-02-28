@@ -8,53 +8,66 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.CollectionObject
+import static extension de.wwu.musket.util.TypeHelper.*
 
+/**
+ * Generates declaration, definition and initialization of data object.
+ * <p>
+ * The Generator handles arrays and matrices, global variables and constants, and structs.
+ * Methods for declarations and struct definitions are called by the header generator.
+ * Other definitions and initialization methods are called by the source file generator.
+ */
 class DataGenerator {
 // Generate declarations	
 	// variables
-	def static dispatch generateObjectDeclaration(Variable v) '''extern «v.CppPrimitiveTypeAsString» «v.name»;'''
+	def static dispatch generateObjectDeclaration(Variable v) '''extern «v.calculateCollectionType.cppType» «v.name»;'''
 
 	// constants
-	def static dispatch generateObjectDeclaration(Constant c) '''extern const «c.CppPrimitiveTypeAsString» «c.name»;'''
+	def static dispatch generateObjectDeclaration(
+		Constant c) '''extern const «c.calculateCollectionType.cppType» «c.name»;'''
 
-	def static dispatch generateObjectDeclaration(CollectionObject c){
-		switch(c.type){
-			ArrayType: '''extern std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»;'''
-			MatrixType: '''extern std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»;'''
+	def static dispatch generateObjectDeclaration(CollectionObject c) {
+		switch (c.type) {
+			ArrayType: '''extern std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»;'''
+			MatrixType: '''extern std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»;'''
 		}
 	}
-	
-	def static dispatch generateObjectDeclaration(
-		Struct s) '''''' // this is done in StructGenerator.xtend
+
+	def static dispatch generateObjectDeclaration(Struct s) '''
+		struct «s.name.toFirstUpper»{
+			«FOR m : s.attributes»
+				«m.calculateType.cppType» «m.name.toFirstLower»;
+			«ENDFOR»
+		};
+	''' // this is done in StructGenerator.xtend
 
 // Generate definitions	
 	// variables
 	def static dispatch generateObjectDefinition(
-		Variable v) '''«v.CppPrimitiveTypeAsString» «v.name» = «v.ValueAsString»;'''
+		Variable v) '''«v.calculateCollectionType.cppType» «v.name» = «v.ValueAsString»;'''
 
 	// constants
 	def static dispatch generateObjectDefinition(
-		Constant c) '''const «c.CppPrimitiveTypeAsString» «c.name» = «c.ValueAsString»;'''
+		Constant c) '''const «c.calculateType.cppType» «c.name» = «c.ValueAsString»;'''
 
 	// Arrays objects
-	def static dispatch generateObjectDefinition(CollectionObject c){
-		switch(c.type){
-			ArrayType: '''std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»{};'''
-			MatrixType: '''std::array<«c.type.CppPrimitiveTypeAsString», «c.type.sizeLocal»> «c.name»{};'''
+	def static dispatch generateObjectDefinition(CollectionObject c) {
+		switch (c.type) {
+			ArrayType: '''std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»{};'''
+			MatrixType: '''std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»{};'''
 		}
 	}
-		
-	def static dispatch generateObjectDefinition(
-		Struct s) '''''' // this is done in StructGenerator.xtend
+
+	def static dispatch generateObjectDefinition(Struct s) '''''' // this is done in StructGenerator.xtend
 
 // Generate initialization
-	def static generateArrayInitializationForProcess(CollectionObject a, int p, Iterable<String> values) '''		
+	def static generateArrayInitializationForProcess(CollectionObject a, int p, Iterable<String> values) '''
 		«var value_id = 0»
 		«FOR v : values»
 			«a.name»[«value_id++»] = «v»;
 		«ENDFOR»
 	'''
-	
+
 	def static generateInitializationWithSingleValue(CollectionObject a) '''
 		#pragma omp parallel for simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.type.sizeLocal»; ++«Config.var_loop_counter»){

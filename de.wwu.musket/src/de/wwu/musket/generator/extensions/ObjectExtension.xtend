@@ -2,116 +2,32 @@ package de.wwu.musket.generator.extensions
 
 import de.wwu.musket.generator.cpu.Config
 import de.wwu.musket.musket.ArrayType
-import de.wwu.musket.musket.BoolArrayType
 import de.wwu.musket.musket.BoolConstant
-import de.wwu.musket.musket.BoolMatrixType
 import de.wwu.musket.musket.BoolVal
 import de.wwu.musket.musket.BoolVariable
-import de.wwu.musket.musket.CollectionParameter
-import de.wwu.musket.musket.DoubleArrayType
+import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DoubleConstant
-import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
-import de.wwu.musket.musket.IndividualParameter
-import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.IntConstant
-import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.StructArrayType
 import de.wwu.musket.musket.StructMatrixType
 import de.wwu.musket.musket.TailObjectRef
-import de.wwu.musket.util.MusketType
 import java.util.List
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 import static extension de.wwu.musket.util.MusketHelper.*
-import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CompareExpression
 
 class ObjectExtension {
-	// get primitive cpp type as string for musket object element
-	def static dispatch CppPrimitiveTypeAsString(IntArrayType o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleArrayType o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolArrayType o) {
-		'bool'
-	}
-	
-	def static dispatch CppPrimitiveTypeAsString(StructArrayType o) {
-		o.type.name.toFirstUpper
-	}
-	
-	def static dispatch CppPrimitiveTypeAsString(IntMatrixType o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleMatrixType o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolMatrixType o) {
-		'bool'
-	}
-	
-	def static dispatch CppPrimitiveTypeAsString(StructMatrixType o) {
-		o.type.name.toFirstUpper
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(IntVariable o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleVariable o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolVariable o) {
-		'bool'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(IntConstant o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleConstant o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolConstant o) {
-		'bool'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(CollectionParameter o) {
-		return new MusketType(o.type).cppType
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(IndividualParameter o) {
-		return new MusketType(o.type).cppType
-	}
-	
-	def static dispatch CppPrimitiveTypeAsString(IntVal o) {
-		'int'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(DoubleVal o) {
-		'double'
-	}
-
-	def static dispatch CppPrimitiveTypeAsString(BoolVal o) {
-		'bool'
-	}
 
 	// Value
 	def static List<String> ValuesAsString(CollectionObject o){
 		if (o.type instanceof StructArrayType || o.type instanceof StructMatrixType) return newArrayList('')
-		return o.values.map[v|v.toString]
+		return o.values.map[v|v.ValueAsString]
 	}
 	
 	// Variable
@@ -153,6 +69,10 @@ class ObjectExtension {
 		o.value.toString
 	}
 	
+	def static dispatch ValueAsString(CompareExpression co) {
+		co.generateExpression(null)
+	}
+	
 	// structs
 	def static generateTail(TailObjectRef or){
 		var result = ''
@@ -167,7 +87,7 @@ class ObjectExtension {
 	// for arrays
 	// for arrays
 	def static dispatch size(ArrayType a) {
-		a.size
+		a.size.concreteValue
 	}
 	
 	def static dispatch sizeLocal(ArrayType a) {

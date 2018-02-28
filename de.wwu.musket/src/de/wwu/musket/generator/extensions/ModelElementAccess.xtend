@@ -11,6 +11,11 @@ import org.eclipse.emf.ecore.resource.Resource
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 
+/**
+ * Helper methods to access certain elements of the model faster.
+ * <p>
+ * All methods take the resource object as input and return the requested object, objects or value.
+ */
 class ModelElementAccess {
 
 	// get general info about resource

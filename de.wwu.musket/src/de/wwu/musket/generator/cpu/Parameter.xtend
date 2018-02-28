@@ -8,6 +8,9 @@ import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.ObjectRef
 import de.wwu.musket.musket.FunctionCall
 
+/**
+ * @deprecated
+ */
 class Parameter {
 	def static dispatch generateParameterInput(BoolVal pv)'''«pv.value»'''
 

@@ -11,8 +11,14 @@ import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.util.CancelIndicator
 import org.eclipse.xtext.validation.CheckMode
 
-import static extension de.wwu.musket.generator.extensions.ModelElementAccess.ProjectName
-
+/**
+ * Starting point for the MusketStandaloneGenerator.
+ * <p>
+ * This can be used to generate models without opening an additional eclipse instance.
+ * Just choose run as > java application.
+ * If models should be added, include them in the list "val models = #[....]"
+ * Remember to use relative paths.
+ */
 class MusketStandaloneGenerator {
 	private static final Logger logger = LogManager.getLogger(MusketStandaloneGenerator)
 
@@ -49,7 +55,7 @@ class MusketStandaloneGenerator {
 			// Code Generator
 			val generator = injector.getInstance(GeneratorDelegate)
 			val fsa = injector.getInstance(JavaIoFileSystemAccess)
-			fsa.setOutputPath("../src-gen/" + resource.ProjectName.toString + "/")
+			fsa.setOutputPath("../src-gen/")
 			generator.doGenerate(resource, fsa)
 			logger.info("Generate: " + s + '. Done.')
 		}

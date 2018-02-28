@@ -10,10 +10,20 @@ import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.StructGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
+/** 
+ * Generates the header file.
+ * <p>
+ * Entry point is the function generateHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context).
+ * The generated header file is located in the include folder, with the name project_name.hpp.
+ * It inludes declarations of data strucutures and structs.
+ */
 class HeaderFileGenerator {
 
 	private static final Logger logger = LogManager.getLogger(HeaderFileGenerator)
 
+	/**
+	 * Creates a new header file for the project.
+	 */
 	def static void generateHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		logger.info("Generate Header file.")
 		fsa.generateFile(Config.base_path + Config.include_path + resource.ProjectName + Config.header_extension,
@@ -21,6 +31,12 @@ class HeaderFileGenerator {
 		logger.info("Generation of header file done.")
 	}
 
+	/**
+	 * Generates the content of the header file.
+	 * 
+	 * @param resource the resource object
+	 * @return the content of the header file
+	 */
 	def static headerFileContent(Resource resource) '''
 		#pragma once
 		

@@ -8,19 +8,37 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
+/**
+ * Generates CMake file.
+ * <p>
+ * Entry point is the method generateCMake(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context).
+ * The generator creates a file called CMakeLists.txt, which is required to build the generated project.
+ * The CMake file is designed in such a way that new build types are added, which will only work with gcc.
+ * Other compilers can be used, but then the default types (release, debug) have to be used.
+ * Additional flags can then be set in the cmake call.
+ */
 class CMakeGenerator {
 	private static final Logger logger = LogManager.getLogger(CMakeGenerator)
 
+	/**
+	 * Starting point for the CMakeGenerator.
+	 */
 	def static void generateCMake(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		logger.info("Generate CMakeLists.txt.")
 		resource.generateCMakeListstxt(fsa)
 		logger.info("Generation of CMakeLists.txt done.")
 	}
 
+	/**
+	 * Creates the file CMakeLists.txt in the current base_path.
+	 */
 	def static void generateCMakeListstxt(Resource resource, IFileSystemAccess2 fsa) {
 		fsa.generateFile(Config.base_path + "CMakeLists.txt", CMakeListstxtContent(resource))
 	}
 
+	/**
+	 * Generates the content of the CMakeLists.txt file.
+	 */
 	def static CMakeListstxtContent(Resource resource) '''
 		cmake_minimum_required(VERSION 3.5)
 		project(«resource.ProjectName» VERSION 1.0.0 LANGUAGES CXX)
