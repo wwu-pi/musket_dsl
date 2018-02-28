@@ -69,6 +69,7 @@ class RunScriptGenerator {
 		
 		make «resource.ProjectName» && \
 		cd .. && \
+		mkdir -p out && \
 		sbatch job.sh
 	'''
 	
