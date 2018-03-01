@@ -22,6 +22,6 @@ main{
 	as.show();
 	as.mapInPlace(square());
 	float fn = as.fold(0.0f, sum());
-	fn = std::sqrtf(fn);
+	fn = std::sqrt(fn);
 	mkt::print("Frobenius norm is %.5f.\n", fn);
 }
