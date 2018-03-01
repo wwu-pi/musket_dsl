@@ -21,6 +21,9 @@ import java.util.List
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.generateExpression
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.CompareExpression
+import de.wwu.musket.musket.FloatVariable
+import de.wwu.musket.musket.FloatConstant
+import de.wwu.musket.musket.FloatVal
 
 class ObjectExtension {
 
@@ -39,6 +42,10 @@ class ObjectExtension {
 		o.initExpression.generateExpression(null)
 	}
 
+	def static dispatch ValueAsString(FloatVariable o) {
+		o.initExpression.generateExpression(null)
+	}
+
 	def static dispatch ValueAsString(BoolVariable o) {
 		o.initExpression.generateExpression(null)
 	}
@@ -49,6 +56,10 @@ class ObjectExtension {
 	}
 
 	def static dispatch ValueAsString(DoubleConstant o) {
+		o.value.toString
+	}
+	
+	def static dispatch ValueAsString(FloatConstant o) {
 		o.value.toString
 	}
 
@@ -66,6 +77,10 @@ class ObjectExtension {
 	}
 
 	def static dispatch ValueAsString(DoubleVal o) {
+		o.value.toString
+	}
+	
+	def static dispatch ValueAsString(FloatVal o) {
 		o.value.toString
 	}
 	

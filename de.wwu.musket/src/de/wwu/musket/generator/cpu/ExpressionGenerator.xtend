@@ -40,6 +40,7 @@ import de.wwu.musket.musket.BoolVal
 
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
+import de.wwu.musket.musket.FloatVal
 
 /**
  * Generates expressions, such as 1+1.
@@ -78,6 +79,7 @@ class ExpressionGenerator {
 			ObjectRef: '''«expression.value.generateObjectRef(param_map)»«expression?.tail.generateTail»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
+			FloatVal: '''«expression.value»f'''
 			StringVal: '''"«expression.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"''' // this is necessary so that the line break remains as \n in the generated code
 			BoolVal: '''«expression.value»'''
 			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(param_map)»'''

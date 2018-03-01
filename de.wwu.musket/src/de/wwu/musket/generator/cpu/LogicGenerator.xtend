@@ -21,6 +21,7 @@ import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.SkeletonGenerator.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.MusketFloatVariable
 
 /**
  * Generates the content of the main block.
@@ -72,6 +73,11 @@ class LogicGenerator {
 
 	def static dispatch generateStatement(MusketDoubleVariable s) '''
 		double «s.name» = 0.0;
+		«s.initExpression.generateSkeletonExpression(s.name)»
+	'''
+
+	def static dispatch generateStatement(MusketFloatVariable s) '''
+		float «s.name» = 0.0f;
 		«s.initExpression.generateSkeletonExpression(s.name)»
 	'''
 

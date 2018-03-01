@@ -72,8 +72,15 @@ class RngGenerator {
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».push_back(std::uniform_real_distribution<double>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
+				case MusketType.FLOAT:
+					result +=
+						'''std::vector<std::uniform_real_distribution<float>> rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')»;
+						rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».reserve(«cores»);
+						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
+							rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».push_back(std::uniform_real_distribution<float>(«lower.ValueAsString», «higher.ValueAsString»));
+						}'''
 				default:
-					throw new UnsupportedOperationException('Random number generation only for ints and doubles!')
+					throw new UnsupportedOperationException('Random number generation only for ints, floats, and doubles!')
 			}
 		}
 		result
