@@ -22,6 +22,8 @@ import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.FloatArrayType
+import de.wwu.musket.musket.FloatMatrixType
 
 /**
  * Generate everything required for the fold skeleton, except for the actual fold skeleton call.
@@ -188,7 +190,7 @@ class FoldSkeletonGenerator {
 	/**
 	 * Generates required temporary variables used to store intermediate fold results.
 	 * 
-	 * TODO: only supports int, double and bool at the moment
+	 * TODO: only supports int, double, float, and bool at the moment
 	 * 
 	 * @param resource the resource object
 	 * @return generated code
@@ -217,6 +219,10 @@ class FoldSkeletonGenerator {
 						DoubleMatrixType:
 							result +=
 								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0.0;'''
+						FloatArrayType,
+						FloatMatrixType:
+							result +=
+								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0.0f;'''
 					}
 					processed.add(se)
 				}
