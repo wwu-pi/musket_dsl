@@ -1,0 +1,27 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+matrix<float,32,32,dist> as;
+
+float init(int x, int y, float a){
+	return (float) x + y + 1;
+}
+
+float square(float a){
+	return a * a;
+}
+
+float sum(float a, float b){
+	return a + b;
+}
+
+main{
+	as.mapIndexInPlace(init());
+	as.show();
+	as.mapInPlace(square());
+	float f = as.fold(0.0f, sum());
+	f = std::sqrtf(f);
+	mkt::print("Frobenius norm is %.5f.\n", f);
+}
