@@ -394,8 +394,8 @@ class SkeletonGenerator {
 	 * @return the param map
 	 */
 	def static generateShiftPartitionsHorizontallySkeleton(ShiftPartitionsHorizontallySkeleton s, MatrixType m) '''		
-		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
-			(«Config.var_pid» == «pid»){
+		«FOR pid : 0 ..< Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
+			case «pid»:	{
 				«val pos = m.partitionPosition(pid)»				
 				size_t «Config.var_shift_source» = «pid»;
 				size_t «Config.var_shift_target» = «pid»;
@@ -420,6 +420,7 @@ class SkeletonGenerator {
 						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
 					}			
 				}
+				break;
 			}
 		«ENDFOR»
 	'''
@@ -463,8 +464,8 @@ class SkeletonGenerator {
 	 * @return the param map
 	 */
 	def static generateShiftPartitionsVerticallySkeleton(ShiftPartitionsVerticallySkeleton s, MatrixType m) '''		
-		«FOR pid : 0 ..< Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
-			(«Config.var_pid» == «pid»){
+		«FOR pid : 0 ..< Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
+			case «pid»:	{
 				«val pos = m.partitionPosition(pid)»			
 				size_t «Config.var_shift_source» = «pid»;
 				size_t «Config.var_shift_target» = «pid»;
@@ -489,6 +490,7 @@ class SkeletonGenerator {
 						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
 					}			
 				}
+				break;
 			}
 		«ENDFOR»
 	'''
