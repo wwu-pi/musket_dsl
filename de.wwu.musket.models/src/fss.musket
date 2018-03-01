@@ -51,55 +51,55 @@ array<double,DIMENSIONS,copy> barycenter_copy;
 
 // functions
 // init
-Fish initFish(Fish f){
-	f.fitness = mkt::double_min(); //std::numeric_limits<double>::min();
-	f.candidate_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
-	f.weight = WEIGHT_LOWER_BOUND;
-	f.fitness_variation = 0.0;
-	f.best_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
+Fish initFish(Fish fi){
+	fi.fitness = mkt::double_min(); //std::numeric_limits<double>::min();
+	fi.candidate_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
+	fi.weight = WEIGHT_LOWER_BOUND;
+	fi.fitness_variation = 0.0;
+	fi.best_fitness = mkt::double_min(); //std::numeric_limits<double>::min();
 	
 	for(int i = 0; i < DIMENSIONS; ++i){
-		f.position[i] = mkt::rand(INIT_LOWER_BOUND, INIT_UPPER_BOUND);
-		f.candidate_position[i] = 0.0;
+		fi.position[i] = mkt::rand(INIT_LOWER_BOUND, INIT_UPPER_BOUND);
+		fi.candidate_position[i] = 0.0;
 		//position_last_iteration = 0.0;
-		f.displacement[i] = 0.0;
-		f.best_position[i] = 0.0;
+		fi.displacement[i] = 0.0;
+		fi.best_position[i] = 0.0;
 	}
 	
-	return f;
+	return fi;
 }
 
 // individual movement
-Fish evaluateFitness(Fish f){
+Fish evaluateFitness(Fish fi){
 	
 	double sum = 0.0;
 	for (int j = 0; j < DIMENSIONS; ++j) {
-		double value = f.position[j];
+		double value = fi.position[j];
 		value = std::pow(value, 2) - 10 * std::cos(2 * PI * value);
 		sum += std::pow(value, 2) - 10 * std::cos(2 * PI * value);
 	}
-	f.fitness = -(10 * DIMENSIONS + sum);
+	fi.fitness = -(10 * DIMENSIONS + sum);
 	
-	if(f.fitness > f.best_fitness){
-		f.best_fitness = f.fitness;
+	if(fi.fitness > fi.best_fitness){
+		fi.best_fitness = fi.fitness;
 		
-//		mkt::copy(f.position, f.best_position);
+//		mkt::copy(fi.position, fi.best_position);
 		for(int k = 0; k < DIMENSIONS; ++k){
-			f.best_position[k] = f.position[k];
+			fi.best_position[k] = fi.position[k];
 		}
 	}
 	
-	return f;
+	return fi;
 }
 
-Fish individualMovement(double step_size, Fish f){
+Fish individualMovement(double step_size, Fish fi){
 	// update position
 	for (int i = 0; i < DIMENSIONS; ++i) {
 		double rand_factor = mkt::rand(-1.0, 1.0);
 
 		double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND);
 
-		double new_value = f.position[i] + direction;
+		double new_value = fi.position[i] + direction;
 
 		if (new_value < LOWER_BOUND) {
 			new_value = LOWER_BOUND;
@@ -107,51 +107,51 @@ Fish individualMovement(double step_size, Fish f){
 			new_value = UPPER_BOUND;
 		}
 		
-		f.candidate_position[i] = new_value;
+		fi.candidate_position[i] = new_value;
 	}
 	
 	// fitness function
 	double sum = 0.0;
 	for (int j = 0; j < DIMENSIONS; ++j) {
-		double value = f.candidate_position[j];
+		double value = fi.candidate_position[j];
 		sum += (std::pow(value, 2) - 10 * std::cos(2 * PI * value));
 	}
-	f.candidate_fitness = -(10 * DIMENSIONS + sum);
+	fi.candidate_fitness = -(10 * DIMENSIONS + sum);
 	
 	// update values
-	if(f.candidate_fitness > f.fitness){
-		f.fitness_variation = f.candidate_fitness - f.fitness;
-		f.fitness = f.candidate_fitness;
+	if(fi.candidate_fitness > fi.fitness){
+		fi.fitness_variation = fi.candidate_fitness - fi.fitness;
+		fi.fitness = fi.candidate_fitness;
 		
-		//	mkt::copy(f.candidate_position, f.position);
+		//	mkt::copy(fi.candidate_position, fi.position);
 		for(int k = 0; k < DIMENSIONS; ++k){
-			f.displacement[k] = f.candidate_position[k] - f.position[k];
-			f.position[k] = f.candidate_position[k];
+			fi.displacement[k] = fi.candidate_position[k] - fi.position[k];
+			fi.position[k] = fi.candidate_position[k];
 		}
 		
-		if(f.fitness > f.best_fitness){
-			f.best_fitness = f.fitness;
+		if(fi.fitness > fi.best_fitness){
+			fi.best_fitness = fi.fitness;
 			
-//			mkt::copy(f.position, f.best_position);
+//			mkt::copy(fi.position, fi.best_position);
 			for(int k = 0; k < DIMENSIONS; ++k){
-				f.best_position[k] = f.position[k];
+				fi.best_position[k] = fi.position[k];
 			}
 		}
 	} else {
-		f.fitness_variation = 0.0;
+		fi.fitness_variation = 0.0;
 		
 		for(int k = 0; k < DIMENSIONS; ++k){
-			f.displacement[k] = 0.0;
+			fi.displacement[k] = 0.0;
 		}
 	}
 	
-	return f;
+	return fi;
 }
 
 // feeding
-Fish feeding(double max_fitness_variation, Fish f){
+Fish feeding(double max_fitness_variation, Fish fi){
 	if (max_fitness_variation != 0.0){
-		double result = f.weight + f.fitness_variation / max_fitness_variation;
+		double result = fi.weight + fi.fitness_variation / max_fitness_variation;
 
 		if (result > WEIGHT_UPPER_BOUND) {
 			result = WEIGHT_UPPER_BOUND;
@@ -159,37 +159,37 @@ Fish feeding(double max_fitness_variation, Fish f){
 			result = WEIGHT_LOWER_BOUND;
 		}
 		
-		f.weight = result;
+		fi.weight = result;
 	}
-	return f;
+	return fi;
 }
 
-double maxFitnessVariation(double max_fitness_variation, Fish f){
+double maxFitnessVariation(double max_fitness_variation, Fish fi){
 	double result;
-	if(max_fitness_variation > f.fitness_variation){
+	if(max_fitness_variation > fi.fitness_variation){
 		result = max_fitness_variation;
 	} else {
-		result = f.fitness_variation;
+		result = fi.fitness_variation;
 	}
 	return result;
 }
 
 
 // instinctive movement
-double sumFitnessVariation(double sum_fitness_variation, Fish f){
-	return sum_fitness_variation + f.fitness_variation;
+double sumFitnessVariation(double sum_fitness_variation, Fish fi){
+	return sum_fitness_variation + fi.fitness_variation;
 }
 
-Fish calcDisplacementMap(Fish f){
+Fish calcDisplacementMap(Fish fi){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		f.displacement[i] *= f.fitness_variation;
+		fi.displacement[i] *= fi.fitness_variation;
 	}
-	return f;
+	return fi;
 }
 
-array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, Fish f){
+array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, Fish fi){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		arr[i] += f.displacement[i];
+		arr[i] += fi.displacement[i];
 	}
 	return arr;
 }
@@ -200,28 +200,28 @@ double calcInstinctiveMovementVector(double sum_fitness_variation, double x){
 }
 
 
-Fish instinctiveMovement(Fish f){
+Fish instinctiveMovement(Fish fi){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		f.position[i] += instinctive_movement_vector_copy[i];
+		fi.position[i] += instinctive_movement_vector_copy[i];
 	}
-	return f;
+	return fi;
 }
 
 // volitiveMovement
-double sumWeight(double sum_weight, Fish f){
-	return sum_weight + f.weight;
+double sumWeight(double sum_weight, Fish fi){
+	return sum_weight + fi.weight;
 }
 
-Fish calcWeightedFish(Fish f){
+Fish calcWeightedFish(Fish fi){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		f.position[i] *= f.weight;
+		fi.position[i] *= fi.weight;
 	}
-	return f;
+	return fi;
 }
 
-array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, Fish f){
+array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, Fish fi){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		arr[i] += f.position[i];
+		arr[i] += fi.position[i];
 	}
 	return arr;
 }
@@ -234,11 +234,11 @@ double calcBarycenterMap(double sum_weight, double x){
 	return result;
 }
 
-Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_last_iteration, Fish f){
+Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_last_iteration, Fish fi){
 	// euclidean distance
 	double distance = 0.0;
 	for (int i = 0; i < DIMENSIONS; ++i) {
-		distance += (f.position[i] - barycenter_copy[i]) * (f.position[i] - barycenter_copy[i]);
+		distance += (fi.position[i] - barycenter_copy[i]) * (fi.position[i] - barycenter_copy[i]);
 	}
 	
 	distance = std::sqrt(distance);
@@ -247,9 +247,9 @@ Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_las
 		double rand_factor = mkt::rand(0.0, 1.0);
 
 		for (int i = 0; i < DIMENSIONS; ++i) {			
-			double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND) * ((f.position[i] - barycenter_copy[i]) / distance);
+			double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND) * ((fi.position[i] - barycenter_copy[i]) / distance);
 		
-			double new_position = f.position[i];
+			double new_position = fi.position[i];
 	
 			if (sum_weight > sum_weight_last_iteration) {
 				new_position -= direction;
@@ -262,18 +262,18 @@ Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_las
 			} else if (new_position > UPPER_BOUND) {
 				new_position = UPPER_BOUND;
 			}
-			f.position[i] = new_position;		
+			fi.position[i] = new_position;		
 		}		
 	}
 	
-	return f;
+	return fi;
 }
 
-double getBestSolution(double best_solution, Fish f){
+double getBestSolution(double best_solution, Fish fi){
 	double result = best_solution;
 	
-	if(f.best_fitness > best_solution){
-		result = f.best_fitness;
+	if(fi.best_fitness > best_solution){
+		result = fi.best_fitness;
 	}
 	
 	return result;

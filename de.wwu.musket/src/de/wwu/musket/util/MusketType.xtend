@@ -16,19 +16,24 @@ import de.wwu.musket.musket.StructMatrixType
 import de.wwu.musket.musket.StructType
 import de.wwu.musket.musket.Type
 import java.util.Objects
+import de.wwu.musket.musket.FloatArrayType
+import de.wwu.musket.musket.FloatMatrixType
 
 class MusketType {
 	
 	public static final MusketType AUTO = new MusketType(PrimitiveTypeLiteral.AUTO)
 	public static final MusketType INT = new MusketType(PrimitiveTypeLiteral.INT)
 	public static final MusketType DOUBLE = new MusketType(PrimitiveTypeLiteral.DOUBLE)
+	public static final MusketType FLOAT = new MusketType(PrimitiveTypeLiteral.FLOAT)
 	public static final MusketType BOOL = new MusketType(PrimitiveTypeLiteral.BOOL)
 	public static final MusketType STRING = new MusketType(PrimitiveTypeLiteral.STRING)
 	public static final MusketType INT_ARRAY = new MusketType(PrimitiveTypeLiteral.INT).toArray
 	public static final MusketType DOUBLE_ARRAY = new MusketType(PrimitiveTypeLiteral.DOUBLE).toArray
+	public static final MusketType FLOAT_ARRAY = new MusketType(PrimitiveTypeLiteral.FLOAT).toArray
 	public static final MusketType BOOL_ARRAY = new MusketType(PrimitiveTypeLiteral.BOOL).toArray
 	public static final MusketType INT_MATRIX = new MusketType(PrimitiveTypeLiteral.INT).toMatrix
 	public static final MusketType DOUBLE_MATRIX = new MusketType(PrimitiveTypeLiteral.DOUBLE).toMatrix
+	public static final MusketType FLOAT_MATRIX = new MusketType(PrimitiveTypeLiteral.FLOAT).toMatrix
 	public static final MusketType BOOL_MATRIX = new MusketType(PrimitiveTypeLiteral.BOOL).toMatrix
 	
 	protected PrimitiveTypeLiteral type = null
@@ -45,10 +50,12 @@ class MusketType {
 		switch(t){
 			IntArrayType: { type = PrimitiveTypeLiteral.INT; toArray; distributionMode = t.distributionMode }
 			DoubleArrayType: { type = PrimitiveTypeLiteral.DOUBLE; toArray; distributionMode = t.distributionMode }
+			FloatArrayType: { type = PrimitiveTypeLiteral.FLOAT; toArray; distributionMode = t.distributionMode }
 			BoolArrayType: { type = PrimitiveTypeLiteral.BOOL; toArray; distributionMode = t.distributionMode }
 			StructArrayType: { structName = t.type.name; toArray; distributionMode = t.distributionMode }
 			IntMatrixType: { type = PrimitiveTypeLiteral.INT; toMatrix; distributionMode = t.distributionMode }
 			DoubleMatrixType: { type = PrimitiveTypeLiteral.DOUBLE; toMatrix; distributionMode = t.distributionMode }
+			FloatMatrixType: { type = PrimitiveTypeLiteral.FLOAT; toMatrix; distributionMode = t.distributionMode }
 			BoolMatrixType: { type = PrimitiveTypeLiteral.BOOL; toMatrix; distributionMode = t.distributionMode }
 			StructMatrixType: { structName = t.type.name; toMatrix; distributionMode = t.distributionMode }
 			PrimitiveType: type = t.type
@@ -96,7 +103,7 @@ class MusketType {
 	}
 	
 	def isNumeric(){
-		return !isArray && !isMatrix && (type === PrimitiveTypeLiteral.AUTO || type === PrimitiveTypeLiteral.INT || type === PrimitiveTypeLiteral.DOUBLE)
+		return !isArray && !isMatrix && (type === PrimitiveTypeLiteral.AUTO || type === PrimitiveTypeLiteral.INT || type === PrimitiveTypeLiteral.DOUBLE || type === PrimitiveTypeLiteral.FLOAT)
 	}
 	
 	def isCollection() {
@@ -153,6 +160,7 @@ class MusketType {
 		switch (type) {
 			case BOOL: return 'bool'
 			case DOUBLE: return 'double'
+			case FLOAT: return 'float'
 			case INT: return 'int'
 			default: return 'auto'
 		}

@@ -54,6 +54,12 @@ import de.wwu.musket.musket.TypeCast
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.FloatArrayType
+import de.wwu.musket.musket.FloatMatrixType
+import de.wwu.musket.musket.FloatVal
+import de.wwu.musket.musket.FloatConstant
+import de.wwu.musket.musket.MusketFloatVariable
+import de.wwu.musket.musket.FloatVariable
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArrayType obj){
@@ -62,6 +68,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateCollectionType(DoubleArrayType obj){
 		return MusketType.DOUBLE
+	}
+	
+	static dispatch def MusketType calculateCollectionType(FloatArrayType obj){
+		return MusketType.FLOAT
 	}
 	
 	static dispatch def MusketType calculateCollectionType(BoolArrayType obj){
@@ -78,6 +88,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateCollectionType(DoubleMatrixType obj){
 		return MusketType.DOUBLE
+	}
+	
+	static dispatch def MusketType calculateCollectionType(FloatMatrixType obj){
+		return MusketType.FLOAT
 	}
 	
 	static dispatch def MusketType calculateCollectionType(BoolMatrixType obj){
@@ -129,6 +143,10 @@ class TypeHelper {
 		return MusketType.DOUBLE
 	}
 	
+	static dispatch def MusketType calculateType(FloatVal exp){
+		return MusketType.FLOAT
+	}
+	
 	static dispatch def MusketType calculateType(BoolVal exp){
 		return MusketType.BOOL
 	}
@@ -148,6 +166,9 @@ class TypeHelper {
 			case PRINT: return MusketType.STRING
 			case RAND: return MusketType.DOUBLE // could also be int, depends on input values for borders
 			case DOUBLE_MIN: return MusketType.DOUBLE
+			case DOUBLE_MAX: return MusketType.DOUBLE
+			case FLOAT_MIN: return MusketType.FLOAT
+			case FLOAT_MAX: return MusketType.FLOAT
 		}
 	}
 	
@@ -157,6 +178,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(DoubleConstant exp){
 		return MusketType.DOUBLE
+	}
+	
+	static dispatch def MusketType calculateType(FloatConstant exp){
+		return MusketType.FLOAT
 	}
 	
 	static dispatch def MusketType calculateType(BoolConstant exp){
@@ -169,6 +194,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(MusketDoubleVariable exp){
 		return MusketType.DOUBLE
+	}
+	
+	static dispatch def MusketType calculateType(MusketFloatVariable exp){
+		return MusketType.FLOAT
 	}
 	
 	static dispatch def MusketType calculateType(MusketBoolVariable exp){
@@ -185,6 +214,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(DoubleVariable exp){
 		return MusketType.DOUBLE
+	}
+	
+	static dispatch def MusketType calculateType(FloatVariable exp){
+		return MusketType.FLOAT
 	}
 	
 	static dispatch def MusketType calculateType(StructVariable exp){
@@ -215,6 +248,10 @@ class TypeHelper {
 		return MusketType.DOUBLE_ARRAY
 	}
 	
+	static dispatch def MusketType calculateType(FloatArrayType exp){
+		return MusketType.FLOAT_ARRAY
+	}
+	
 	static dispatch def MusketType calculateType(BoolArrayType exp){
 		return MusketType.BOOL_ARRAY
 	}
@@ -229,6 +266,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(DoubleMatrixType exp){
 		return MusketType.DOUBLE_MATRIX
+	}
+	
+	static dispatch def MusketType calculateType(FloatMatrixType exp){
+		return MusketType.FLOAT_MATRIX
 	}
 	
 	static dispatch def MusketType calculateType(BoolMatrixType exp){

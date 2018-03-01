@@ -62,7 +62,7 @@ CollectionVariableElement returns CollectionObject:
 ;
 
 Variable:
-	IntVariable | DoubleVariable | BoolVariable | StructVariable
+	IntVariable | DoubleVariable | FloatVariable | BoolVariable | StructVariable
 ;
 
 IntVariable:
@@ -78,6 +78,14 @@ DoubleVariable:
 ;
 
 DoubleVariableElement returns DoubleVariable:
+	name=ID
+;
+
+FloatVariable:
+	'float' name=ID (',' vars+=FloatVariableElement)* ('=' initExpression=Expression)?
+;
+
+FloatVariableElement returns FloatVariable:
 	name=ID
 ;
 
@@ -106,7 +114,7 @@ CollectionType:
 ;
 
 ArrayType:
-	IntArrayType | DoubleArrayType | BoolArrayType | StructArrayType
+	IntArrayType | DoubleArrayType | FloatArrayType | BoolArrayType | StructArrayType
 ;
 
 IntArrayType:
@@ -115,6 +123,10 @@ IntArrayType:
 
 DoubleArrayType:
 	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' 
+;
+
+FloatArrayType:
+	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode '>' 
 ;
 
 BoolArrayType:
@@ -126,7 +138,7 @@ StructArrayType:
 ;
 
 MatrixType:
-	IntMatrixType | DoubleMatrixType | BoolMatrixType | StructMatrixType
+	IntMatrixType | DoubleMatrixType | FloatMatrixType | BoolMatrixType | StructMatrixType
 ;
 
 IntMatrixType:
@@ -135,6 +147,10 @@ IntMatrixType:
 
 DoubleMatrixType:
 	'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+;
+
+FloatMatrixType:
+	'matrix' '<' 'float' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
 ;
 	 
 BoolMatrixType:
@@ -151,7 +167,7 @@ IndividualType:
 ;
 
 MusketVariable:
-	MusketIntVariable | MusketDoubleVariable | MusketBoolVariable | MusketStructVariable | => Variable
+	MusketIntVariable | MusketDoubleVariable | MusketFloatVariable | MusketBoolVariable | MusketStructVariable | => Variable
 ;
 
 MusketIntVariable:
@@ -167,6 +183,14 @@ MusketDoubleVariable:
 ;
 
 MusketDoubleVariableElement returns MusketDoubleVariable:
+	name=ID
+;
+
+MusketFloatVariable:
+	'float' name=ID (',' vars+=MusketFloatVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketFloatVariableElement returns MusketFloatVariable:
 	name=ID
 ;
 
@@ -187,7 +211,7 @@ MusketStructVariableElement returns MusketStructVariable:
 ;
 
 Constant:
-	IntConstant | DoubleConstant | BoolConstant
+	IntConstant | DoubleConstant | FloatConstant | BoolConstant
 ;
 
 IntConstant: 
@@ -196,6 +220,10 @@ IntConstant:
 
 DoubleConstant:
 	'const' 'double' name=ID '=' value=SIGNED_DOUBLE
+;
+
+FloatConstant:
+	'const' 'float' name=ID '=' value=SIGNED_FLOAT
 ;
 
 BoolConstant:
@@ -442,7 +470,7 @@ enum CollectionFunctionName:
 ;
 
 enum MusketFunctionName:
-	print | rand | double_min
+	print | rand | double_min | double_max | float_min | float_max
 ;
 
 // Expression tree
@@ -499,6 +527,7 @@ ArithmeticExpression returns Expression:
 	ObjectRef |
 	IntVal |
 	DoubleVal |
+	FloatVal |
 	StringVal |
 	FunctionCall
 ;
@@ -508,7 +537,7 @@ CollectionInstantiation:
 ;
 
 PrimitiveVal:
-	BoolVal | IntVal | DoubleVal | StringVal
+	BoolVal | IntVal | DoubleVal | FloatVal | StringVal
 ;
 
 BoolVal:
@@ -521,6 +550,10 @@ IntVal:
 
 DoubleVal:
 	value=SIGNED_DOUBLE
+;
+
+FloatVal:
+	value=SIGNED_FLOAT
 ;
       
 StringVal:
@@ -537,7 +570,7 @@ enum DistributionMode:
 ;
 
 enum PrimitiveTypeLiteral:
-	auto | int | double | bool | string
+	auto | int | double | float | bool | string
 ;
 
 AssignmentOperator:
@@ -631,6 +664,10 @@ fragment SIGN:
 
 SIGNED_DOUBLE returns ecore::EDouble:
 	SIGN? INT '.' INT
+;
+
+SIGNED_FLOAT returns ecore::EFloat:
+	SIGN? INT '.' INT 'f'
 ;
 
 SIGNED_INT returns ecore::EInt:

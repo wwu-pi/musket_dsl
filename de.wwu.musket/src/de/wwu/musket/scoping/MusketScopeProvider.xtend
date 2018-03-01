@@ -30,6 +30,7 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.FloatVariable
 
 /**
  * This class contains custom scoping description.
@@ -75,6 +76,7 @@ class MusketScopeProvider extends AbstractMusketScopeProvider {
 			// Add nested names in multi attributes
 			inScope.addAll(filteredElements.filter(IntVariable).map[it.vars].flatten.toList)
 			inScope.addAll(filteredElements.filter(DoubleVariable).map[it.vars].flatten.toList)
+			inScope.addAll(filteredElements.filter(FloatVariable).map[it.vars].flatten.toList)
 			inScope.addAll(filteredElements.filter(BoolVariable).map[it.vars].flatten.toList)
 			inScope.addAll(filteredElements.filter(StructVariable).map[it.vars].flatten.toList)
 			inScope.addAll(filteredElements.filter(CollectionObject).map[it.vars].flatten.toList)
