@@ -136,9 +136,10 @@ class SkeletonGenerator {
 		«IF a.distributionMode == DistributionMode.COPY»
 					«Config.var_elem_offset» = 0;
 				«ELSE»
-					«FOR p : 0..<Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
-						(«Config.var_pid» == «p»){
+					«FOR p : 0..<Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
+						case «p»: {
 							«Config.var_elem_offset» = «p * a.sizeLocal»;
+							break;
 						}
 					«ENDFOR»
 				«ENDIF»
@@ -164,10 +165,11 @@ class SkeletonGenerator {
 			«Config.var_row_offset» = 0;
 			«Config.var_col_offset» = 0;
 		«ELSE»
-			«FOR p : 0..<Config.processes BEFORE 'if' SEPARATOR 'else if' AFTER ''»
-				(«Config.var_pid» == «p»){
+			«FOR p : 0..<Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
+				case «p»: {
 					«Config.var_row_offset» = «p / m.blocksInColumn * m.rowsLocal»;
 					«Config.var_col_offset» = «p % m.blocksInRow * m.colsLocal»;
+					break;
 				}
 			«ENDFOR»
 		«ENDIF»
