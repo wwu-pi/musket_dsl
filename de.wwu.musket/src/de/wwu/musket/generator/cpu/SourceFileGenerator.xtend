@@ -176,9 +176,9 @@ class SourceFileGenerator {
 		var result = ""
 
 		if (resource.Arrays.reject[it.type instanceof StructArrayType].exists[it.ValuesAsString.size > 1]) {
+			result += "switch(" + Config.var_pid + "){\n"
 			for (var p = 0; p < Config.processes; p++) {
-				result += '''if(«Config.var_pid» == «p»){
-				'''
+				result += "case " + p + ": {\n"
 				for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
@@ -186,8 +186,9 @@ class SourceFileGenerator {
 						result += a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
 					}
 				}
-				result += '''}«IF p != Config.processes - 1» else «ENDIF»'''
+				result += "break;\n}\n"
 			}
+			result += "}"
 		}
 
 		for (a : resource.CollectionObjects.reject [
