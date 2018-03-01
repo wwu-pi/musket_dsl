@@ -21,7 +21,7 @@ main{
 	as.mapIndexInPlace(init());
 	as.show();
 	as.mapInPlace(square());
-	float f = as.fold(0.0f, sum());
-	f = std::sqrtf(f);
-	mkt::print("Frobenius norm is %.5f.\n", f);
+	float fn = as.fold(0.0f, sum());
+	fn = std::sqrtf(fn);
+	mkt::print("Frobenius norm is %.5f.\n", fn);
 }

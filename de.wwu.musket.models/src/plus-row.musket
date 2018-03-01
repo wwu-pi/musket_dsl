@@ -7,13 +7,13 @@
 matrix<int, 4, 4, dist> m = {1};
 
 // user functions
-int f(int r, int c, int i){
+int func(int r, int c, int i){
 	return i + r;
 }
 
 // logic
 main{
 	m.show();
-	m.mapIndexInPlace(f());
+	m.mapIndexInPlace(func());
 	m.show();
 }
