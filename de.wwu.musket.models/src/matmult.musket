@@ -1,5 +1,7 @@
 #config PLATFORM CPU
 #config PROCESSES 4
+#config CORES 8
+#config MODE debug
 
 matrix<double,4,4,dist> as = {1.0};
 matrix<double,4,4,dist> bs = {0.001};

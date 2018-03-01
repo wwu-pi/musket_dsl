@@ -3,6 +3,7 @@ package de.wwu.musket.generator.cpu
 import org.eclipse.emf.ecore.resource.Resource
 
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import de.wwu.musket.musket.Mode
 
 /**
  * Global config class for the generator.
@@ -51,6 +52,8 @@ class Config {
 
 	// project config
 	public static int processes;
+	
+	public static Mode mode;
 
 	/**
 	 * This method is called once in the beginning of the CPU generator and initializes some values.
@@ -60,5 +63,6 @@ class Config {
 	def static init(Resource resource) {
 		processes = resource.Processes
 		base_path = resource.ProjectName + "/CPU/"
+		mode = resource.ConfigBlock.mode
 	}
 }

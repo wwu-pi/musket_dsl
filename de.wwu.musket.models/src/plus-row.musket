@@ -1,5 +1,7 @@
 #config PLATFORM CPU
 #config PROCESSES 4
+#config CORES 8
+#config MODE debug
 
 // data structures
 matrix<int, 4, 4, dist> m = {1};

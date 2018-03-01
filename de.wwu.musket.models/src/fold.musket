@@ -1,5 +1,7 @@
 #config PLATFORM CPU
 #config PROCESSES 4
+#config CORES 8
+#config MODE debug
 
 array<int,16,dist> as = {7};
 array<int,16,dist> bs;

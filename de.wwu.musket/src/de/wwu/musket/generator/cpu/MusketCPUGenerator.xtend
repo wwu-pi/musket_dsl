@@ -10,6 +10,7 @@ import static de.wwu.musket.generator.cpu.CMakeGenerator.generateCMake
 import static de.wwu.musket.generator.cpu.HeaderFileGenerator.generateHeaderFile
 import static de.wwu.musket.generator.cpu.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.SourceFileGenerator.generateSourceFile
+import static de.wwu.musket.generator.cpu.SlurmGenerator.generateSlurmJob
 
 /** 
  * This is the start of the CPU generator.
@@ -37,6 +38,8 @@ class MusketCPUGenerator {
 
 		// run scripts 
 		generateRunScript(resource, fsa, context)
+		
+		generateSlurmJob(resource, fsa, context)
 
 		// build files
 		generateCMake(resource, fsa, context)
