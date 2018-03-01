@@ -38,6 +38,8 @@ import org.eclipse.xtext.validation.Check
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.MusketFunctionName
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -497,6 +499,35 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Collection element type must be of type ' + obj.calculateCollectionType + '!', 
 				MusketPackage.eINSTANCE.collectionObject_Values,
 				obj.values.indexOf(it))
+		}]
+	}
+	
+	// Rand function in MusketFunctionCall must have two numeric parameters of equal type
+	@Check
+	def checkRandFunctionParameters(MusketFunctionCall call) {
+		if(call.value !== MusketFunctionName.RAND) return;
+		
+		if(call.params?.size !== 2){
+			error('Musket rand function expects 2 parameters, ' + call.params?.size + ' given!', 
+				MusketPackage.eINSTANCE.musketFunctionCall_Params,
+				INVALID_PARAMS)
+		}
+		
+		call.params.forEach[ if(!it.calculateType.isNumeric) {
+			error('Musket rand function parameters must have numeric type, ' + it.calculateType + ' given!', 
+				MusketPackage.eINSTANCE.musketFunctionCall_Params,
+				call.params.indexOf(it))
+		}]
+	}
+	
+	@Check
+	def checkRandFunctionParameterType(MusketFunctionCall call) {
+		if(call.value !== MusketFunctionName.RAND) return;
+		
+		call.params.forEach[ if(it.calculateType != call.params.head.calculateType) {
+			error('Musket rand function parameters must have the same type!', 
+				MusketPackage.eINSTANCE.musketFunctionCall_Params,
+				INVALID_PARAMS)
 		}]
 	}
 }

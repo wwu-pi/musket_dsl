@@ -164,7 +164,7 @@ class TypeHelper {
 		
 		switch exp.value {
 			case PRINT: return MusketType.STRING
-			case RAND: return MusketType.DOUBLE // could also be int, depends on input values for borders
+			case RAND: return exp.params?.head?.calculateType
 			case DOUBLE_MIN: return MusketType.DOUBLE
 			case DOUBLE_MAX: return MusketType.DOUBLE
 			case FLOAT_MIN: return MusketType.FLOAT
