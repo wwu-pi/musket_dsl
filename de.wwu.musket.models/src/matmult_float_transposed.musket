@@ -31,7 +31,7 @@ float dotProduct(int i, int j, float Cij){
 	float sum = Cij;
 
 	for (int k = 0; k < cs.columnsLocal(); k++) {
-		sum += as[[i,k]] * bs[[k,j]];
+		sum += as[[i,k]] * bs[[j,k]]; // b transposed
 	}
 
 	return sum;
