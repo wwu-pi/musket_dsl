@@ -45,6 +45,8 @@ main{
 	bs.show();
 	cs.show();
 	
+	mkt::roi_start();
+	
 	as.shiftPartitionsHorizontally(negate());
 	bs.shiftPartitionsVertically(negate());
 	
@@ -56,6 +58,8 @@ main{
 
 	as.shiftPartitionsHorizontally(identity());
 	bs.shiftPartitionsVertically(identity());
+	
+	mkt::roi_end();
 	
 	cs.show();
 }

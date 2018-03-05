@@ -280,6 +280,9 @@ double getBestSolution(double best_solution, Fish fi){
 }
 
 main{
+
+	mkt::roi_start();
+
 	// init fish
 	population.mapInPlace(initFish());
 	
@@ -342,6 +345,8 @@ main{
 
   	// get best solution
   	double global_best_fitness = population.fold(mkt::double_min(), getBestSolution());
+  
+  mkt::roi_end();
   	
   	//print best solution
 	mkt::print('Best solution: %.5f\n', global_best_fitness);

@@ -14,6 +14,8 @@ int func(int r, int c, int i){
 // logic
 main{
 	m.show();
+	mkt::roi_start();
 	m.mapIndexInPlace(func());
+	mkt::roi_end();
 	m.show();
 }

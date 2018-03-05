@@ -101,10 +101,14 @@ main{
 	mkt::print('Initial Particle System:\n');
 	oldP.show();
 	
+	mkt::roi_start();
+	
 	for (int i = 0; i < steps; ++i) {
 		P.mapIndexInPlace(calc_force());	
 		oldP = P.gather();
 	}
+  
+  mkt::roi_end();
   		
 	mkt::print('Final Particle System:\n');
 	oldP.show();

@@ -17,6 +17,8 @@ main{
 	bs.show();
 	cs.show();
 	
+	mkt::roi_start();
+	
 	int a = 0;
 	int b = 0;
 	int c = 0;
@@ -26,6 +28,8 @@ main{
 		b = bs.fold(0,sum());	
 		c = cs.fold(0,sum());
 	}
+	
+	mkt::roi_end();
 	
 	mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
 }

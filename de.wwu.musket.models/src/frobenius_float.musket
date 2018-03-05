@@ -20,8 +20,14 @@ float sum(float a, float b){
 main{
 	as.mapIndexInPlace(init());
 	as.show();
+	
+	mkt::roi_start();
+	
 	as.mapInPlace(square());
 	float fn = as.fold(0.0f, sum());
 	fn = std::sqrt(fn);
+	
+	mkt::roi_end();
+	
 	mkt::print("Frobenius norm is %.5f.\n", fn);
 }

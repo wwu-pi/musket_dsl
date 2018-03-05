@@ -72,6 +72,7 @@ class SourceFileGenerator {
 		#include <sstream>
 		#include <chrono>
 		#include <random>
+		#include <limit>
 	'''
 
 	/**
@@ -121,14 +122,9 @@ class SourceFileGenerator {
 			«generateMPIFoldOperators(resource)»
 			«generateTmpFoldResults(resource)»
 			«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
-			
-			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-			
+						
 			«generateLogic(resource.Model.main)»
-			
-			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
-			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
-		
+					
 			if(«Config.var_pid» == 0){
 			printf("Execution time: %.5fs\n", seconds);
 			printf("Threads: %i\n", omp_get_max_threads());

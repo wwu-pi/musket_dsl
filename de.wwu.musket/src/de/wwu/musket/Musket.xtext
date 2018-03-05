@@ -470,7 +470,7 @@ enum CollectionFunctionName:
 ;
 
 enum MusketFunctionName:
-	print | rand | double_min | double_max | float_min | float_max
+	print | rand | double_min | double_max | float_min | float_max | roi_start | roi_end
 ;
 
 // Expression tree
