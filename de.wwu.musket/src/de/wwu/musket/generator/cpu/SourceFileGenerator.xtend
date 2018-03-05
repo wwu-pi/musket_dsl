@@ -72,7 +72,7 @@ class SourceFileGenerator {
 		#include <sstream>
 		#include <chrono>
 		#include <random>
-		#include <limit>
+		#include <limits>
 	'''
 
 	/**
