@@ -60,7 +60,7 @@ class ObjectExtension {
 	}
 	
 	def static dispatch ValueAsString(FloatConstant o) {
-		o.value.toString
+		o.value.toString + "f"
 	}
 
 	def static dispatch ValueAsString(BoolConstant o) {
@@ -81,7 +81,7 @@ class ObjectExtension {
 	}
 	
 	def static dispatch ValueAsString(FloatVal o) {
-		o.value.toString
+		o.value.toString + "f"
 	}
 	
 	def static dispatch ValueAsString(CompareExpression co) {
