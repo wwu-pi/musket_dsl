@@ -38,9 +38,6 @@ import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
  * It is called by the LogicGenerator.
  */
 class SkeletonGenerator {
-	
-	static var ShiftCounter = 0
-
 /**
  * Starting point for the skeleton generator.
  * It switches over the skeletons and calls the correct function.
@@ -410,16 +407,16 @@ class SkeletonGenerator {
 «««				shifting is happening
 				if(«Config.var_shift_target» != «pid»){
 					MPI_Request requests[2];
-					MPI_Status statuses[2] ;
-					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
-					std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
+					MPI_Status statuses[2];
+					«val buffer_name = Config.tmp_shift_buffer»
+					auto «buffer_name» = std::make_unique<std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»>>();
+					«generateMPIIrecv(pid, buffer_name + '->data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
 					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
-						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
+						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
 					}			
 				}
 				break;
@@ -480,16 +477,16 @@ class SkeletonGenerator {
 «««				shifting is happening
 				if(«Config.var_shift_target» != «pid»){
 					MPI_Request requests[2];
-					MPI_Status statuses[2] ;
-					«val buffer_name = Config.tmp_shift_buffer + '_' + ShiftCounter»
-					std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»> «buffer_name»;
-					«generateMPIIrecv(pid, buffer_name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
+					MPI_Status statuses[2];
+					«val buffer_name = Config.tmp_shift_buffer»
+					auto «buffer_name» = std::make_unique<std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»>>();
+					«generateMPIIrecv(pid, buffer_name + '->data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					#pragma omp parallel for simd
 					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
-						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»[«Config.var_loop_counter»];
+						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
 					}			
 				}
 				break;

@@ -73,6 +73,7 @@ class SourceFileGenerator {
 		#include <chrono>
 		#include <random>
 		#include <limits>
+		#include <memory>
 	'''
 
 	/**
