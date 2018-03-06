@@ -43,21 +43,22 @@ class SourceFileGenerator {
 	 * @return content of the source file
 	 */
 	def static sourceFileContent(Resource resource) '''
-			«generateIncludes»
-			#include "../«Config.include_path + resource.ProjectName + Config.header_extension»"
-			
-			«generateGlobalConstants»
-			«generateGlobalVariables»
-			«generateTmpVariables»
-			
+		«generateIncludes»
+		#include "../«Config.include_path + resource.ProjectName + Config.header_extension»"
 		
-			«FOR d : resource.Data»
-				«d.generateObjectDefinition»
-			«ENDFOR»
-			
+		«generateGlobalConstants»
+		«generateGlobalVariables»
+		«generateTmpVariables»
+		
+		
+		«FOR d : resource.Data»
+			«d.generateObjectDefinition»
+		«ENDFOR»
+		
+		«IF Config.processes > 1»
 			«generateMPIFoldFunction(resource.SkeletonExpressions)»
-		
-			«generateMainFunction(resource)»
+		«ENDIF»
+		«generateMainFunction(resource)»
 	'''
 
 	/** 
@@ -66,8 +67,13 @@ class SourceFileGenerator {
 	 * TODO: find a more sophisticated way to generate imports. At the moment here are simple all imports, which could be required, but they might not actyally be.
 	 */
 	def static generateIncludes() '''
-		#include <mpi.h>
-		#include <omp.h>
+		«IF Config.processes > 1»
+			#include <mpi.h>
+		«ENDIF»
+		
+		«IF Config.cores > 1»
+			#include <omp.h>
+		«ENDIF»
 		#include <array>
 		#include <sstream>
 		#include <chrono>
@@ -80,14 +86,18 @@ class SourceFileGenerator {
 	 * Generates global constants, which are required but not in the model.
 	 */
 	def static generateGlobalConstants() '''
-		const size_t «Config.var_np» = «Config.processes»;
+		«IF Config.processes > 1»
+			const size_t «Config.var_np» = «Config.processes»;
+		«ENDIF»
 	'''
 
 	/**
 	 * Generates global variables, which are required but not in the model.
 	 */
 	def static generateGlobalVariables() '''
-		int «Config.var_pid» = -1;
+		«IF Config.processes > 1»
+			int «Config.var_pid» = -1;
+		«ENDIF»
 	'''
 
 	/**
@@ -106,9 +116,13 @@ class SourceFileGenerator {
 		int main(int argc, char** argv) {
 			«generateInitialization»
 			
-			if(«Config.var_pid» == 0){
-				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
-			}
+			«IF Config.processes > 1»
+				if(«Config.var_pid» == 0){
+			«ENDIF»
+			printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
+			«IF Config.processes > 1»
+				}
+			«ENDIF»
 			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 				«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
@@ -118,19 +132,27 @@ class SourceFileGenerator {
 			«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource)»
+			«IF Config.cores > 1»
+				«generateReductionDeclarations(resource)»
+			«ENDIF»
+				
+			«IF Config.processes > 1»
+				«generateMPIFoldOperators(resource)»			
+				«generateTmpFoldResults(resource)»
+				«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
+			«ENDIF»
 			
-			«generateReductionDeclarations(resource)»
-			«generateMPIFoldOperators(resource)»
-			«generateTmpFoldResults(resource)»
-			«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
-						
 			«generateLogic(resource.Model.main)»
-					
-			if(«Config.var_pid» == 0){
+			
+			«IF Config.processes > 1»		
+				if(«Config.var_pid» == 0){
+			«ENDIF»
 			printf("Execution time: %.5fs\n", seconds);
-			printf("Threads: %i\n", omp_get_max_threads());
-			printf("Processes: %i\n", «Config.var_mpi_procs»);
-			}
+			printf("Threads: %i\n", «IF Config.cores > 1»omp_get_max_threads()«ELSE»«Config.cores»«ENDIF»);
+			printf("Processes: %i\n", «IF Config.processes > 1»«Config.var_mpi_procs»«ELSE»«Config.processes»«ENDIF»);
+			«IF Config.processes > 1»	
+				}
+			«ENDIF»
 			
 			«generateFinalization»
 		}
@@ -140,24 +162,28 @@ class SourceFileGenerator {
 	 * Generates boilerplate code, which is required for initialization.
 	 */
 	def static generateInitialization() '''
-		MPI_Init(&argc, &argv);
-		
-		int «Config.var_mpi_procs» = 0;
-		MPI_Comm_size(MPI_COMM_WORLD, &«Config.var_mpi_procs»);
-		
-		if(«Config.var_mpi_procs» != «Config.var_np»){
-			MPI_Finalize();
-			return EXIT_FAILURE;
-		}
-		
-		MPI_Comm_rank(MPI_COMM_WORLD, &«Config.var_pid»);
+		«IF Config.processes > 1»
+			MPI_Init(&argc, &argv);
+			
+			int «Config.var_mpi_procs» = 0;
+			MPI_Comm_size(MPI_COMM_WORLD, &«Config.var_mpi_procs»);
+			
+			if(«Config.var_mpi_procs» != «Config.var_np»){
+				MPI_Finalize();
+				return EXIT_FAILURE;
+			}
+			
+			MPI_Comm_rank(MPI_COMM_WORLD, &«Config.var_pid»);
+		«ENDIF»
 	'''
 
 	/**
 	 * Generates boilerplate code, which is required for finalization.
 	 */
 	def static generateFinalization() '''
-		MPI_Finalize();
+		«IF Config.processes > 1»
+			MPI_Finalize();
+		«ENDIF»
 		return EXIT_SUCCESS;
 	'''
 
@@ -172,7 +198,8 @@ class SourceFileGenerator {
 	def static String generateInitializeDataStructures(Resource resource) {
 		var result = ""
 
-		if (resource.Arrays.reject[it.type instanceof StructArrayType].exists[it.ValuesAsString.size > 1]) {
+		if (resource.Arrays.reject[it.type instanceof StructArrayType].exists[it.ValuesAsString.size > 1] &&
+			Config.processes > 1) {
 			result += "switch(" + Config.var_pid + "){\n"
 			for (var p = 0; p < Config.processes; p++) {
 				result += "case " + p + ": {\n"
@@ -180,12 +207,19 @@ class SourceFileGenerator {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
 						val sizeLocal = a.type.sizeLocal
-						result += a.generateArrayInitializationForProcess(p, values.drop(sizeLocal * p).take(sizeLocal))
+						result += a.generateArrayInitializationForProcess(values.drop(sizeLocal * p).take(sizeLocal))
 					}
 				}
 				result += "break;\n}\n"
 			}
 			result += "}"
+		} else {
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
+					result += a.generateArrayInitializationForProcess(values)
+				}
+			}
 		}
 
 		for (a : resource.CollectionObjects.reject [

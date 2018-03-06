@@ -46,7 +46,11 @@ class RunScriptGenerator {
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=«IF Config.mode == Mode.DEBUG»Dev«ELSE»Test«ENDIF» ../ && \
 		
 		make «resource.ProjectName» && \
-		mpirun -np «Config.processes» bin/«resource.ProjectName» 
+		«IF Config.processes > 1»
+			mpirun -np «Config.processes» bin/«resource.ProjectName»
+		«ELSE»
+			bin/«resource.ProjectName»
+		«ENDIF»
 	'''
 
 	/**
@@ -72,5 +76,5 @@ class RunScriptGenerator {
 		mkdir -p out && \
 		sbatch job.sh
 	'''
-	
+
 }

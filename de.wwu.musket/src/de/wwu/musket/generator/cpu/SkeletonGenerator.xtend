@@ -57,8 +57,8 @@ class SkeletonGenerator {
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
-			ShiftPartitionsHorizontallySkeleton: generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj.type as MatrixType)
-			ShiftPartitionsVerticallySkeleton: generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj.type as MatrixType)
+			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj.type as MatrixType)}
+			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj.type as MatrixType)}
 			GatherSkeleton: generateGatherSkeleton(s, s.skeleton as GatherSkeleton, target)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
@@ -89,7 +89,9 @@ class SkeletonGenerator {
 		«val a = s.obj»
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTable(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for simd
+		«IF Config.cores > 1»	
+			#pragma omp parallel for simd
+		«ENDIF»	
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
 		}
@@ -130,18 +132,18 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a) '''
-		«IF a.distributionMode == DistributionMode.COPY»
-					«Config.var_elem_offset» = 0;
-				«ELSE»
-					«FOR p : 0..<Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
-						case «p»: {
-							«Config.var_elem_offset» = «p * a.sizeLocal»;
-							break;
-						}
-					«ENDFOR»
-				«ENDIF»
+		«IF !(a.distributionMode == DistributionMode.COPY || Config.processes == 1)»
+			«FOR p : 0..<Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
+				case «p»: {
+					«Config.var_elem_offset» = «p * a.sizeLocal»;
+					break;
+				}
+			«ENDFOR»
+		«ENDIF»
 		«val param_map = createParameterLookupTableMapIndexSkeleton(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for simd
+		«IF Config.cores > 1»
+			#pragma omp parallel for simd
+		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, param_map)»
 		}
@@ -158,10 +160,7 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m) '''
-		«IF m.distributionMode == DistributionMode.COPY»
-			«Config.var_row_offset» = 0;
-			«Config.var_col_offset» = 0;
-		«ELSE»
+		«IF !(m.distributionMode == DistributionMode.COPY || Config.processes == 1)»
 			«FOR p : 0..<Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
 				case «p»: {
 					«Config.var_row_offset» = «p / m.blocksInColumn * m.rowsLocal»;
@@ -172,9 +171,13 @@ class SkeletonGenerator {
 		«ENDIF»
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTableMapIndexSkeleton(m, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for
+		«IF Config.cores > 1»
+			#pragma omp parallel for
+		«ENDIF»		
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			#pragma omp simd
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
 				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
 			}
@@ -194,7 +197,11 @@ class SkeletonGenerator {
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_elem_offset» + «Config.var_loop_counter»)''')
+		if(co.distributionMode == DistributionMode.COPY || Config.processes == 1){
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_elem_offset» + «Config.var_loop_counter»)''')
+		}
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter»]''')
 		
 		for (var i = 0; i < inputs.size; i++) {
@@ -216,8 +223,13 @@ class SkeletonGenerator {
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_row_offset» + «Config.var_loop_counter_rows»)''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''(«Config.var_col_offset» + «Config.var_loop_counter_cols»)''')
+		if(co.distributionMode == DistributionMode.COPY || Config.processes == 1){
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter_rows»''')
+			param_map.put(parameters.drop(inputs.size + 1).head.name, '''«Config.var_loop_counter_cols»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_row_offset» + «Config.var_loop_counter_rows»)''')
+			param_map.put(parameters.drop(inputs.size + 1).head.name, '''(«Config.var_col_offset» + «Config.var_loop_counter_cols»)''')
+		}
 		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter_rows» * «co.colsLocal» + «Config.var_loop_counter_cols»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
@@ -236,7 +248,9 @@ class SkeletonGenerator {
  */
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a) '''
 		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for simd
+		«IF Config.cores > 1»
+			#pragma omp parallel for simd
+		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
 			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, param_map)»
 		}
@@ -252,9 +266,13 @@ class SkeletonGenerator {
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m) '''
 		«««	create lookup table for parameters
 		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(m, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-		#pragma omp parallel for
+		«IF Config.cores > 1»
+			#pragma omp parallel for
+		«ENDIF»
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			#pragma omp simd
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
 				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
 			}
@@ -318,18 +336,25 @@ class SkeletonGenerator {
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) '''	
-		«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) '''
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+		«ELSE»
+			«target» = «s.identity.ValueAsString»;
+		«ENDIF»
 		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		
-			#pragma omp parallel for simd reduction(«foldName»:«Config.var_fold_result»_«co.calculateCollectionType.cppType»)
-			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
-			«val param_map = createParameterLookupTableFold(co, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+		«IF Config.cores > 1»
+			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«co.calculateCollectionType.cppType»«ELSE»«target»«ENDIF»)
+		«ENDIF»
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
+			«val param_map = createParameterLookupTableFold(co, target, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, param_map)»
-		
 		}		
 		
-		MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		«ENDIF»
 	'''
 
 	/**
@@ -340,11 +365,16 @@ class SkeletonGenerator {
 	 * @param inputs the parameter inputs
 	 * @return the param map
 	 */
-	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, Iterable<de.wwu.musket.musket.Parameter> parameters,
+	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+		if(Config.processes > 1){
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, target)
+		}
+		
 		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
@@ -414,7 +444,9 @@ class SkeletonGenerator {
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
-					#pragma omp parallel for simd
+					«IF Config.cores > 1»
+						#pragma omp parallel for simd
+					«ENDIF»
 					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
 						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
 					}			
@@ -484,7 +516,9 @@ class SkeletonGenerator {
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
-					#pragma omp parallel for simd
+					«IF Config.cores > 1»
+						#pragma omp parallel for simd
+					«ENDIF»
 					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
 						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
 					}			
@@ -523,11 +557,17 @@ class SkeletonGenerator {
  * <p>
  * It is generated as a MPIAllgather routine so that each process gets the values of the copy distributed array.
  * 
+ * Assumption: it is forbidden in the model to call gather for copy distributed data structure, and boundaries are already checked
+ * 
  * @param se the skeleton expression
  * @param target the target where the results should be written
  * @return the generated skeleton code 
  */
-	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target) '''		
-		«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal, se.obj.calculateCollectionType.cppType, target + '.data()')»
+	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target) '''
+		«IF Config.processes > 1»
+			«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal, se.obj.calculateCollectionType.cppType, target + '.data()')»
+		«ELSE»
+			std::copy(«se.obj.name».begin(), «se.obj.name».end(), «target».begin());
+		«ENDIF»
 	'''
 }

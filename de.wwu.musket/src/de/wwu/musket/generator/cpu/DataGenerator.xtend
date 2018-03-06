@@ -61,7 +61,7 @@ class DataGenerator {
 	def static dispatch generateObjectDefinition(Struct s) '''''' // this is done in StructGenerator.xtend
 
 // Generate initialization
-	def static generateArrayInitializationForProcess(CollectionObject a, int p, Iterable<String> values) '''
+	def static generateArrayInitializationForProcess(CollectionObject a, Iterable<String> values) '''
 		«var value_id = 0»
 		«FOR v : values»
 			«a.name»[«value_id++»] = «v»;
@@ -69,7 +69,9 @@ class DataGenerator {
 	'''
 
 	def static generateInitializationWithSingleValue(CollectionObject a) '''
-		#pragma omp parallel for simd
+		«IF Config.cores > 1»
+			#pragma omp parallel for simd
+		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter»  < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
 			«a.name»[«Config.var_loop_counter»] = «IF a.ValuesAsString.size == 0»0«ELSE»«a.ValuesAsString.head»«ENDIF»;
 		}

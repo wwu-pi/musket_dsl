@@ -46,9 +46,13 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generatePrint(MusketFunctionCall mfc) '''
-		if(«Config.var_pid» == 0){
+		«IF Config.processes > 1»
+			if(«Config.var_pid» == 0){
+		«ENDIF»
 			printf«FOR p : mfc.params BEFORE '(' SEPARATOR ',' AFTER ')'»«(p.generateExpression(null))»«ENDFOR»;
-		}
+		«IF Config.processes > 1»
+			}
+		«ENDIF»
 	'''
 
 	/**
@@ -60,7 +64,7 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generateRand(
-		MusketFunctionCall mfc) '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.replace('.', '_')»_«mfc.params.get(1).ValueAsString.replace('.', '_')»[omp_get_thread_num()](«Config.var_rng_array»[omp_get_thread_num()])'''
+		MusketFunctionCall mfc) '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.replace('.', '_')»_«mfc.params.get(1).ValueAsString.replace('.', '_')»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
 
 	/**
 	 * Generates the code for the musket roi start function. (Region of Interest)

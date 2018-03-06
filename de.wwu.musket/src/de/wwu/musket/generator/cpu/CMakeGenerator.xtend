@@ -55,16 +55,20 @@ class CMakeGenerator {
 		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 		set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 		
-		# packages		
-		find_package(MPI REQUIRED)
-		### this is a cmake bug: MPI link flags are preceeded by two whitespaces, which leads to one leading whitespace, which is now an error according to policy CMP0004.
-		string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
+		# packages
+		«IF Config.processes > 1»
+			find_package(MPI REQUIRED)
+			### this is a cmake bug: MPI link flags are preceeded by two whitespaces, which leads to one leading whitespace, which is now an error according to policy CMP0004.
+			string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
+		«ENDIF»
 		
-		find_package(OpenMP REQUIRED)
-				
+		«IF Config.cores > 1»
+			find_package(OpenMP REQUIRED)
+		«ENDIF»		
+		
 		add_executable(«resource.ProjectName» ${PROJECT_SOURCE_DIR}/src/«resource.ProjectName».cpp)
 		    target_include_directories(«resource.ProjectName» PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-		    target_compile_options(«resource.ProjectName» PRIVATE ${COMPILER_OPTIONS} ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-		    target_link_libraries(«resource.ProjectName» PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
+		    target_compile_options(«resource.ProjectName» PRIVATE «IF Config.processes > 1»${MPI_CXX_COMPILE_FLAGS}«ENDIF» «IF Config.cores > 1»${OpenMP_CXX_FLAGS}«ENDIF»)
+		    target_link_libraries(«resource.ProjectName» PRIVATE «IF Config.processes > 1»${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES}«ENDIF» «IF Config.cores > 1»${OpenMP_CXX_FLAGS}«ENDIF»)
 	'''
 }

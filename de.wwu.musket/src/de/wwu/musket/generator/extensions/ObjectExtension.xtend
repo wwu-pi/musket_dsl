@@ -100,6 +100,13 @@ class ObjectExtension {
 	}
 	
 	// for arrays
+	def static distributionMode(CollectionObject o){
+		switch o{
+			ArrayType: o.distributionMode
+			MatrixType: o.distributionMode
+		}
+	}
+	
 	// for arrays
 	def static dispatch size(ArrayType a) {
 		a.size.concreteValue

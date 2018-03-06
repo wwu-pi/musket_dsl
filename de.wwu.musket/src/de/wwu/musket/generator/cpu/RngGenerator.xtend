@@ -30,7 +30,7 @@ class RngGenerator {
 				«Config.var_rng_array».push_back(std::mt19937(rd()));
 			}
 		«ELSE»
-			std::array<std::mt19937, «cores»> «Config.var_rng_array» = «FOR i : 0 ..< cores BEFORE '{' SEPARATOR ',' AFTER '};'»std::mt19937(«Config.var_pid» * «cores» + «i»)«ENDFOR» 
+			std::array<std::mt19937, «cores»> «Config.var_rng_array» = «FOR i : 0 ..< cores BEFORE '{' SEPARATOR ',' AFTER '};'»std::mt19937(«IF Config.processes > 1»«Config.var_pid» * «cores» + «i»«ELSE»«i»«ENDIF»)«ENDFOR» 
 		«ENDIF»
 	'''
 

@@ -80,7 +80,7 @@ class CollectionFunctionsGenerator {
 	 * @return generated code
 	 */
 	def static generateShowArray(CollectionObject a) '''
-		«IF a.type.distributionMode == DistributionMode.COPY»
+		«IF a.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
 			«State.setArrayName(a.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
@@ -88,20 +88,24 @@ class CollectionFunctionsGenerator {
 			
 			«generateMPIGather(a.name + '.data()', a.type.sizeLocal, a.calculateCollectionType.cppType, State.arrayName + '.data()')»
 		«ENDIF»
-				
-		if («Config.var_pid» == 0) {
+		
+		«IF Config.processes > 1»
+			if («Config.var_pid» == 0) {
+		«ENDIF»
 			«val streamName = 's' + State.counter»
 			«State.incCounter»
 			std::ostringstream «streamName»;
 			«streamName» << "«a.name»: " << std::endl << "[";
 			for (int i = 0; i < «(a.type as ArrayType).size.concreteValue - 1»; i++) {
-				«streamName» << «generateShowElements(a, State.arrayName, "i")»;				
-				«streamName» << "; ";
+			«streamName» << «generateShowElements(a, State.arrayName, "i")»;				
+			«streamName» << "; ";
 			}
 			«streamName» << «generateShowElements(a, State.arrayName, ((a.type as ArrayType).size.concreteValue - 1).toString)» << "]" << std::endl;
 			«streamName» << std::endl;
 			printf("%s", «streamName».str().c_str());
-		}
+		«IF Config.processes > 1»
+			}
+		«ENDIF»
 	'''
 
 	/**
@@ -114,7 +118,7 @@ class CollectionFunctionsGenerator {
 	 */
 	def static generateShowMatrix(CollectionObject m) '''
 		«val type = m.type as MatrixType»
-		«IF m.type.distributionMode == DistributionMode.COPY»
+		«IF m.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
 			«State.setArrayName(m.name)»
 		«ELSE»
 			«State.setArrayName("temp" + State.counter)»			
@@ -125,22 +129,26 @@ class CollectionFunctionsGenerator {
 		
 		«val streamName = 's' + State.counter»
 		«State.incCounter»
-		if («Config.var_pid» == 0) {
+		«IF Config.processes > 1»
+			if («Config.var_pid» == 0) {
+		«ENDIF»
 			std::ostringstream «streamName»;
 			«streamName» << "«m.name»: " << std::endl;
 			«FOR i : 0..<type.rows.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
-				«FOR j : 0..<type.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
-					«IF type.blocksInRow == 1»
-						«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];									
-					«ELSE»
-						«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal * type.blocksInColumn + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];
-					«ENDIF»
-				«ENDFOR»
+			«FOR j : 0..<type.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
+				«IF type.blocksInRow == 1»
+					«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];									
+				«ELSE»
+					«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal * type.blocksInColumn + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];
+				«ENDIF»
+			«ENDFOR»
 			«ENDFOR»
 			
 			«streamName» << std::endl;							
 			printf("%s", «streamName».str().c_str());
-		}
+		«IF Config.processes > 1»
+			}
+		«ENDIF»
 	'''
 
 	// helper

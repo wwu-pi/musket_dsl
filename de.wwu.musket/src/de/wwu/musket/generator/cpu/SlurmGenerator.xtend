@@ -44,6 +44,10 @@ class SlurmGenerator {
 		
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
 		
-		mpirun ~/musket/src-gen/«resource.ProjectName»/CPU/build/bin/«resource.ProjectName»		
+		«IF Config.processes > 1»
+			mpirun ~/musket/src-gen/«resource.ProjectName»/CPU/build/bin/«resource.ProjectName»
+		«ELSE»
+			~/musket/src-gen/«resource.ProjectName»/CPU/build/bin/«resource.ProjectName»
+		«ENDIF»		
 	'''
 }

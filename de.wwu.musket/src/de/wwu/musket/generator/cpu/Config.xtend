@@ -52,7 +52,7 @@ class Config {
 
 	// project config
 	public static int processes;
-	
+	public static int cores;
 	public static Mode mode;
 
 	/**
@@ -62,6 +62,7 @@ class Config {
 	 */
 	def static init(Resource resource) {
 		processes = resource.Processes
+		cores = resource.ConfigBlock.cores
 		base_path = resource.ProjectName + "/CPU/"
 		mode = resource.ConfigBlock.mode
 	}
