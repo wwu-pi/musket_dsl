@@ -17,6 +17,7 @@ import static de.wwu.musket.generator.cpu.RngGenerator.*
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.MusketFunctionCall
 
 /** 
  * Generates the source file of the project.
@@ -147,7 +148,9 @@ class SourceFileGenerator {
 			«IF Config.processes > 1»		
 				if(«Config.var_pid» == 0){
 			«ENDIF»
-			printf("Execution time: %.5fs\n", seconds);
+			«IF resource.Model.main.content.exists[it instanceof MusketFunctionCall && (it as MusketFunctionCall).value == MusketFunctionName.ROI_START]»
+				printf("Execution time: %.5fs\n", seconds);
+			«ENDIF»
 			printf("Threads: %i\n", «IF Config.cores > 1»omp_get_max_threads()«ELSE»«Config.cores»«ENDIF»);
 			printf("Processes: %i\n", «IF Config.processes > 1»«Config.var_mpi_procs»«ELSE»«Config.processes»«ENDIF»);
 			«IF Config.processes > 1»	
