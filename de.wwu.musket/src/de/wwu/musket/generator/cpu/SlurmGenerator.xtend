@@ -36,7 +36,7 @@ class SlurmGenerator {
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
 		#SBATCH --partition normal
-		#SBATCH --output ~/musket/src-gen/«resource.ProjectName»/CPU/out/«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
+		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
 		#SBATCH --cpus-per-task 64
 		#SBATCH --mail-type ALL
 		#SBATCH --mail-user my@e-mail.de
@@ -45,9 +45,9 @@ class SlurmGenerator {
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
 		
 		«IF Config.processes > 1»
-			mpirun ~/musket/src-gen/«resource.ProjectName»/CPU/build/bin/«resource.ProjectName»
+			mpirun «Config.build_path»bin/«resource.ProjectName»
 		«ELSE»
-			~/musket/src-gen/«resource.ProjectName»/CPU/build/bin/«resource.ProjectName»
+			«Config.build_path»bin/«resource.ProjectName»
 		«ENDIF»		
 	'''
 }

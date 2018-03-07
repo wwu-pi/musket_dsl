@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.resource.Resource
 
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import de.wwu.musket.musket.Mode
+import org.eclipse.emf.common.util.URI
 
 /**
  * Global config class for the generator.
@@ -15,10 +16,18 @@ import de.wwu.musket.musket.Mode
  * TODO: might be good to also include types for the variables.
  */
 class Config {
-	// project paths
+	// project paths, determined and overwritten in init method!
 	public static String base_path = ""
+	public static String build_path = ""
+	public static String out_path = ""
+	
+	// these can be changed 
 	public static final String include_path = "include/"
 	public static final String source_path = "src/" // assumption that depth is only one folder
+	public static final String build_folder = "build"
+	public static final String out_folder = "out"
+	public static final String home_path = "~/musket-build/"
+	
 	// file extensions
 	public static final String header_extension = ".hpp"
 	public static final String source_extension = ".cpp"
@@ -60,10 +69,14 @@ class Config {
 	 * 
 	 * @param resource the resource object
 	 */
-	def static init(Resource resource) {
+	def static init(Resource resource) {		
+		val subfolders = URI.createFileURI(resource.URI.trimFileExtension.trimFragment.trimQuery.segmentsList.dropWhile[it != "src"].drop(1).join("/")).trimSegments(1)
+		base_path = subfolders.appendSegment(resource.ProjectName).appendSegment("CPU").path + "/"
+		build_path = home_path + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(build_folder).path + "/"
+		out_path = home_path + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(out_folder).path + "/"
+		
 		processes = resource.Processes
 		cores = resource.ConfigBlock.cores
-		base_path = resource.ProjectName + "/CPU/"
 		mode = resource.ConfigBlock.mode
 	}
 }

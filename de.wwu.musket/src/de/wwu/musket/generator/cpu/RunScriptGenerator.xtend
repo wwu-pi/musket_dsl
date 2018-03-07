@@ -38,11 +38,11 @@ class RunScriptGenerator {
 		#!/bin/bash
 		
 		# remove files and create folder
-		rm -rf -- build && \
-		mkdir build && \
+		rm -rf -- «Config.build_folder» && \
+		mkdir «Config.build_folder» && \
 		
 		# run cmake
-		cd build/ && \
+		cd «Config.build_folder» && \
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=«IF Config.mode == Mode.DEBUG»Dev«ELSE»Test«ENDIF» ../ && \
 		
 		make «resource.ProjectName» && \
@@ -64,16 +64,16 @@ class RunScriptGenerator {
 		#!/bin/bash
 		
 		# remove files and create folder
-		rm -rf -- build && \
-		mkdir build && \
+		rm -rf -- «Config.build_path» && \
+		mkdir «Config.build_path» && \
 		
 		# run cmake
-		cd build/ && \
+		cd «Config.build_path» && \
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark ../ && \
 		
 		make «resource.ProjectName» && \
 		cd .. && \
-		mkdir -p out && \
+		mkdir -p «Config.out_path» && \
 		sbatch job.sh
 	'''
 
