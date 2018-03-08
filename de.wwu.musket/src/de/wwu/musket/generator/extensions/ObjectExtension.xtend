@@ -175,6 +175,11 @@ class ObjectExtension {
 		}
 	}
 	
+	/**
+	 * Returns a tuple that holds the position of the partition for a given matrix and the process id.
+	 * Key: row position
+	 * Value: col position
+	 */
 	def static partitionPosition(MatrixType m, int pid) {
 		switch m.distributionMode {
 			case DIST: (pid / m.blocksInColumn) -> (pid % m.blocksInColumn)

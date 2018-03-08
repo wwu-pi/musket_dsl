@@ -426,13 +426,14 @@ class SkeletonGenerator {
 		«FOR pid : 0 ..< Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
 			case «pid»:	{
 				«val pos = m.partitionPosition(pid)»				
-				size_t «Config.var_shift_source» = «pid»;
-				size_t «Config.var_shift_target» = «pid»;
+				int «Config.var_shift_source» = «pid»;
+				int «Config.var_shift_target» = «pid»;
 «««				generate Function Call
 				«val param_map = createParameterLookupTableShiftPartitionsHorizontally(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
-				«Config.var_shift_target» = ((«pid» + «Config.var_shift_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
-				«Config.var_shift_source» = ((«pid» - «Config.var_shift_steps») % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
+				
+				«Config.var_shift_target» = ((((«pos.value» + «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
+				«Config.var_shift_source» = ((((«pos.value» - «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
 				
 «««				shifting is happening
 				if(«Config.var_shift_target» != «pid»){
@@ -498,14 +499,15 @@ class SkeletonGenerator {
 		«FOR pid : 0 ..< Config.processes BEFORE 'switch(' + Config.var_pid + '){\n' SEPARATOR '' AFTER '}'»
 			case «pid»:	{
 				«val pos = m.partitionPosition(pid)»			
-				size_t «Config.var_shift_source» = «pid»;
-				size_t «Config.var_shift_target» = «pid»;
+				int «Config.var_shift_source» = «pid»;
+				int «Config.var_shift_target» = «pid»;
 «««				generate Function Call
 				«val param_map = createParameterLookupTableShiftPartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-				size_t «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
-				«Config.var_shift_target» = ((«pid / m.blocksInColumn» + «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
-				«Config.var_shift_source» = ((«pid / m.blocksInColumn» - «Config.var_shift_steps») % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
 				
+				«Config.var_shift_target» = ((((«pos.key» + «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+				«Config.var_shift_source» = ((((«pos.key» - «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
+
 «««				shifting is happening
 				if(«Config.var_shift_target» != «pid»){
 					MPI_Request requests[2];
