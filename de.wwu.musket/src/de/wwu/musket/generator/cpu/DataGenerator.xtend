@@ -28,8 +28,8 @@ class DataGenerator {
 
 	def static dispatch generateObjectDeclaration(CollectionObject c) {
 		switch (c.type) {
-			ArrayType: '''extern std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»;'''
-			MatrixType: '''extern std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»;'''
+			ArrayType: '''extern std::vector<«c.calculateCollectionType.cppType»> «c.name»;'''
+			MatrixType: '''extern std::vector<«c.calculateCollectionType.cppType»> «c.name»;'''
 		}
 	}
 
@@ -53,8 +53,8 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinition(CollectionObject c) {
 		switch (c.type) {
-			ArrayType: '''std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»{};'''
-			MatrixType: '''std::array<«c.calculateCollectionType.cppType», «c.type.sizeLocal»> «c.name»{};'''
+			ArrayType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal»);'''
+			MatrixType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal»);'''
 		}
 	}
 

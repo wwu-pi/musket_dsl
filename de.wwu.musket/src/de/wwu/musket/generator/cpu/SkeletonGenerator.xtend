@@ -440,17 +440,13 @@ class SkeletonGenerator {
 					MPI_Request requests[2];
 					MPI_Status statuses[2];
 					«val buffer_name = Config.tmp_shift_buffer»
-					auto «buffer_name» = std::make_unique<std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»>>();
+					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal»);
 					«generateMPIIrecv(pid, buffer_name + '->data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
-					«IF Config.cores > 1»
-						#pragma omp parallel for simd
-					«ENDIF»
-					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
-						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
-					}			
+					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());
+							
 				}
 				break;
 			}
@@ -513,17 +509,12 @@ class SkeletonGenerator {
 					MPI_Request requests[2];
 					MPI_Status statuses[2];
 					«val buffer_name = Config.tmp_shift_buffer»
-					auto «buffer_name» = std::make_unique<std::array<«m.calculateCollectionType.cppType», «m.sizeLocal»>>();
+					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal»);
 					«generateMPIIrecv(pid, buffer_name + '->data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
 					«generateMPIIsend(pid, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal, m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
-					«IF Config.cores > 1»
-						#pragma omp parallel for simd
-					«ENDIF»
-					for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «m.sizeLocal»; ++«Config.var_loop_counter»){
-						«(m.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «buffer_name»->at(«Config.var_loop_counter»);
-					}			
+					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());		
 				}
 				break;
 			}
