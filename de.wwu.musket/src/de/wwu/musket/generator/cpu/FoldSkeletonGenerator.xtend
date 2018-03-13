@@ -46,7 +46,9 @@ class FoldSkeletonGenerator {
 	/**
 	 * Generates OpenMP reduction declaration.
 	 * It iterates through all skeleton statements and generates the reduction declaration
-	 * only once for each function that is used in a fold skeleton.
+	 * only once for each function that is used in a fold skeleton and only if the return type
+	 * and the input types for both values is the same, otherwise reduction is done without
+	 * declare reduction.
 	 * 
 	 * @param sleketons list of all skeleton expressions.
 	 * @return generated code
@@ -55,7 +57,7 @@ class FoldSkeletonGenerator {
 		var result = ""
 		var List<SkeletonExpression> processed = newArrayList
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
-			if (se.skeleton instanceof FoldSkeleton) {
+			if (se.skeleton instanceof FoldSkeleton && (se.skeleton as FoldSkeleton).identity.calculateType == ((se.skeleton as FoldSkeleton).param as InternalFunctionCall).value.params.last?.calculateType) {
 				val alreadyProcessed = processed.exists [
 					((it.skeleton.param as InternalFunctionCall).value as RegularFunction).name ==
 						((se.skeleton.param as InternalFunctionCall).value as RegularFunction).name

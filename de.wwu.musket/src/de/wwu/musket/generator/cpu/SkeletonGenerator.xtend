@@ -328,7 +328,29 @@ class SkeletonGenerator {
 /**
  * Generates the fold skeleton.
  * <p>
- * It is the same for arrays and matrices, because both are generated as std::arrays. 
+ * It is the same for arrays and matrices, because both are generated as std::vector. 
+ * <p>
+ * ASSUMPTION: the function passed to the fold skeleton is associative and commutative.
+ * 
+ * There are two versions for fold, since OpenMP declare reduction does not allow different types.
+ * So for different input and output type, there is a version with a loop and a critical section afterwards.
+ * 
+ * @param s the skeleton expression
+ * @param a the array on which the skeleton is used
+ * @return the generated skeleton code 
+ */
+	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) {
+		if(s.identity.calculateType == (s.param as InternalFunctionCall).value.params.last?.calculateType){
+			generateFoldSkeletonSameType(s, co, target)
+		}else{
+			generateFoldSkeletonDifferentTypes(s,co,target)
+		}
+	}
+
+/**
+ * Generates the fold skeleton.
+ * <p>
+ * It is the same for arrays and matrices, because both are generated as std::vector. 
  * <p>
  * ASSUMPTION: the function passed to the fold skeleton is associative and commutative
  * 
@@ -336,11 +358,11 @@ class SkeletonGenerator {
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) '''
+	def static generateFoldSkeletonSameType(FoldSkeleton s, CollectionObject co, String target) '''
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.generateExpression(null)»;
 		«ELSE»
-			«target» = «s.identity.ValueAsString»;
+			«target» = «s.identity.generateExpression(null)»;
 		«ENDIF»
 		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
 		
@@ -351,6 +373,49 @@ class SkeletonGenerator {
 			«val param_map = createParameterLookupTableFold(co, target, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
 			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, param_map)»
 		}		
+		
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		«ENDIF»
+	'''
+
+/**
+ * Generates the fold skeleton.
+ * <p>
+ * It is the same for arrays and matrices, because both are generated as std::vector. 
+ * <p>
+ * ASSUMPTION: the function passed to the fold skeleton is associative and commutative
+ * 
+ * @param s the skeleton expression
+ * @param a the array on which the skeleton is used
+ * @return the generated skeleton code 
+ */
+	def static generateFoldSkeletonDifferentTypes(FoldSkeleton s, CollectionObject co, String target) '''
+		«val return_type = s.identity.calculateType.cppType»
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			«Config.var_fold_result»_«return_type»  = «s.identity.generateExpression(null)»;
+		«ELSE»
+			«target» = «s.identity.generateExpression(null)»;
+		«ENDIF»
+		«val foldName = ((s.param as InternalFunctionCall).value as RegularFunction).name»
+		
+		«IF Config.cores > 1»
+			#pragma omp parallel
+			{
+			«return_type» «Config.var_fold_result_local» = «s.identity.generateExpression(null)»;
+			#pragma omp for simd
+		«ENDIF»
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
+			«val param_map = createParameterLookupTableFoldDifferentTypes(co, target, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
+			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, param_map)»
+		}		
+		
+		«IF Config.cores > 1»
+			#pragma omp critical («foldName»_fold){
+				«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, param_map)»
+			}
+			}
+		«ENDIF»
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
 			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
@@ -371,6 +436,32 @@ class SkeletonGenerator {
 
 		if(Config.processes > 1){
 			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, target)
+		}
+		
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
+
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
+		}
+		return param_map
+	}
+	
+	/**
+	 * Creates the param map for the fold skeleton.
+	 * 
+	 * @param co the collection object the skeleton is used on
+	 * @param parameters the parameters of the skeleton
+	 * @param inputs the parameter inputs
+	 * @return the param map
+	 */
+	def static Map<String, String> createParameterLookupTableFoldDifferentTypes(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
+		Iterable<Expression> inputs) {
+		val param_map = new HashMap<String, String>
+
+		if(Config.processes > 1){
+			param_map.put(parameters.drop(inputs.size).head.name, Config.var_fold_result_local)
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
 		}
