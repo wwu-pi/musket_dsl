@@ -110,9 +110,7 @@ class CollectionFunctionsGenerator {
 
 	/**
 	 * Generates the show() method for matrices.
-	 * TODO: the method currently unrolls loops for the output. This leads to very large source files.
-	 * TODO: does not print structs correctly, yet.
-	 * 
+	 *  
 	 * @param m the matrix
 	 * @return generated code
 	 */
@@ -121,7 +119,7 @@ class CollectionFunctionsGenerator {
 		«IF m.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
 			«State.setArrayName(m.name)»
 		«ELSE»
-			«State.setArrayName("temp" + State.counter)»			
+			«State.setArrayName("temp" + State.counter)»
 			std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
 			
 			«generateMPIGather(m.name + '.data()', m.type.sizeLocal, m.calculateCollectionType.cppType, State.arrayName + '.data()')»
@@ -133,18 +131,26 @@ class CollectionFunctionsGenerator {
 			if («Config.var_pid» == 0) {
 		«ENDIF»
 			std::ostringstream «streamName»;
-			«streamName» << "«m.name»: " << std::endl;
-			«FOR i : 0..<type.rows.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< std::endl;' AFTER streamName + '<< "]" << std::endl;'»
-			«FOR j : 0..<type.cols.concreteValue BEFORE streamName + '<< "[";' SEPARATOR streamName + '<< "; ";'  AFTER streamName + '<< "]";'»
-				«IF type.blocksInRow == 1»
-					«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];									
-				«ELSE»
-					«streamName» << «State.arrayName»[«(i % type.rowsLocal) * type.colsLocal + (i / type.rowsLocal) * type.sizeLocal * type.blocksInColumn + (j / type.colsLocal) * type.sizeLocal + j % type.colsLocal»];
-				«ENDIF»
-			«ENDFOR»
-			«ENDFOR»
+			«streamName» << "«m.name»: " << std::endl << "[" << std::endl;
 			
-			«streamName» << std::endl;							
+			for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rows.concreteValue»; ++«Config.var_loop_counter_rows»){
+				«streamName» << "[";
+				for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.cols.concreteValue»; ++«Config.var_loop_counter_cols»){
+					«IF type.blocksInRow == 1»
+						«streamName» << «generateShowElements(m, State.arrayName, Config.var_loop_counter_rows + " * " + type.rows.concreteValue + " + " + Config.var_loop_counter_cols)»;
+					«ELSE»
+						«val index = "(" + Config.var_loop_counter_rows + "%" + type.rowsLocal + ") * " + type.colsLocal + " + (" + Config.var_loop_counter_rows + " / " + type.rowsLocal + ") * " + type.sizeLocal + " * " + type.blocksInColumn + " + (" + Config.var_loop_counter_cols + "/ " + type.colsLocal + ") * " + type.sizeLocal + " + " + Config.var_loop_counter_cols + "%" + type.colsLocal»
+						«streamName» << «generateShowElements(m, State.arrayName, index)»;
+					«ENDIF»
+					if(«Config.var_loop_counter_cols» < «type.cols.concreteValue - 1»){
+						«streamName» << "; ";
+					}else{
+						«streamName» << "]" << std::endl;
+					}
+				}
+			}
+			
+			«streamName» << "]" << std::endl;
 			printf("%s", «streamName».str().c_str());
 		«IF Config.processes > 1»
 			}
