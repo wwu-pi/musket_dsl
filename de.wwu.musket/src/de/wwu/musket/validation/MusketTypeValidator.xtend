@@ -40,6 +40,8 @@ import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.MusketFunctionName
 import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.LambdaFunction
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -181,6 +183,20 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							INVALID_PARAMS)
 					}
 				
+				MapFoldSkeleton: 
+					// First parameter used for map -> less required for main fold
+					if(call.value.params.size < indexParams+foldParamsOut-1){
+						// Check minimum amount of parameters in target function
+						error('Referenced function requires at least ' + (indexParams+foldParamsOut-1) + ' parameters, ' + call.value.params.size + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					} else if(call.params.size-1 !== call.value.params.size-indexParams-foldParamsOut){
+						// Check provided argument count matches target function parameter count
+						error('Skeleton function call requires ' + (call.value.params.size-indexParams-foldParamsOut) + ' arguments, ' + (call.params.size-1) + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					
 				GatherSkeleton:
 					if(call.params.size !== 0){ 
 						// gather has exactly zero arguments
@@ -243,8 +259,20 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						// user function: 	T func(..., T t, T t)
 						// call:			Ts.func(t, func(...))
 						
-						// Last two parameters need to match for fold skeleton
-						if(callingType != call.value.params.last?.calculateType){
+						// Referenced function parameters need to match calling type (or mapped type) for fold skeleton
+						if(skel instanceof MapFoldSkeleton){
+							if(!(skel.mapFunction.calculateType.equalsIgnoreDistribution(call.value.params.last?.calculateType))){
+								error('Mapped type ' + (skel as MapFoldSkeleton).mapFunction.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+								MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
+								INVALID_PARAMS)
+							}
+							if(skel.mapFunction instanceof LambdaFunction && ((skel.mapFunction as LambdaFunction).params.size != 1 || callingType != (skel.mapFunction as LambdaFunction).params.get(0).calculateType)){
+								error('Calling type ' + callingType + ' does not match expected function input ' + (skel.mapFunction as LambdaFunction).params.get(0).calculateType + '!', 
+								MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
+								INVALID_PARAMS)
+							}
+						} else if(!(skel instanceof MapFoldSkeleton) && callingType != call.value.params.last?.calculateType){
+							// Regular folds
 							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
@@ -261,13 +289,13 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as its identity
-						if(call.value.calculateType != skel.identity.calculateType){
+						if(!call.value.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
 							error('Return type ' + new MusketType(call.value) + ' needs to match the identity type ' + skel.identity.calculateType + ' for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
 						// Fold function needs to return same type as second but last value
-						if(call.value.params.size >= 2 && call.value.calculateType != call.value.params.get(call.value.params.size-2)?.calculateType){
+						if(call.value.params.size >= 2 && !call.value.calculateType.equalsIgnoreDistribution(call.value.params.get(call.value.params.size-2)?.calculateType)){
 							error('Return type ' + new MusketType(call.value) + ' needs to match the second but last parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + ' for fold skeletons!', 
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)

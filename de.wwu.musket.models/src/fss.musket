@@ -164,20 +164,20 @@ Fish feeding(double max_fitness_variation, Fish fi){
 	return fi;
 }
 
-double maxFitnessVariation(double max_fitness_variation, Fish fi){
+double maxFitnessVariation(double max_fitness_variation, double fitness_variation){
 	double result;
-	if(max_fitness_variation > fi.fitness_variation){
+	if(max_fitness_variation > fitness_variation){
 		result = max_fitness_variation;
 	} else {
-		result = fi.fitness_variation;
+		result = fitness_variation;
 	}
 	return result;
 }
 
 
 // instinctive movement
-double sumFitnessVariation(double sum_fitness_variation, Fish fi){
-	return sum_fitness_variation + fi.fitness_variation;
+double sumFitnessVariation(double sum_fitness_variation, double fitness_variation){
+	return sum_fitness_variation + fitness_variation;
 }
 
 Fish calcDisplacementMap(Fish fi){
@@ -187,9 +187,9 @@ Fish calcDisplacementMap(Fish fi){
 	return fi;
 }
 
-array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, Fish fi){
+array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, array<double, DIMENSIONS, loc> displacement){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		arr[i] += fi.displacement[i];
+		arr[i] += displacement[i];
 	}
 	return arr;
 }
@@ -208,8 +208,8 @@ Fish instinctiveMovement(Fish fi){
 }
 
 // volitiveMovement
-double sumWeight(double sum_weight, Fish fi){
-	return sum_weight + fi.weight;
+double sumWeight(double sum_weight, double fishWeight){
+	return sum_weight + fishWeight;
 }
 
 Fish calcWeightedFish(Fish fi){
@@ -219,9 +219,9 @@ Fish calcWeightedFish(Fish fi){
 	return fi;
 }
 
-array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, Fish fi){
+array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, array<double,DIMENSIONS,copy> position){
 	for(int i = 0; i < DIMENSIONS; ++i){
-		arr[i] += fi.position[i];
+		arr[i] += position[i];
 	}
 	return arr;
 }
@@ -269,11 +269,11 @@ Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_las
 	return fi;
 }
 
-double getBestSolution(double best_solution, Fish fi){
+double getBestSolution(double best_solution, double best_fitness){
 	double result = best_solution;
 	
-	if(fi.best_fitness > best_solution){
-		result = fi.best_fitness;
+	if(best_fitness > best_solution){
+		result = best_fitness;
 	}
 	
 	return result;
@@ -288,8 +288,8 @@ main{
 	
 	double step_size = STEP_SIZE_INITIAL;
 	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
-	
-	double sum_weight_last_iteration = population.fold(0.0, sumWeight());
+	//fi.weight
+	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 	
 	// main loop
 	for (int iteration = 0; iteration < ITERATIONS; ++iteration) {
@@ -310,7 +310,7 @@ main{
 //		Fish max_fitness_variation_fish = population.fold(Fish{}, maxFitnessVariation());
 //		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
 		// or
-		double max_fitness_variation = population.fold(0.0, maxFitnessVariation());
+		double max_fitness_variation = population.mapFold((Fish fi) -> double { return 2.0; }, 0.0, maxFitnessVariation());
 		
 		population.mapInPlace(feeding(max_fitness_variation));
 		
@@ -318,10 +318,10 @@ main{
 //		Fish sum_fitness_variation_fish = population.fold(Fish{}, sumFitnessVariation());
 //		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
 		// or 
-		double sum_fitness_variation = population.fold(0.0, sumFitnessVariation());
+		double sum_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, sumFitnessVariation());
 		
 		population.mapInPlace(calcDisplacementMap());
-		instinctive_movement_vector = population.fold(array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
+		instinctive_movement_vector = population.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.displacement; }, array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
 		
 		instinctive_movement_vector.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
 		
@@ -330,11 +330,11 @@ main{
 		population.mapInPlace(instinctiveMovement());
 		
 		// collective volitive movement
-		double sum_weight = population.fold(0.0, sumWeight());
+		double sum_weight = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 		
 		weighted_fishes = population.map(calcWeightedFish());
 
-		barycenter = weighted_fishes.fold(array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
+		barycenter = weighted_fishes.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.position;}, array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
 
 		barycenter.mapInPlace(calcBarycenterMap(sum_weight));
 		barycenter_copy = barycenter.gather();
@@ -344,9 +344,9 @@ main{
 	}
 
   	// get best solution
-  	double global_best_fitness = population.fold(mkt::double_min(), getBestSolution());
+  	double global_best_fitness = population.mapFold((Fish fi) -> double { return fi.best_fitness;}, mkt::double_min(), getBestSolution());
   
-  mkt::roi_end();
+  	mkt::roi_end();
   	
   	//print best solution
 	mkt::print('Best solution: %.5f\n', global_best_fitness);
