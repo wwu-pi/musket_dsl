@@ -68,7 +68,7 @@ class MusketType {
 	}
 	
 	new(Function f){
-		new MusketType(f.returnType)
+		this(f.returnType)
 	}
 	
 	def isArray() {
