@@ -371,7 +371,8 @@ MapSkeletonVariants:
 
 FoldSkeletonVariants:
 	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=Expression ',' param=SkeletonParameterInput ')' |
-	{FoldLocalSkeleton} 'foldLocal' '(' identity=Expression ',' param=SkeletonParameterInput ')'
+	{FoldLocalSkeleton} 'foldLocal' '(' identity=Expression ',' param=SkeletonParameterInput ')' |
+	{MapFoldSkeleton} 'mapFold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' mapFunction=SkeletonParameterInput ','  identity=Expression ',' param=SkeletonParameterInput ')'
 ;
 
 ZipSkeletonVariants:
