@@ -80,7 +80,7 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateReductionDeclaration(FoldSkeleton s, CollectionObject a) '''
 		«val param_map_red = createParameterLookupTableFoldReductionClause((s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.calculateCollectionType.cppType» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.calculateCollectionType.cppType» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
 	'''
 
 	/**
@@ -144,7 +144,7 @@ class FoldSkeletonGenerator {
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
 			«val param_map = createParameterLookupTable((foldSkeleton.param as InternalFunctionCall).value.params, (foldSkeleton.param as InternalFunctionCall).params)»
-			«(foldSkeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(foldSkeleton, a, param_map)»
+			«(foldSkeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(foldSkeleton, a, null, param_map)»
 		} 
 	'''
 

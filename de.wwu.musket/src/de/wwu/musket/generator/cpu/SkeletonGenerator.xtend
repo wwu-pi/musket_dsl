@@ -17,6 +17,7 @@ import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.SkeletonExpression
+
 import java.util.HashMap
 import java.util.Map
 
@@ -30,6 +31,15 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
+import de.wwu.musket.musket.MapIndexSkeleton
+import de.wwu.musket.musket.MapLocalIndexSkeleton
+import de.wwu.musket.musket.ZipSkeleton
+import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.FoldLocalSkeleton
 
 /**
  * Generates the skeleton calls.
@@ -54,9 +64,18 @@ class SkeletonGenerator {
 				}
 			}
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
+			MapIndexSkeleton: '''// TODO: MapIndexSkeleton''' //generateMapIndexSkeleton(s)			
+			MapLocalIndexSkeleton: '''// TODO: MapLocalIndexSkeleton''' //generateMapLocalIndexSkeleton(s)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
+			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton'''
+			ZipSkeleton:  '''// TODO: ZipSkeleton'''
+			ZipInPlaceSkeleton:  '''// TODO: ZipInPlaceSkeleton'''
+			ZipIndexSkeleton: '''// TODO: ZipIndexSkeleton'''		
+			ZipLocalIndexSkeleton: '''// TODO: ZipLocalIndexSkeleton'''
+			ZipIndexInPlaceSkeleton:  '''// TODO: ZipIndexInPlaceSkeleton'''
+			ZipLocalIndexInPlaceSkeleton:  '''// TODO: ZipLocalIndexInPlaceSkeleton'''
 			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj.type as MatrixType)}
 			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj.type as MatrixType)}
 			GatherSkeleton: generateGatherSkeleton(s, s.skeleton as GatherSkeleton, target)
@@ -66,14 +85,36 @@ class SkeletonGenerator {
 
 
 	def static generateMapSkeleton(SkeletonExpression s, String target) '''
-«««		«val a = s.obj»
-«««		«val param_map = createParameterLookupTable(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
-«««		#pragma omp parallel for simd
-«««		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-«««			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
-«««		}
-		//TODO: SkeletonGenerator.generateMapSkeleton: map skeleton
+		«val a = s.obj»
+		«val param_map = createParameterLookupTableMap(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
+				«IF Config.cores > 1»	
+					#pragma omp parallel for simd
+				«ENDIF»	
+				for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
+					«Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
+					«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, target, param_map)»
+				}
 	'''
+
+/**
+ * Creates the param map for the mapInPlace skeleton.
+ * 
+ * @param co the collection object the skeleton is used on
+ * @param parameters the parameters of the skeleton
+ * @param inputs the parameter inputs
+ * @return the param map
+ */
+	def static Map<String, String> createParameterLookupTableMap(CollectionObject co, Iterable<de.wwu.musket.musket.Parameter> parameters,
+		Iterable<Expression> inputs) {
+		val param_map = new HashMap<String, String>
+		
+		param_map.put(parameters.drop(inputs.size).head.name, Config.var_map_input)
+		
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
+		}
+		return param_map
+	}
 
 /**
  * Generates the MapInPlace skeleton.
@@ -93,7 +134,7 @@ class SkeletonGenerator {
 			#pragma omp parallel for simd
 		«ENDIF»	
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
-			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, param_map)»
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, null, param_map)»
 		}
 	'''
 	
@@ -145,7 +186,7 @@ class SkeletonGenerator {
 			#pragma omp parallel for simd
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, param_map)»
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, null, param_map)»
 		}
 	'''
 	
@@ -179,7 +220,7 @@ class SkeletonGenerator {
 				#pragma omp simd
 			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
+				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, null, param_map)»
 			}
 		}
 	'''
@@ -252,7 +293,7 @@ class SkeletonGenerator {
 			#pragma omp parallel for simd
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal»; ++«Config.var_loop_counter»){
-			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, param_map)»
+			«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, null, param_map)»
 		}
 	'''
 	
@@ -274,7 +315,7 @@ class SkeletonGenerator {
 				#pragma omp simd
 			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, param_map)»
+				«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, null, param_map)»
 			}
 		}
 	'''
@@ -328,7 +369,7 @@ class SkeletonGenerator {
 /**
  * Generates the fold skeleton.
  * <p>
- * It is the same for arrays and matrices, because both are generated as std::arrays. 
+ * It is the same for arrays and matrices, because both are generated as std::vectors. 
  * <p>
  * ASSUMPTION: the function passed to the fold skeleton is associative and commutative
  * 
@@ -349,7 +390,7 @@ class SkeletonGenerator {
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
 			«val param_map = createParameterLookupTableFold(co, target, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, param_map)»
+			«(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, co, null, param_map)»
 		}		
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
@@ -430,7 +471,7 @@ class SkeletonGenerator {
 				int «Config.var_shift_target» = «pid»;
 «««				generate Function Call
 				«val param_map = createParameterLookupTableShiftPartitionsHorizontally(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
+				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, null, param_map)»
 				
 				«Config.var_shift_target» = ((((«pos.value» + «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
 				«Config.var_shift_source» = ((((«pos.value» - «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
@@ -499,7 +540,7 @@ class SkeletonGenerator {
 				int «Config.var_shift_target» = «pid»;
 «««				generate Function Call
 				«val param_map = createParameterLookupTableShiftPartitionsVertically(m, pid, (s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, param_map)»
+				int «(s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s, m.eContainer as CollectionObject, null, param_map)»
 				
 				«Config.var_shift_target» = ((((«pos.key» + «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				«Config.var_shift_source» = ((((«pos.key» - «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;

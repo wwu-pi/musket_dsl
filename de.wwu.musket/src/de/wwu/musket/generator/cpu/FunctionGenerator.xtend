@@ -16,8 +16,6 @@ import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapSkeleton
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
@@ -28,7 +26,6 @@ import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
 /**
@@ -49,13 +46,14 @@ class FunctionGenerator {
 	 * @param ifc the internal function call
 	 * @param skeleton the skeleton in which the function is used
 	 * @param a the collection object on which the skeleton is used
+	 * @param target where the results should end up, important for skeletons, which do not work in place
 	 * @param param_map the param_map
 	 * @return the generated function statement
 	 */
 	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) '''
+		String target, Map<String, String> param_map) '''
 		«FOR s : ifc.value.statement»
-			«s.generateFunctionStatement(skeleton, a, param_map)»
+			«s.generateFunctionStatement(skeleton, a, target, param_map)»
 		«ENDFOR»
 	'''
 
@@ -65,16 +63,17 @@ class FunctionGenerator {
 	 * @param ifc the internal function call
 	 * @param skeleton the skeleton in which the function is used
 	 * @param a the collection object on which the skeleton is used
+	 * @param target where the results should end up, important for skeletons, which do not work in place
 	 * @param param_map the param_map
 	 * @return the generated function call
 	 */
 	def static CharSequence generateFunctionStatement(FunctionStatement functionStatement, Skeleton skeleton,
-		CollectionObject a, Map<String, String> param_map) {
+		CollectionObject a, String target, Map<String, String> param_map) {
 		switch functionStatement {
 			Statement:
-				functionStatement.generateStatement(skeleton, a, param_map)
+				functionStatement.generateStatement(skeleton, a, target, param_map)
 			ControlStructure:
-				functionStatement.generateControlStructure(skeleton, a, param_map)
+				functionStatement.generateControlStructure(skeleton, a, target, param_map)
 			default: '''//TODO: FunctionGenerator.generateFunctionStatement: Default Case'''
 		}
 	}
@@ -86,10 +85,11 @@ class FunctionGenerator {
 	 * @param assignment the assignment
 	 * @param skeleton the skeleton in which the function is used
 	 * @param a the collection object on which the skeleton is used
+	 * @param target where the results should end up, important for skeletons, which do not work in place
 	 * @param param_map the param_map
 	 * @return the generated code
 	 */
-	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a,
+	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a, String target,
 		Map<String, String> param_map) '''
 		«IF param_map.containsKey(assignment.^var.value.name)»«param_map.get(assignment.^var.value.name)»«ELSE»«assignment.^var.value.name»«ENDIF»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
 	'''
@@ -101,12 +101,13 @@ class FunctionGenerator {
 	 * @param returnStatement the return statement
 	 * @param skeleton the skeleton in which the function is used
 	 * @param a the collection object on which the skeleton is used
+	 * @param target where the results should end up, important for skeletons, which do not work in place
 	 * @param param_map the param_map
 	 * @return the generated code
 	 */
 	def static dispatch generateStatement(ReturnStatement returnStatement, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) {
-		val lhs = getReturnString(returnStatement, skeleton, param_map)
+		String target, Map<String, String> param_map) {
+		val lhs = getReturnString(returnStatement, skeleton, target, param_map)
 		val rhs = returnStatement.value.generateExpression(param_map)
 		if (lhs != rhs + ' = ') {
 			return lhs + rhs + ';'
@@ -124,13 +125,13 @@ class FunctionGenerator {
 	 * @param param_map the param_map
 	 * @return the return string
 	 */
-	def static String getReturnString(ReturnStatement returnStatement, Skeleton skeleton,
+	def static String getReturnString(ReturnStatement returnStatement, Skeleton skeleton, String target,
 		Map<String, String> param_map) {
 		val params = (returnStatement.eContainer as Function).params
 
 		switch skeleton {
 			MapSkeleton:
-				param_map.get(params.get(params.size - 1).name) + ' = '
+				target + '[' + Config.var_loop_counter + '] = '
 			MapInPlaceSkeleton:
 				param_map.get(params.get(params.size - 1).name) + ' = '
 			MapIndexInPlaceSkeleton:
@@ -155,7 +156,7 @@ class FunctionGenerator {
 	 * @param param_map the param_map
 	 * @return the generated function call
 	 */
-	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a,
+	def static dispatch generateStatement(Variable variable, Skeleton skeleton, CollectionObject a, String target,
 		Map<String, String> param_map) '''
 		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(param_map)»«ENDIF»;
 	'''
@@ -172,27 +173,9 @@ class FunctionGenerator {
 	 * @return the generated function call
 	 */
 	def static dispatch generateStatement(FunctionCall functionCall, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) '''
+		String target, Map<String, String> param_map) '''
 		//TODO: FunctionGenerator.generateStatement: FunctionCall
 	'''
-
-// TODO: is this function actually used?
-	def static generateObjectRef(ObjectRef or, Map<String, String> param_map) {
-		switch or {
-			case or.isCollectionElementRef: '''«or.generateCollectionElementRef(param_map)»'''
-			ReferableObject: '''//TODO: FunctionGenerator.generateObjectRef: ReferableObject'''
-			default: '''//TODO: FunctionGenerator.generateObjectRef: default case'''
-		}
-	}
-
-// TODO: is this function actually used?
-	def static generateCollectionElementRef(ObjectRef cer, Map<String, String> param_map) {
-		switch cer.value {
-//			Array: '''//TODO: FunctionGenerator.generateCollectionElementRef: array'''
-//			Matrix: '''//TODO: FunctionGenerator.generateCollectionElementRef: matrix'''
-			default: '''//TODO: FunctionGenerator.generateCollectionElementRef: default case'''
-		}
-	}
 
 	// ControlStructures	
 	/**
@@ -205,10 +188,10 @@ class FunctionGenerator {
 	 * @return the generated conditional for loop
 	 */
 	def static dispatch generateControlStructure(ConditionalForLoop cfl, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) '''
+		String target, Map<String, String> param_map) '''
 		for(«cfl.init.calculateType.cppType» «cfl.init.name» = «cfl.init.initExpression.generateExpression(param_map)»; «cfl.condition.generateExpression(param_map)»; «cfl.increment.generateExpression(param_map)»){
 			«FOR statement : cfl.statements»
-				«statement.generateFunctionStatement(skeleton, a, param_map)»
+				«statement.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
 		}
 	'''
@@ -225,7 +208,7 @@ class FunctionGenerator {
 	 * @return the generated iterator for loop
 	 */
 	def static dispatch generateControlStructure(IteratorForLoop ifl, Skeleton skeleton, CollectionObject a,
-		Map<String, String> param_map) '''
+		String target, Map<String, String> param_map) '''
 		//TODO: FunctionGenerator.generateControlStructure: IteratorForLoop
 	'''
 
@@ -238,16 +221,16 @@ class FunctionGenerator {
 	 * @param param_map the param_map
 	 * @return the generated if clause
 	 */
-	def static dispatch generateControlStructure(IfClause ic, Skeleton skeleton, CollectionObject a,
+	def static dispatch generateControlStructure(IfClause ic, Skeleton skeleton, CollectionObject a, String target,
 		Map<String, String> param_map) '''
 		if(«ic.condition.generateExpression(param_map)»){
 			«FOR s : ic.statements»
-				«s.generateFunctionStatement(skeleton, a, param_map)»
+				«s.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
 		} «IF !ic.elseStatements.empty» else {
-							«FOR es : ic.elseStatements»
-								«es.generateFunctionStatement(skeleton, a, param_map)»
-							«ENDFOR»
+								«FOR es : ic.elseStatements»
+									«es.generateFunctionStatement(skeleton, a, target, param_map)»
+								«ENDFOR»
 			}
 		«ENDIF»
 	'''
