@@ -1,7 +1,6 @@
 package de.wwu.musket.validation
 
 import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.FoldIndexSkeleton
 import de.wwu.musket.musket.FoldOption
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.FoldSkeletonVariants
@@ -40,6 +39,7 @@ import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.MusketFunctionName
+import de.wwu.musket.musket.FoldLocalSkeleton
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -168,7 +168,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					}
 					
 				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-				FoldIndexSkeleton: 
+				FoldLocalSkeleton:
 					if(call.value.params.size < indexParams+foldParamsOut){
 						// Check minimum amount of parameters in target function
 						error('Referenced function requires at least ' + (indexParams+foldParamsOut) + ' parameters, ' + call.value.params.size + ' given!', 
@@ -240,8 +240,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					}
 					
 				FoldSkeletonVariants: {
-						// user function: 	T func(..., T t, U u)
-						// call:			Us.func(t, func(...))
+						// user function: 	T func(..., T t, T t)
+						// call:			Ts.func(t, func(...))
 						
 						// Last two parameters need to match for fold skeleton
 						if(callingType != call.value.params.last?.calculateType){
@@ -249,9 +249,14 @@ class MusketTypeValidator extends AbstractMusketValidator {
 								MusketPackage.eINSTANCE.skeleton_Param,
 								INVALID_PARAMS)
 						}
-						// Check identity value parameter matches second but last value
+						// Check identity value parameter matches two last values
 						if(call.value.params.size >= 2 && !call.value.params.get(call.value.params.size-2)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
 							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + '!', 
+								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
+								INVALID_PARAMS)
+						}
+						if(call.value.params.size >= 2 && !call.value.params.get(call.value.params.size-1)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-1)?.calculateType + '!', 
 								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 								INVALID_PARAMS)
 						}
@@ -313,7 +318,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 				ZipIndexSkeleton,
 				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-				FoldIndexSkeleton: 
+				FoldLocalSkeleton: 
 					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT &&
 						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType != MusketType.INT)
 					){

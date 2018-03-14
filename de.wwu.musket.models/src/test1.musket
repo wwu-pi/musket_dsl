@@ -10,32 +10,32 @@ array<double,4,copy> b;
 array<bool,4,copy> c;
 double globalVar = 123.2;
 
-int f(int i , int j){
+int fi(int i , int j){
 	double sum1 = 0;
  	double sum2 = 0;
 	if(1 + 2){
 		sum1 += (double) 333;
-		f(2);
+		fi(2);
 	}
 	for(int k : a ){
 		a[j] = 42;
 	}
 	a.size();
 	sum1 += 333.0; 
-	sum1 /= pow(sum1, 2);
+	sum1 /= std::pow(sum1, 2);
 	return i+1;
 }
 
-bool g(array<int,copy> bs, int p){
+bool g(array<int,4,copy> bs, int p){
 	for(double x : b){
-		return false;
+		p = (int) x;
 	}
 	return p > 2;
 }
 
 main{
 	
-	a.mapInPlace(f(a[2]));
+	a.mapInPlace(fi(a[2]));
 //	a.mapInPlace((int a) -> double {
 //		double sum1 = 0;
 //	 	if(1 + 2){
@@ -43,7 +43,7 @@ main{
 //		}
 //	});
 	for(int i = 0; i < 42; i++){
-		b = a.map(f(42));
+		b = a.map(fi(42));
 		b = a[[42 + 6]];
 		b[2] = 5;
 	}
@@ -54,6 +54,6 @@ main{
 	
 	if(2 < 5){
 		c = a.map(g(a));
-		a.fold(0, sum());
+		a.fold(0.0, std::sum());
 	}
 }
