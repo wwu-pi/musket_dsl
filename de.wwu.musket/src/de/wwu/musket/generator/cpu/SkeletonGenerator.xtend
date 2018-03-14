@@ -56,13 +56,9 @@ class SkeletonGenerator {
  * @param target where to write the result of the skeleton expression
  * @return generated skeleton call
  */
-	def static generateSkeletonExpression(SkeletonExpression s, String target) {
+	def static generateSkeletonExpression(SkeletonExpression s, String target, String target_type) {
 		switch s.skeleton {
-			MapSkeleton: {
-				if((s.skeleton as MapSkeleton).options.exists[it == MapOption.LOCAL_INDEX]){
-					'''// TODO: Options for skeletons'''
-				}
-			}
+			MapSkeleton: generateMapSkeleton(s, target, target_type)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s)
 			MapIndexSkeleton: '''// TODO: MapIndexSkeleton''' //generateMapIndexSkeleton(s)			
 			MapLocalIndexSkeleton: '''// TODO: MapLocalIndexSkeleton''' //generateMapLocalIndexSkeleton(s)
@@ -84,14 +80,14 @@ class SkeletonGenerator {
 	}
 
 
-	def static generateMapSkeleton(SkeletonExpression s, String target) '''
+	def static generateMapSkeleton(SkeletonExpression s, String target, String target_type) '''
 		«val a = s.obj»
 		«val param_map = createParameterLookupTableMap(a, (s.skeleton.param as InternalFunctionCall).value.params, (s.skeleton.param as InternalFunctionCall).params)»
 				«IF Config.cores > 1»	
 					#pragma omp parallel for simd
 				«ENDIF»	
 				for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal»; ++«Config.var_loop_counter»){
-					«Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
+					«target_type» «Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
 					«(s.skeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(s.skeleton, a, target, param_map)»
 				}
 	'''

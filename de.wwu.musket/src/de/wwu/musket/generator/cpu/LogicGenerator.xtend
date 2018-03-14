@@ -63,27 +63,27 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(SkeletonExpression s) '''
-		«s.generateSkeletonExpression(null)»
+		«s.generateSkeletonExpression(null, null)»
 	'''
 
 	def static dispatch generateStatement(MusketIntVariable s) '''
 		int «s.name» = 0;
-		«s.initExpression.generateSkeletonExpression(s.name)»
+		«s?.initExpression.generateSkeletonExpression(s.name, 'int')»
 	'''
 
 	def static dispatch generateStatement(MusketDoubleVariable s) '''
 		double «s.name» = 0.0;
-		«s.initExpression.generateSkeletonExpression(s.name)»
+		«s?.initExpression.generateSkeletonExpression(s.name, 'double')»
 	'''
 
 	def static dispatch generateStatement(MusketFloatVariable s) '''
 		float «s.name» = 0.0f;
-		«s.initExpression.generateSkeletonExpression(s.name)»
+		«s?.initExpression.generateSkeletonExpression(s.name, 'float')»
 	'''
 
 	def static dispatch generateStatement(MusketBoolVariable s) '''
 		bool «s.name» = true;
-		«s.initExpression.generateSkeletonExpression(s.name)»
+		«s?.initExpression.generateSkeletonExpression(s.name, 'bool')»
 	'''
 
 	def static dispatch generateStatement(Variable v) '''
@@ -110,7 +110,7 @@ class LogicGenerator {
 		switch s.value {
 			Expression: '''«s.^var.value.name» = «(s.value as Expression).generateExpression(null)»;'''
 			SkeletonExpression:
-				(s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value.name)
+				(s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value.name, s.^var.value.calculateCollectionType.cppType)
 			default: '''// TODO: LogicGenerator: generateStatement: MusketAssignment'''
 		}
 	}
