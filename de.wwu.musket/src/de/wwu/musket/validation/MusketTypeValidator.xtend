@@ -399,7 +399,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		} while(!(obj instanceof Function) && obj.eContainer !== null)
 		
 		// Check return type
-		if((obj as Function).calculateType != stmt.value.calculateType){
+		if(!((obj as Function).calculateType.equalsIgnoreDistribution(stmt.value.calculateType))){
 			error('Expression of type ' + stmt.value.calculateType + ' does not match specified return type ' + new MusketType(obj as Function) + '!', 
 				MusketPackage.eINSTANCE.returnStatement_Value,
 				INVALID_TYPE)
@@ -434,7 +434,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			error('Function has no return statement!', 
 				MusketPackage.eINSTANCE.function_ReturnType,
 				INCOMPLETE_DECLARATION)
-		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && func.calculateType != (func.statement.last as ReturnStatement).value.calculateType){
+		} else if (func.statement.size > 0 && (func.statement.last instanceof ReturnStatement) && !func.calculateType.equalsIgnoreDistribution((func.statement.last as ReturnStatement).value.calculateType)){
 			error('Return type ' + (func.statement.last as ReturnStatement).value.calculateType + ' does not match specified type ' + new MusketType(func) + '!', 
 				MusketPackage.eINSTANCE.function_Statement,
 				func.statement.size-1,
