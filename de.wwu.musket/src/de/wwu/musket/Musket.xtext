@@ -364,19 +364,23 @@ MapSkeletonVariants:
 	{MapSkeleton} 'map' ('<' options+=MapOption (',' options+=MapOption)* '>')? '(' param=SkeletonParameterInput ')' |
 	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
 	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
+	{MapLocalIndexSkeleton} 'mapLocalIndex' '(' param=SkeletonParameterInput ')' |
 	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
 	{MapLocalIndexInPlaceSkeleton} 'mapLocalIndexInPlace' '(' param=SkeletonParameterInput ')'
 ;
 
 FoldSkeletonVariants:
 	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=Expression ',' param=SkeletonParameterInput ')' |
-	{FoldIndexSkeleton} 'foldIndex' '(' identity=Expression ',' param=SkeletonParameterInput ')'
+	{FoldLocalSkeleton} 'foldLocal' '(' identity=Expression ',' param=SkeletonParameterInput ')'
 ;
 
 ZipSkeletonVariants:
 	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
 	{ZipInPlaceSkeleton} 'zipInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
-	{ZipIndexSkeleton} 'zipIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')'
+	{ZipIndexSkeleton} 'zipIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipLocalIndexSkeleton} 'zipLocalIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipIndexInPlaceSkeleton} 'zipIndexInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipLocalIndexInPlaceSkeleton} 'zipLocalIndexInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')'
 ;
 
 enum MapOption:
