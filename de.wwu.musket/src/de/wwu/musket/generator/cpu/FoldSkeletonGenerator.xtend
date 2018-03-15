@@ -9,8 +9,6 @@ import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.IntMatrixType
-import de.wwu.musket.musket.InternalFunctionCall
-import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
 import java.util.List
@@ -22,6 +20,7 @@ import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
 
@@ -57,8 +56,7 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
 			if (se.skeleton instanceof FoldSkeleton) {
 				val alreadyProcessed = processed.exists [
-					((it.skeleton.param as InternalFunctionCall).value as RegularFunction).name ==
-						((se.skeleton.param as InternalFunctionCall).value as RegularFunction).name
+					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
 
 				if (!alreadyProcessed) {
@@ -79,8 +77,8 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateReductionDeclaration(FoldSkeleton s, CollectionObject a) '''
-		«val param_map_red = createParameterLookupTableFoldReductionClause((s.param as InternalFunctionCall).value.params, (s.param as InternalFunctionCall).params)»
-		#pragma omp declare reduction(«((s.param as InternalFunctionCall).value as RegularFunction).name» : «a.calculateCollectionType.cppType» : omp_out = [&](){«((s.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreak»}()) initializer(omp_priv = omp_orig)
+		«val param_map_red = createParameterLookupTableFoldReductionClause(s.param.functionParameters, s.param.functionArguments)»
+		#pragma omp declare reduction(«s.param.functionName» : «a.calculateCollectionType.cppType» : omp_out = [&](){«(s.param.generateFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreaks»}()) initializer(omp_priv = omp_orig)
 	'''
 
 	/**
@@ -117,8 +115,7 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : skeletons) {
 			if (se.skeleton instanceof FoldSkeleton) {
 				val alreadyProcessed = processed.exists [
-					((it.skeleton.param as InternalFunctionCall).value as RegularFunction).name ==
-						((se.skeleton.param as InternalFunctionCall).value as RegularFunction).name
+					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
 
 				if (!alreadyProcessed) {
@@ -139,12 +136,12 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, CollectionObject a) '''
-		void «((foldSkeleton.param as InternalFunctionCall).value as RegularFunction).name»(void *in, void *inout, int *len, MPI_Datatype *dptr){
+		void «foldSkeleton.param.functionName»(void *in, void *inout, int *len, MPI_Datatype *dptr){
 			«val type = a.calculateCollectionType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
-			«val param_map = createParameterLookupTable((foldSkeleton.param as InternalFunctionCall).value.params, (foldSkeleton.param as InternalFunctionCall).params)»
-			«(foldSkeleton.param as InternalFunctionCall).generateInternalFunctionCallForSkeleton(foldSkeleton, a, null, param_map)»
+			«val param_map = createParameterLookupTable(foldSkeleton.param.functionParameters, foldSkeleton.param.functionArguments)»
+			«foldSkeleton.param.generateFunctionCallForSkeleton(foldSkeleton, a, null, param_map)»
 		} 
 	'''
 
@@ -161,8 +158,7 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
 			if (se.skeleton instanceof FoldSkeleton) {
 				val alreadyProcessed = processed.exists [
-					((it.skeleton.param as InternalFunctionCall).value as RegularFunction).name ==
-						((se.skeleton.param as InternalFunctionCall).value as RegularFunction).name
+					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
 
 				if (!alreadyProcessed) {
@@ -182,7 +178,7 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateMPIFoldOperator(FoldSkeleton s) '''
-		«val name = ((s.param as InternalFunctionCall).value as RegularFunction).name»
+		«val name = s.param.functionName»
 		MPI_Op «name»«Config.mpi_op_suffix»;
 		MPI_Op_create( «name», 0, &«name»«Config.mpi_op_suffix» );
 	'''

@@ -17,4 +17,15 @@ class StringExtension {
 			s.substring(0, s.length-1)
 		}
 	}
+	
+	/**
+	 * This methods removes all line breaks in a string.
+	 * If there are none, nothing happens.
+	 * 
+	 * @param s String to manipulate
+	 * @return String without line breaks 
+	 */
+	def static removeLineBreaks(String s) {
+		s.replaceAll("\n", "")
+	}
 }

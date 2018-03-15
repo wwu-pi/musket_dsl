@@ -27,6 +27,8 @@ import java.util.Map
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.LambdaFunction
 
 /**
  * Generates a function call.
@@ -50,9 +52,11 @@ class FunctionGenerator {
 	 * @param param_map the param_map
 	 * @return the generated function statement
 	 */
-	def static generateInternalFunctionCallForSkeleton(InternalFunctionCall ifc, Skeleton skeleton, CollectionObject a,
+	def static generateFunctionCallForSkeleton(SkeletonParameterInput spi, Skeleton skeleton, CollectionObject a,
 		String target, Map<String, String> param_map) '''
-		«FOR s : ifc.value.statement»
+		«val statements = if(spi instanceof LambdaFunction) spi.statement else (spi as InternalFunctionCall).value.statement»
+		
+		«FOR s : statements»
 			«s.generateFunctionStatement(skeleton, a, target, param_map)»
 		«ENDFOR»
 	'''
@@ -60,7 +64,7 @@ class FunctionGenerator {
 	/**
 	 * Generates a single function statement. A function statement is either a statement, or a control structure.
 	 * 
-	 * @param ifc the internal function call
+	 * @param functionStatement the function statement
 	 * @param skeleton the skeleton in which the function is used
 	 * @param a the collection object on which the skeleton is used
 	 * @param target where the results should end up, important for skeletons, which do not work in place
@@ -228,9 +232,9 @@ class FunctionGenerator {
 				«s.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
 		} «IF !ic.elseStatements.empty» else {
-								«FOR es : ic.elseStatements»
-									«es.generateFunctionStatement(skeleton, a, target, param_map)»
-								«ENDFOR»
+									«FOR es : ic.elseStatements»
+										«es.generateFunctionStatement(skeleton, a, target, param_map)»
+									«ENDFOR»
 			}
 		«ENDIF»
 	'''
