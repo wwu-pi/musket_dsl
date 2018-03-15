@@ -54,6 +54,6 @@ main{
 	
 	if(2 < 5){
 		c = a.map(g(a));
-		a.fold(0.0, std::sum());
+		a.fold(0, fi());
 	}
 }

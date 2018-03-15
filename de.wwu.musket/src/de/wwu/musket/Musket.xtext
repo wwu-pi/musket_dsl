@@ -397,7 +397,7 @@ enum ZipOption:
 ;
 
 SkeletonParameterInput:
-	FunctionCall | 
+	InternalFunctionCall |
 	LambdaFunction
 ;
 
