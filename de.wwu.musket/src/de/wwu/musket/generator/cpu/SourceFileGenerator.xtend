@@ -18,6 +18,7 @@ import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.DistributionMode
 
 /** 
  * Generates the source file of the project.
@@ -136,7 +137,7 @@ class SourceFileGenerator {
 			«IF Config.cores > 1»
 				«generateReductionDeclarations(resource)»
 			«ENDIF»
-				
+			
 			«IF Config.processes > 1»
 				«generateMPIFoldOperators(resource)»			
 				«generateTmpFoldResults(resource)»
@@ -201,12 +202,19 @@ class SourceFileGenerator {
 	def static String generateInitializeDataStructures(Resource resource) {
 		var result = ""
 
-		if (resource.Arrays.reject[it.type instanceof StructArrayType].exists[it.ValuesAsString.size > 1] &&
-			Config.processes > 1) {
+		// init distributed arrays with values
+		if (resource.Arrays.reject [
+			it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY ||
+				it.type.distributionMode == DistributionMode.LOC
+		].exists [
+			it.ValuesAsString.size > 1
+		] && Config.processes > 1) {
 			result += "switch(" + Config.var_pid + "){\n"
 			for (var p = 0; p < Config.processes; p++) {
 				result += "case " + p + ": {\n"
-				for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
+				for (a : resource.Arrays.reject [
+					it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY
+				]) {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
 						val sizeLocal = a.type.sizeLocal
@@ -215,7 +223,7 @@ class SourceFileGenerator {
 				}
 				result += "break;\n}\n"
 			}
-			result += "}"
+			result += "}\n\n"
 		} else {
 			for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
 				val values = a.ValuesAsString
@@ -225,6 +233,17 @@ class SourceFileGenerator {
 			}
 		}
 
+		// init copy dist data structures with init list
+		for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
+			it.type.distributionMode == DistributionMode.COPY
+		]) {
+			val values = a.ValuesAsString
+			if (values.size > 1) {
+				result += a.generateArrayInitializationForProcess(values)
+			}
+		}
+
+		// init data structures with single value
 		for (a : resource.CollectionObjects.reject [
 			it.type instanceof StructArrayType || it.type instanceof StructMatrixType
 		].filter[it.ValuesAsString.size < 2]) {
