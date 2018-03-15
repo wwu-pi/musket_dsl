@@ -59,7 +59,16 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(MusketIfClause s) '''
-		// TODO: LogicGenerator: generateStatement(MusketIfClause)
+		if(«s.condition.generateExpression(null)»){
+			«FOR statement : s.statements»
+				«statement.generateStatement»
+			«ENDFOR»
+		«IF !s.elseStatements.nullOrEmpty»}else{
+			«FOR statement : s.elseStatements»
+				«statement.generateStatement»
+			«ENDFOR»
+		«ENDIF»
+		}
 	'''
 
 	def static dispatch generateStatement(SkeletonExpression s) '''
