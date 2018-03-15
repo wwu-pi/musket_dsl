@@ -84,288 +84,296 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	// Check parameter match when calling skeletons with internal functions
 	@Check
 	def checkSkeletonFunctionParameterCount(Skeleton skel) {
-		if (skel.param instanceof InternalFunctionCall){
-			val call = skel.param as InternalFunctionCall
-			// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
-			val indexParams = if ((skel.eContainer as SkeletonExpression).obj.calculateType.isArray) 1 else 2
+		val isFunctionCall = skel.param instanceof InternalFunctionCall
+		val callFunction = if (isFunctionCall){
+			(skel.param as InternalFunctionCall).value
+		} else {
+			skel.param as LambdaFunction
+		}
+		
+		// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
+		val indexParams = if ((skel.eContainer as SkeletonExpression).obj.calculateType.isArray) 1 else 2
+		
+		switch skel {
+			MapSkeleton case !skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
+			MapInPlaceSkeleton: 
+				if(callFunction.params.size < mapParamsOut){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + mapParamsOut + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-mapParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-mapParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+				
+			MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
+			MapIndexSkeleton,
+			MapLocalIndexSkeleton,
+			MapIndexInPlaceSkeleton,
+			MapLocalIndexInPlaceSkeleton:
+				if(callFunction.params.size < indexParams+mapParamsOut){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + (indexParams+mapParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-indexParams-mapParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-indexParams-mapParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
 			
-			switch skel {
-				MapSkeleton case !skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
-				MapInPlaceSkeleton: 
-					if(call.value.params.size < mapParamsOut){
-						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + mapParamsOut + ' parameters, ' + call.value.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-mapParamsOut){
-						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-mapParamsOut) + ' arguments, ' + call.params.size + ' given!', 
+			ZipSkeleton case !skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
+			ZipInPlaceSkeleton: {
+					if(isFunctionCall && (skel.param as InternalFunctionCall).params.size < zipParamsMin){
+						error('Skeleton function call requires at least ' + zipParamsMin + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
-					
-				MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
-				MapIndexSkeleton,
-				MapLocalIndexSkeleton,
-				MapIndexInPlaceSkeleton,
-				MapLocalIndexInPlaceSkeleton:
-					if(call.value.params.size < indexParams+mapParamsOut){
+					if(callFunction.params.size < zipParamsOut){
 						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + (indexParams+mapParamsOut) + ' parameters, ' + call.value.params.size + ' given!', 
+						error('Referenced function requires at least ' + (indexParams+zipParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-indexParams-mapParamsOut){
+					} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-zipParamsOut+zipParamsMin){
 						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-indexParams-mapParamsOut) + ' arguments, ' + call.params.size + ' given!', 
+						error('Skeleton function call requires ' + (callFunction.params.size-zipParamsOut+zipParamsMin) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
+				}
+			ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
+			ZipIndexSkeleton,
+			ZipLocalIndexSkeleton,
+			ZipIndexInPlaceSkeleton,
+			ZipLocalIndexInPlaceSkeleton: {
+					if(isFunctionCall && (skel.param as InternalFunctionCall).params.size < zipParamsMin){
+						// Check minimum amount of arguments in function call
+						error('Skeleton function call requires at least ' + zipParamsMin + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					if(callFunction.params.size < indexParams+zipParamsOut){
+						// Check minimum amount of parameters in target function
+						error('Referenced function requires at least ' + (indexParams+zipParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-indexParams-zipParamsOut+zipParamsMin){
+						// Check provided argument count matches target function parameter count
+						error('Skeleton function call requires ' + (callFunction.params.size-indexParams-zipParamsOut+zipParamsMin) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+				}
 				
-				ZipSkeleton case !skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
-				ZipInPlaceSkeleton: {
-						if(call.params.size < zipParamsMin){
-							error('Skeleton function call requires at least ' + zipParamsMin + ' arguments, ' + call.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-						if(call.value.params.size < zipParamsOut){
-							// Check minimum amount of parameters in target function
-							error('Referenced function requires at least ' + (indexParams+zipParamsOut) + ' parameters, ' + call.value.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						} else if(call.params.size !== call.value.params.size-zipParamsOut+zipParamsMin){
-							// Check provided argument count matches target function parameter count
-							error('Skeleton function call requires ' + (call.value.params.size-zipParamsOut+zipParamsMin) + ' arguments, ' + call.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-					}
-				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
-				ZipIndexSkeleton,
-				ZipLocalIndexSkeleton,
-				ZipIndexInPlaceSkeleton,
-				ZipLocalIndexInPlaceSkeleton: {
-						if(call.params.size < zipParamsMin){
-							// Check minimum amount of arguments in function call
-							error('Skeleton function call requires at least ' + zipParamsMin + ' arguments, ' + call.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-						if(call.value.params.size < indexParams+zipParamsOut){
-							// Check minimum amount of parameters in target function
-							error('Referenced function requires at least ' + (indexParams+zipParamsOut) + ' parameters, ' + call.value.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						} else if(call.params.size !== call.value.params.size-indexParams-zipParamsOut+zipParamsMin){
-							// Check provided argument count matches target function parameter count
-							error('Skeleton function call requires ' + (call.value.params.size-indexParams-zipParamsOut+zipParamsMin) + ' arguments, ' + call.params.size + ' given!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-					}
-					
-				FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX]: 
-					if(call.value.params.size < foldParamsOut){
-						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + foldParamsOut + ' parameters, ' + call.value.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-foldParamsOut){
-						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-foldParamsOut) + ' arguments, ' + call.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-					
-				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-				FoldLocalSkeleton:
-					if(call.value.params.size < indexParams+foldParamsOut){
-						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + (indexParams+foldParamsOut) + ' parameters, ' + call.value.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-indexParams-foldParamsOut){
-						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-indexParams-foldParamsOut) + ' arguments, ' + call.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
+			FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX]: 
+				if(callFunction.params.size < foldParamsOut){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + foldParamsOut + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-foldParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-foldParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
 				
-				MapFoldSkeleton: 
-					// First parameter used for map -> less required for main fold
-					if(call.value.params.size < indexParams+foldParamsOut-1){
-						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + (indexParams+foldParamsOut-1) + ' parameters, ' + call.value.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					} else if(call.params.size-1 !== call.value.params.size-indexParams-foldParamsOut){
-						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-indexParams-foldParamsOut) + ' arguments, ' + (call.params.size-1) + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-					
-				GatherSkeleton:
-					if(call.params.size !== 0){ 
-						// gather has exactly zero arguments
-						error('Skeleton has no arguments, ' + call.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-					
-				ShiftPartitionsHorizontallySkeleton,
-				ShiftPartitionsVerticallySkeleton: 
-					if(call.value.params.size < shiftParamsOut){
-						// Check minimum amount of parameters in target function
-						error('Referenced function requires at least ' + shiftParamsOut + ' parameters, ' + call.value.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					} else if(call.params.size !== call.value.params.size-shiftParamsOut){
-						// Check provided argument count matches target function parameter count
-						error('Skeleton function call requires ' + (call.value.params.size-shiftParamsOut) + ' arguments, ' + call.params.size + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-			}
+			FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
+			FoldLocalSkeleton:
+				if(callFunction.params.size < indexParams+foldParamsOut){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + (indexParams+foldParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-indexParams-foldParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-indexParams-foldParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+			
+			MapFoldSkeleton: 
+				// First parameter used for map -> less required for main fold
+				if(callFunction.params.size < indexParams+foldParamsOut-1){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + (indexParams+foldParamsOut-1) + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size-1 !== callFunction.params.size-indexParams-foldParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-indexParams-foldParamsOut) + ' arguments, ' + ((skel.param as InternalFunctionCall).params.size-1) + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+				
+			GatherSkeleton:
+				if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== 0){ 
+					// gather has exactly zero arguments
+					error('Skeleton has no arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+				
+			ShiftPartitionsHorizontallySkeleton,
+			ShiftPartitionsVerticallySkeleton: 
+				if(callFunction.params.size < shiftParamsOut){
+					// Check minimum amount of parameters in target function
+					error('Referenced function requires at least ' + shiftParamsOut + ' parameters, ' + callFunction.params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-shiftParamsOut){
+					// Check provided argument count matches target function parameter count
+					error('Skeleton function call requires ' + (callFunction.params.size-shiftParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
 		}
 	}
 	
 	@Check
 	def checkSkeletonFunctionImplicitParameterType(Skeleton skel) {
-		if (skel.param instanceof InternalFunctionCall){
-			val call = skel.param as InternalFunctionCall
-			val callingType = (skel.eContainer as SkeletonExpression).obj.calculateCollectionType
-			
-			// Check skeleton type
-			switch skel {
-				MapSkeletonVariants: 
-					if(callingType != call.value.params.last?.calculateType){
-						error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
+		val callFunction = if (skel.param instanceof InternalFunctionCall){
+			(skel.param as InternalFunctionCall).value
+		} else {
+			skel.param as LambdaFunction
+		}
+		val callingType = (skel.eContainer as SkeletonExpression).obj.calculateCollectionType
+		
+		// Check skeleton type
+		switch skel {
+			MapSkeletonVariants: 
+				if(callingType != callFunction.params.last?.calculateType){
+					error('Calling type ' + callingType + ' does not match expected parameter type ' + callFunction.params.last?.calculateType + '!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+				
+			ZipSkeletonVariants: {
+					if(callingType != callFunction.params.last?.calculateType){
+						error('Calling type ' + callingType + ' does not match expected parameter type ' + callFunction.params.last?.calculateType + '!',
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}
-					
-				ZipSkeletonVariants: {
-						if(callingType != call.value.params.last?.calculateType){
-							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!',
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-						// zipWith parameter needs to match second but last parameters for zip skeleton, e.g. ints.zip(doubles, f(...)) -> f(..., double, int)
-						if(!skel.zipWith.calculateType?.collection){
-							error('First argument needs to be a collection!',
-								MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
-								INVALID_PARAMS)
-						} else if(skel.zipWith.value?.calculateCollectionType != call.value.params.get(call.value.params.size-2).calculateType){
-							error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2).calculateType + '!',
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
+					// zipWith parameter needs to match second but last parameters for zip skeleton, e.g. ints.zip(doubles, f(...)) -> f(..., double, int)
+					if(!skel.zipWith.calculateType?.collection){
+						error('First argument needs to be a collection!',
+							MusketPackage.eINSTANCE.zipSkeletonVariants_ZipWith,
+							INVALID_PARAMS)
+					} else if(skel.zipWith.value?.calculateCollectionType != callFunction.params.get(callFunction.params.size-2).calculateType){
+						error('Argument type ' + skel.zipWith.value?.calculateCollectionType + ' does not match expected parameter type ' + callFunction.params.get(callFunction.params.size-2).calculateType + '!',
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
 					}
-					
-				FoldSkeletonVariants: {
-						// user function: 	T func(..., T t, T t)
-						// call:			Ts.func(t, func(...))
-						
-						// Referenced function parameters need to match calling type (or mapped type) for fold skeleton
-						if(skel instanceof MapFoldSkeleton){
-							if(!(skel.mapFunction.calculateType.equalsIgnoreDistribution(call.value.params.last?.calculateType))){
-								error('Mapped type ' + (skel as MapFoldSkeleton).mapFunction.calculateType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-								MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
-								INVALID_PARAMS)
-							}
-							if(skel.mapFunction instanceof LambdaFunction && ((skel.mapFunction as LambdaFunction).params.size != 1 || callingType != (skel.mapFunction as LambdaFunction).params.get(0).calculateType)){
-								error('Calling type ' + callingType + ' does not match expected function input ' + (skel.mapFunction as LambdaFunction).params.get(0).calculateType + '!', 
-								MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
-								INVALID_PARAMS)
-							}
-						} else if(!(skel instanceof MapFoldSkeleton) && callingType != call.value.params.last?.calculateType){
-							// Regular folds
-							error('Calling type ' + callingType + ' does not match expected parameter type ' + call.value.params.last?.calculateType + '!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-						// Check identity value parameter matches two last values
-						if(call.value.params.size >= 2 && !call.value.params.get(call.value.params.size-2)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
-							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + '!', 
-								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
-								INVALID_PARAMS)
-						}
-						if(call.value.params.size >= 2 && !call.value.params.get(call.value.params.size-1)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
-							error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + call.value.params.get(call.value.params.size-1)?.calculateType + '!', 
-								MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
-								INVALID_PARAMS)
-						}
-						// Fold function needs to return same type as its identity
-						if(!call.value.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
-							error('Return type ' + new MusketType(call.value) + ' needs to match the identity type ' + skel.identity.calculateType + ' for fold skeletons!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-						// Fold function needs to return same type as second but last value
-						if(call.value.params.size >= 2 && !call.value.calculateType.equalsIgnoreDistribution(call.value.params.get(call.value.params.size-2)?.calculateType)){
-							error('Return type ' + new MusketType(call.value) + ' needs to match the second but last parameter type ' + call.value.params.get(call.value.params.size-2)?.calculateType + ' for fold skeletons!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
-						}
-					}
+				}
 				
-				ShiftPartitionsHorizontallySkeleton,
-				ShiftPartitionsVerticallySkeleton: {
-						// Shifting functions need exactly one int parameter
-						if(call.value.params.last?.calculateType != MusketType.INT){
-							error('The function\'s last argument of type ' + call.value.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
+			FoldSkeletonVariants: {
+					// user function: 	T func(..., T t, T t)
+					// call:			Ts.func(t, func(...))
+					
+					// Referenced function parameters need to match calling type (or mapped type) for fold skeleton
+					if(skel instanceof MapFoldSkeleton){
+						if(!(skel.mapFunction.calculateType.equalsIgnoreDistribution(callFunction.params.last?.calculateType))){
+							error('Mapped type ' + (skel as MapFoldSkeleton).mapFunction.calculateType + ' does not match expected parameter type ' + callFunction.params.last?.calculateType + '!', 
+							MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
+							INVALID_PARAMS)
 						}
-						// Shifting functions return one int value
-						if(call.value.calculateType != MusketType.INT){
-							error('Return type ' + new MusketType(call.value) + ' must be int for this skeleton!', 
-								MusketPackage.eINSTANCE.skeleton_Param,
-								INVALID_PARAMS)
+						if(skel.mapFunction instanceof LambdaFunction && ((skel.mapFunction as LambdaFunction).params.size != 1 || callingType != (skel.mapFunction as LambdaFunction).params.get(0).calculateType)){
+							error('Calling type ' + callingType + ' does not match expected function input ' + (skel.mapFunction as LambdaFunction).params.get(0).calculateType + '!', 
+							MusketPackage.eINSTANCE.mapFoldSkeleton_MapFunction,
+							INVALID_PARAMS)
 						}
+					} else if(!(skel instanceof MapFoldSkeleton) && callingType != callFunction.params.last?.calculateType){
+						// Regular folds
+						error('Calling type ' + callingType + ' does not match expected parameter type ' + callFunction.params.last?.calculateType + '!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
 					}
-			}
+					// Check identity value parameter matches two last values
+					if(callFunction.params.size >= 2 && !callFunction.params.get(callFunction.params.size-2)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+						error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + callFunction.params.get(callFunction.params.size-2)?.calculateType + '!', 
+							MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
+							INVALID_PARAMS)
+					}
+					if(callFunction.params.size >= 2 && !callFunction.params.get(callFunction.params.size-1)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+						error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + callFunction.params.get(callFunction.params.size-1)?.calculateType + '!', 
+							MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
+							INVALID_PARAMS)
+					}
+					// Fold function needs to return same type as its identity
+					if(!callFunction.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+						error('Return type ' + new MusketType(callFunction) + ' needs to match the identity type ' + skel.identity.calculateType + ' for fold skeletons!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					// Fold function needs to return same type as second but last value
+					if(callFunction.params.size >= 2 && !callFunction.calculateType.equalsIgnoreDistribution(callFunction.params.get(callFunction.params.size-2)?.calculateType)){
+						error('Return type ' + new MusketType(callFunction) + ' needs to match the second but last parameter type ' + callFunction.params.get(callFunction.params.size-2)?.calculateType + ' for fold skeletons!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+				}
+			
+			ShiftPartitionsHorizontallySkeleton,
+			ShiftPartitionsVerticallySkeleton: {
+					// Shifting functions need exactly one int parameter
+					if(callFunction.params.last?.calculateType != MusketType.INT){
+						error('The function\'s last argument of type ' + callFunction.params.last?.calculateType + ' does not match the expected skeleton parameter type int!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+					// Shifting functions return one int value
+					if(callFunction.calculateType != MusketType.INT){
+						error('Return type ' + new MusketType(callFunction) + ' must be int for this skeleton!', 
+							MusketPackage.eINSTANCE.skeleton_Param,
+							INVALID_PARAMS)
+					}
+				}
 		}
 	}
 	
 	@Check
 	def checkSkeletonFunctionIndexParameterType(Skeleton skel) {
-		if (skel.param instanceof InternalFunctionCall){
-			val call = skel.param as InternalFunctionCall
-			val isArray = (skel.eContainer as SkeletonExpression).obj.calculateType.isArray
+		val callFunction = if (skel.param instanceof InternalFunctionCall){
+			(skel.param as InternalFunctionCall).value
+		} else {
+			skel.param as LambdaFunction
+		}		
+		val isArray = (skel.eContainer as SkeletonExpression).obj.calculateType.isArray
 			
-			// Check skeleton type
-			switch skel {
-				// Those have 1 final parameter after index parameters
-				MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
-				MapIndexSkeleton,
-				MapLocalIndexSkeleton,
-				MapIndexInPlaceSkeleton,
-				MapLocalIndexInPlaceSkeleton: 
-					if(call.value.params.size >= 2 && call.value.params.get(call.value.params.size - 2)?.calculateType != MusketType.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT)
-					){
-						error('Referenced function does not have correct amount or type of index parameters!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-				
-				// Those have 2 final parameters after index parameters
-				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
-				ZipIndexSkeleton,
-				ZipIndexInPlaceSkeleton,
-				ZipLocalIndexInPlaceSkeleton,
-				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-				FoldLocalSkeleton: 
-					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT &&
-						(isArray || call.value.params.get(call.value.params.size - 4)?.calculateType != MusketType.INT)
-					){
-						error('Referenced function does not have correct amount or type of index parameters!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_PARAMS)
-					}
-			}
+		// Check skeleton type
+		switch skel {
+			// Those have 1 final parameter after index parameters
+			MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
+			MapIndexSkeleton,
+			MapLocalIndexSkeleton,
+			MapIndexInPlaceSkeleton,
+			MapLocalIndexInPlaceSkeleton: 
+				if(callFunction.params.size >= 2 && callFunction.params.get(callFunction.params.size - 2)?.calculateType != MusketType.INT &&
+					(isArray || callFunction.params.get(callFunction.params.size - 3)?.calculateType != MusketType.INT)
+				){
+					error('Referenced function does not have correct amount or type of index parameters!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
+			
+			// Those have 2 final parameters after index parameters
+			ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
+			ZipIndexSkeleton,
+			ZipIndexInPlaceSkeleton,
+			ZipLocalIndexInPlaceSkeleton,
+			FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
+			FoldLocalSkeleton: 
+				if(callFunction.params.size >= 3 && callFunction.params.get(callFunction.params.size - 3)?.calculateType != MusketType.INT &&
+					(isArray || callFunction.params.get(callFunction.params.size - 4)?.calculateType != MusketType.INT)
+				){
+					error('Referenced function does not have correct amount or type of index parameters!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				}
 		}
 	}
 	
@@ -448,21 +456,23 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	// Check function return type is present and correct 
 	@Check
 	def checkReturnTypeForInPlaceSkeletons(Skeleton skel) {
-		if (skel.param instanceof InternalFunctionCall){
-			val call = skel.param as InternalFunctionCall
+		val callFunction = if (skel.param instanceof InternalFunctionCall){
+			(skel.param as InternalFunctionCall).value
+		} else {
+			skel.param as LambdaFunction
+		}
 			
-			switch skel {
-				MapSkeleton case skel.options.exists[it == MapOption.IN_PLACE],
-				MapIndexInPlaceSkeleton,
-				MapInPlaceSkeleton,
-				ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
-				ZipInPlaceSkeleton:
-					if(new MusketType(call.value) != (skel.eContainer as SkeletonExpression).obj.calculateCollectionType){
-						error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.calculateCollectionType + ', ' + new MusketType(call.value) + ' given!', 
-							MusketPackage.eINSTANCE.skeleton_Param,
-							INVALID_TYPE)
-					} 
-			}
+		switch skel {
+			MapSkeleton case skel.options.exists[it == MapOption.IN_PLACE],
+			MapIndexInPlaceSkeleton,
+			MapInPlaceSkeleton,
+			ZipSkeleton case skel.options.exists[it == ZipOption.IN_PLACE],
+			ZipInPlaceSkeleton:
+				if(new MusketType(callFunction) != (skel.eContainer as SkeletonExpression).obj.calculateCollectionType){
+					error('In place skeleton requires return type ' + (skel.eContainer as SkeletonExpression).obj.calculateCollectionType + ', ' + new MusketType(callFunction) + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_TYPE)
+				} 
 		}
 	}
 	
