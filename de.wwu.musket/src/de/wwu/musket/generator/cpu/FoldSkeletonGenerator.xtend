@@ -23,6 +23,8 @@ import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
+import de.wwu.musket.musket.FoldSkeletonVariants
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /**
  * Generate everything required for the fold skeleton, except for the actual fold skeleton call.
@@ -54,13 +56,13 @@ class FoldSkeletonGenerator {
 		var result = ""
 		var List<SkeletonExpression> processed = newArrayList
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
-			if (se.skeleton instanceof FoldSkeleton) {
+			if (se.skeleton instanceof FoldSkeletonVariants) {
 				val alreadyProcessed = processed.exists [
 					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
 
 				if (!alreadyProcessed) {
-					result += generateReductionDeclaration(se.skeleton as FoldSkeleton, se.obj)
+					result += generateReductionDeclaration(se.skeleton as FoldSkeletonVariants, se.obj)
 					processed.add(se)
 				}
 			}
@@ -76,7 +78,7 @@ class FoldSkeletonGenerator {
 	 * @param a the collection object on which the fold skeleton is used
 	 * @return generated code
 	 */
-	def static generateReductionDeclaration(FoldSkeleton s, CollectionObject a) '''
+	def static generateReductionDeclaration(FoldSkeletonVariants s, CollectionObject a) '''
 		«val param_map_red = createParameterLookupTableFoldReductionClause(s.param.functionParameters, s.param.functionArguments)»
 		#pragma omp declare reduction(«s.param.functionName» : «a.calculateCollectionType.cppType» : omp_out = [&](){«(s.param.generateFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreaks»}()) initializer(omp_priv = omp_orig)
 	'''
@@ -113,13 +115,13 @@ class FoldSkeletonGenerator {
 		var result = ""
 		var List<SkeletonExpression> processed = newArrayList
 		for (SkeletonExpression se : skeletons) {
-			if (se.skeleton instanceof FoldSkeleton) {
+			if (se.skeleton instanceof FoldSkeleton || se.skeleton instanceof MapFoldSkeleton) {
 				val alreadyProcessed = processed.exists [
 					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
 
 				if (!alreadyProcessed) {
-					result += generateMPIFoldFunction(se.skeleton as FoldSkeleton, se.obj)
+					result += generateMPIFoldFunction(se.skeleton as FoldSkeletonVariants, se.obj)
 					processed.add(se)
 				}
 			}
@@ -135,7 +137,7 @@ class FoldSkeletonGenerator {
 	 * @param a the collection object on which the fold skeleton is used.
 	 * @return generated code
 	 */
-	def static generateMPIFoldFunction(FoldSkeleton foldSkeleton, CollectionObject a) '''
+	def static generateMPIFoldFunction(FoldSkeletonVariants foldSkeleton, CollectionObject a) '''
 		void «foldSkeleton.param.functionName»(void *in, void *inout, int *len, MPI_Datatype *dptr){
 			«val type = a.calculateCollectionType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
@@ -156,7 +158,7 @@ class FoldSkeletonGenerator {
 		var result = ""
 		var List<SkeletonExpression> processed = newArrayList
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
-			if (se.skeleton instanceof FoldSkeleton) {
+			if (se.skeleton instanceof FoldSkeleton || se.skeleton instanceof MapFoldSkeleton) {
 				val alreadyProcessed = processed.exists [
 					it.skeleton.param.functionName == se.skeleton.param.functionName
 				]
@@ -195,7 +197,7 @@ class FoldSkeletonGenerator {
 		var result = ""
 		var List<SkeletonExpression> processed = newArrayList
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
-			if (se.skeleton instanceof FoldSkeleton) {
+			if (se.skeleton instanceof FoldSkeleton || se.skeleton instanceof MapFoldSkeleton) {
 				val alreadyProcessed = processed.exists [
 					it.obj.calculateCollectionType.cppType == se.obj.calculateCollectionType.cppType
 				]

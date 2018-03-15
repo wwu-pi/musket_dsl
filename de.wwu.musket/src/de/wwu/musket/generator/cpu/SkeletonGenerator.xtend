@@ -38,6 +38,7 @@ import de.wwu.musket.musket.ZipLocalIndexSkeleton
 import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
 import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /**
  * Generates the skeleton calls.
@@ -64,6 +65,7 @@ class SkeletonGenerator {
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton'''
+			MapFoldSkeleton: generateMapFoldSkeleton(s.skeleton as MapFoldSkeleton, s.obj, target)
 			ZipSkeleton:  '''// TODO: ZipSkeleton'''
 			ZipInPlaceSkeleton:  '''// TODO: ZipInPlaceSkeleton'''
 			ZipIndexSkeleton: '''// TODO: ZipIndexSkeleton'''		
@@ -395,7 +397,7 @@ class SkeletonGenerator {
 	/**
 	 * Creates the param map for the fold skeleton.
 	 * 
-	 * @param co the collection object the skeleton is used on
+	 * @param a the collection object the skeleton is used on
 	 * @param parameters the parameters of the skeleton
 	 * @param inputs the parameter inputs
 	 * @return the param map
@@ -418,20 +420,76 @@ class SkeletonGenerator {
 		return param_map
 	}
 
+
+	
 	/**
-	 * Creates the param map for the reduction clause for the fold skeleton.
-	 * 
-	 * @param co the collection object the skeleton is used on
-	 * @param parameters the parameters of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(CollectionObject co,
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs) {
+ * Generates the MapFold skeleton.
+ * <p>
+ * It is the same for arrays and matrices, because both are generated as std::vectors. 
+ * <p>
+ * ASSUMPTION: the function passed to the fold skeleton is associative and commutative
+ * 
+ * @param s the skeleton expression
+ * @param s the skeleton expression
+ * @param a the array on which the skeleton is used
+ * @return the generated skeleton code 
+ */
+	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target) '''
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+		«ELSE»
+			«target» = «s.identity.ValueAsString»;
+		«ENDIF»
+		«val foldName = s.param.functionName»
+		
+		«IF Config.cores > 1»
+			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«co.calculateCollectionType.cppType»«ELSE»«target»«ENDIF»)
+		«ENDIF»
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
+«««			map part
+			«s.mapFunction.calculateType.cppType» «Config.var_map_fold_tmp»;
+			«val param_map_map = createParameterLookupTableMapFoldMap(co, target, s.mapFunction.functionParameters, s.mapFunction.functionArguments)»
+			«s.mapFunction.generateFunctionCallForSkeleton(s, co, null, param_map_map)»
+
+«««			fold part
+			«val param_map_fold = createParameterLookupTableMapFoldFold(co, target, s.param.functionParameters, s.param.functionArguments)»
+			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map_fold)»
+		}		
+		
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		«ENDIF»
+	'''
+	
+		def static Map<String, String> createParameterLookupTableMapFoldMap(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
+		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''omp_in''')
+		if(Config.processes > 1){
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, target)
+		}
+		
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
+
+		for (var i = 0; i < inputs.size; i++) {
+			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
+		}
+		return param_map
+	}
+	
+		def static Map<String, String> createParameterLookupTableMapFoldFold(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
+		Iterable<Expression> inputs) {
+		val param_map = new HashMap<String, String>
+
+		if(Config.processes > 1){
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+		}else{
+			param_map.put(parameters.drop(inputs.size).head.name, target)
+		}
+		
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))

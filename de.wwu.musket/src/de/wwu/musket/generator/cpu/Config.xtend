@@ -44,8 +44,9 @@ class Config {
 	public static final String var_loop_counter_rows = "counter_rows"
 	public static final String var_loop_counter_cols = "counter_cols"
 	
-		public static final String var_map_input = "map_input"
+	public static final String var_map_input = "map_input"
 	public static final String var_fold_result = "fold_result"
+	public static final String var_map_fold_tmp = "map_fold_tmp"
 
 	public static final String var_row_offset = "row_offset"
 	public static final String var_col_offset = "col_offset"
