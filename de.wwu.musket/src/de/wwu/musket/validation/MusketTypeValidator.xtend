@@ -42,6 +42,10 @@ import de.wwu.musket.musket.MusketFunctionName
 import de.wwu.musket.musket.FoldLocalSkeleton
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.MapLocalIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -102,6 +106,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					
 				MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
 				MapIndexSkeleton,
+				MapLocalIndexSkeleton,
 				MapIndexInPlaceSkeleton,
 				MapLocalIndexInPlaceSkeleton:
 					if(call.value.params.size < indexParams+mapParamsOut){
@@ -136,7 +141,10 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						}
 					}
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
-				ZipIndexSkeleton: {
+				ZipIndexSkeleton,
+				ZipLocalIndexSkeleton,
+				ZipIndexInPlaceSkeleton,
+				ZipLocalIndexInPlaceSkeleton: {
 						if(call.params.size < zipParamsMin){
 							// Check minimum amount of arguments in function call
 							error('Skeleton function call requires at least ' + zipParamsMin + ' arguments, ' + call.params.size + ' given!', 
@@ -332,6 +340,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have 1 final parameter after index parameters
 				MapSkeleton case skel.options.exists[it == MapOption.INDEX || it == MapOption.LOCAL_INDEX],
 				MapIndexSkeleton,
+				MapLocalIndexSkeleton,
 				MapIndexInPlaceSkeleton,
 				MapLocalIndexInPlaceSkeleton: 
 					if(call.value.params.size >= 2 && call.value.params.get(call.value.params.size - 2)?.calculateType != MusketType.INT &&
@@ -345,6 +354,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				// Those have 2 final parameters after index parameters
 				ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 				ZipIndexSkeleton,
+				ZipIndexInPlaceSkeleton,
+				ZipLocalIndexInPlaceSkeleton,
 				FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
 				FoldLocalSkeleton: 
 					if(call.value.params.size >= 3 && call.value.params.get(call.value.params.size - 3)?.calculateType != MusketType.INT &&
