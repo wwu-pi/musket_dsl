@@ -203,8 +203,11 @@ class SourceFileGenerator {
 		var result = ""
 
 		// init distributed arrays with values
-		if (resource.Arrays.reject[it.type instanceof StructArrayType].exists [
-			it.ValuesAsString.size > 1 && it.type.distributionMode == DistributionMode.COPY
+		if (resource.Arrays.reject [
+			it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY ||
+				it.type.distributionMode == DistributionMode.LOC
+		].exists [
+			it.ValuesAsString.size > 1
 		] && Config.processes > 1) {
 			result += "switch(" + Config.var_pid + "){\n"
 			for (var p = 0; p < Config.processes; p++) {
