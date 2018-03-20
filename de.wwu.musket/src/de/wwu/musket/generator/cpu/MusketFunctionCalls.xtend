@@ -3,6 +3,7 @@ package de.wwu.musket.generator.cpu
 import de.wwu.musket.musket.MusketFunctionCall
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
 /**
@@ -64,7 +65,7 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generateRand(
-		MusketFunctionCall mfc) '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.replace('.', '_')»_«mfc.params.get(1).ValueAsString.replace('.', '_')»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
+		MusketFunctionCall mfc) '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.toCXXIdentifier»_«mfc.params.get(1).ValueAsString.toCXXIdentifier»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
 
 	/**
 	 * Generates the code for the musket roi start function. (Region of Interest)
