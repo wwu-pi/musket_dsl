@@ -41,6 +41,7 @@ import de.wwu.musket.musket.BoolVal
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import de.wwu.musket.musket.FloatVal
+import de.wwu.musket.musket.CollectionObjectOrParam
 
 /**
  * Generates expressions, such as 1+1.
@@ -96,7 +97,7 @@ class ExpressionGenerator {
 
 /**
  * Generate a reference to a collection element.
- * The function consideres different cases, based on:
+ * The function considers different cases, based on:
  * array or matrix
  * global or local index
  * distributed or copy
@@ -106,16 +107,17 @@ class ExpressionGenerator {
  * @return the generated code
  */
 	def static generateCollectionElementRef(ObjectRef or, Map<String, String> param_map)'''
+		«val orName = if(param_map !== null && param_map.containsKey(or.value.name)){param_map.get(or.value.name)}else{or.value.name}»
 «««		ARRAY
 		«IF or.value.calculateType.isArray»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 1»
-				«or.value.name»[«or.localCollectionIndex.head.generateExpression(param_map)»]«or?.tail.generateTail»
+				(«orName»)[«or.localCollectionIndex.head.generateExpression(param_map)»]«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSE»
-«««				COPY
-				«IF (or.value as CollectionObject).type.distributionMode == DistributionMode.COPY»
-					«or.value.name»[«or.globalCollectionIndex.head.generateExpression(param_map)»]«or?.tail.generateTail»
+«««				COPY or LOC
+				«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
+					(«orName»)[«or.globalCollectionIndex.head.generateExpression(param_map)»]«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
 					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
@@ -125,19 +127,19 @@ class ExpressionGenerator {
 		«ELSEIF or.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 2»
-				«or.value.name»[«or.localCollectionIndex.head.generateExpression(param_map)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«or?.tail.generateTail»
+				(«orName»)[«or.localCollectionIndex.head.generateExpression(param_map)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(param_map)»]«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSEIF or.globalCollectionIndex.size == 2»
 «««					COPY
-					«IF (or.value as CollectionObject).type.distributionMode == DistributionMode.COPY»
-						«or.value.name»[«or.globalCollectionIndex.head.generateExpression(param_map)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.globalCollectionIndex.drop(1).head.generateExpression(param_map)»]«or?.tail.generateTail»
+					«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
+						(«orName»)[«or.globalCollectionIndex.head.generateExpression(param_map)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.globalCollectionIndex.drop(1).head.generateExpression(param_map)»]«or?.tail.generateTail»
 «««					DIST
 					«ELSE»
 						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed
 					«ENDIF»				
 			«ENDIF»
 		«ELSE»
-			«or.value.name»«or?.tail.generateTail»
+			(«orName»)«or?.tail.generateTail»
 		«ENDIF»
 	'''
 

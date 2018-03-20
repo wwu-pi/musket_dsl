@@ -24,15 +24,17 @@ import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.FloatVariable
 import de.wwu.musket.musket.FloatConstant
 import de.wwu.musket.musket.FloatVal
+import de.wwu.musket.musket.CollectionObjectOrParam
+import de.wwu.musket.musket.CollectionParameter
 
 class ObjectExtension {
 
 	// Value
-	def static List<String> ValuesAsString(CollectionObject o){
-		if (o.type instanceof StructArrayType || o.type instanceof StructMatrixType) return newArrayList('')
+	def static List<String> ValuesAsString(CollectionObject o) {
+		if(o.type instanceof StructArrayType || o.type instanceof StructMatrixType) return newArrayList('')
 		return o.values.map[v|v.ValueAsString]
 	}
-	
+
 	// Variable
 	def static dispatch ValueAsString(IntVariable o) {
 		o.initExpression.generateExpression(null)
@@ -58,7 +60,7 @@ class ObjectExtension {
 	def static dispatch ValueAsString(DoubleConstant o) {
 		o.value.toString
 	}
-	
+
 	def static dispatch ValueAsString(FloatConstant o) {
 		o.value.toString + "f"
 	}
@@ -67,7 +69,7 @@ class ObjectExtension {
 		o.value.toString
 	}
 
-	//Primitive Values
+	// Primitive Values
 	def static dispatch ValueAsString(BoolVal o) {
 		o.value.toString
 	}
@@ -79,39 +81,54 @@ class ObjectExtension {
 	def static dispatch ValueAsString(DoubleVal o) {
 		o.value.toString
 	}
-	
+
 	def static dispatch ValueAsString(FloatVal o) {
 		o.value.toString + "f"
 	}
-	
+
 	def static dispatch ValueAsString(CompareExpression co) {
 		co.generateExpression(null)
 	}
-	
+
+	// object references
+	def static getCollectionType(CollectionObjectOrParam coop) {
+		switch coop {
+			CollectionObject: coop.type
+			CollectionParameter: coop.type
+		}
+	}
+
+	def static getCollectionName(CollectionObjectOrParam coop) {
+		switch coop {
+			CollectionObject: coop.name
+			CollectionParameter: coop.name
+		}
+	}
+
 	// structs
-	def static generateTail(TailObjectRef or){
+	def static generateTail(TailObjectRef or) {
 		var result = ''
 		var tor = or
-		while(tor !== null){
+		while (tor !== null) {
 			result += '.' + tor.value.name
 			tor = tor.tail
 		}
 		return result
 	}
-	
+
 	// for arrays
-	def static distributionMode(CollectionObject o){
-		switch o{
+	def static distributionMode(CollectionObject o) {
+		switch o {
 			ArrayType: o.distributionMode
 			MatrixType: o.distributionMode
 		}
 	}
-	
+
 	// for arrays
 	def static dispatch size(ArrayType a) {
 		a.size.concreteValue
 	}
-	
+
 	def static dispatch sizeLocal(ArrayType a) {
 		switch a.distributionMode {
 			case DIST: a.size.concreteValue / Config.processes
@@ -119,12 +136,12 @@ class ObjectExtension {
 			default: a.size.concreteValue
 		}
 	}
-	
+
 	// for matrices
 	def static dispatch size(MatrixType m) {
 		m.cols.concreteValue * m.rows.concreteValue
 	}
-	
+
 	def static dispatch sizeLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes
@@ -134,7 +151,7 @@ class ObjectExtension {
 			default: 0
 		}
 	}
-	
+
 	def static rowsLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.rows.concreteValue / m.blocksInRow
@@ -144,7 +161,7 @@ class ObjectExtension {
 			default: 0
 		}
 	}
-	
+
 	def static colsLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.cols.concreteValue / m.blocksInColumn
@@ -154,7 +171,7 @@ class ObjectExtension {
 			default: 0
 		}
 	}
-	
+
 	def static blocksInRow(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: Math.sqrt(Config.processes).intValue
@@ -164,7 +181,7 @@ class ObjectExtension {
 			default: 0
 		}
 	}
-	
+
 	def static blocksInColumn(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: Math.sqrt(Config.processes).intValue
@@ -174,7 +191,7 @@ class ObjectExtension {
 			default: 0
 		}
 	}
-	
+
 	/**
 	 * Returns a tuple that holds the position of the partition for a given matrix and the process id.
 	 * Key: row position

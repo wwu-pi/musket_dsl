@@ -42,7 +42,7 @@ Object:
 	CollectionObject | IndividualObject;
 	
 CollectionObject:
-	type = CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' ArrayInstantiation)? ';'
+	type=CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' ArrayInstantiation)? ';'
 ;
 
 fragment ArrayInstantiation*:
