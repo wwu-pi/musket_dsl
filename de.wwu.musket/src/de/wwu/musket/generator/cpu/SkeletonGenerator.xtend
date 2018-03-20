@@ -374,23 +374,25 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) '''
+		«val foldResultType = s.identity.calculateType.cppType»
+	
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+			«Config.var_fold_result»_«foldResultType»  = «s.identity.ValueAsString»;
 		«ELSE»
 			«target» = «s.identity.ValueAsString»;
 		«ENDIF»
 		«val foldName = s.param.functionName»
-		
+
 		«IF Config.cores > 1»
-			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«co.calculateCollectionType.cppType»«ELSE»«target»«ENDIF»)
+			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
-			«val param_map = createParameterLookupTableFold(co, target, s.param.functionParameters, s.param.functionArguments)»
+			«val param_map = createParameterLookupTableFold(s, co, target, s.param.functionParameters, s.param.functionArguments)»
 			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map)»
 		}		
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+			MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 		«ENDIF»
 	'''
 
@@ -402,12 +404,12 @@ class SkeletonGenerator {
 	 * @param inputs the parameter inputs
 	 * @return the param map
 	 */
-	def static Map<String, String> createParameterLookupTableFold(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
+	def static Map<String, String> createParameterLookupTableFold(FoldSkeleton s, CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
 		}
@@ -435,15 +437,16 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target) '''
+		«val foldResultType = s.identity.calculateType.cppType»
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«co.calculateType.cppType»  = «s.identity.ValueAsString»;
+			«Config.var_fold_result»_«foldResultType»  = «s.identity.ValueAsString»;
 		«ELSE»
 			«target» = «s.identity.ValueAsString»;
 		«ENDIF»
 		«val foldName = s.param.functionName»
 		
 		«IF Config.cores > 1»
-			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«co.calculateCollectionType.cppType»«ELSE»«target»«ENDIF»)
+			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
 «««			map part
@@ -452,12 +455,12 @@ class SkeletonGenerator {
 			«s.mapFunction.generateFunctionCallForSkeleton(s, co, null, param_map_map)»
 
 «««			fold part
-			«val param_map_fold = createParameterLookupTableMapFoldFold(co, target, s.param.functionParameters, s.param.functionArguments)»
+			«val param_map_fold = createParameterLookupTableMapFoldFold(s, co, target, s.param.functionParameters, s.param.functionArguments)»
 			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map_fold)»
 		}		
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			MPI_Allreduce(&«Config.var_fold_result»_«co.calculateCollectionType.cppType», &«target», sizeof(«co.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+			MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 		«ENDIF»
 	'''
 	
@@ -476,13 +479,13 @@ class SkeletonGenerator {
 		return param_map
 	}
 	
-		def static Map<String, String> createParameterLookupTableMapFoldFold(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
+		def static Map<String, String> createParameterLookupTableMapFoldFold(MapFoldSkeleton s, CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
 		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
-			param_map.put("return", '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
+			param_map.put("return", '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
 			param_map.put("return", target)

@@ -1,14 +1,10 @@
 package de.wwu.musket.generator.cpu
 
-import de.wwu.musket.musket.BoolArrayType
-import de.wwu.musket.musket.BoolMatrixType
 import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.DoubleArrayType
-import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.FoldSkeleton
-import de.wwu.musket.musket.IntArrayType
-import de.wwu.musket.musket.IntMatrixType
+import de.wwu.musket.musket.FoldSkeletonVariants
+import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.SkeletonExpression
 import java.util.HashMap
 import java.util.List
@@ -19,12 +15,8 @@ import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
-import de.wwu.musket.musket.FloatArrayType
-import de.wwu.musket.musket.FloatMatrixType
-import de.wwu.musket.musket.FoldSkeletonVariants
-import de.wwu.musket.musket.MapFoldSkeleton
+import static extension de.wwu.musket.util.TypeHelper.*
 
 /**
  * Generate everything required for the fold skeleton, except for the actual fold skeleton call.
@@ -80,7 +72,7 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateReductionDeclaration(FoldSkeletonVariants s, CollectionObject a) '''
 		«val param_map_red = createParameterLookupTableFoldReductionClause(s.param.functionParameters, s.param.functionArguments)»
-		#pragma omp declare reduction(«s.param.functionName» : «a.calculateCollectionType.cppType» : omp_out = [&](){«(s.param.generateFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreaks»}()) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«s.param.functionName» : «s.identity.calculateType.cppType» : omp_out = [&](){«(s.param.generateFunctionCallForSkeleton(null, a, null, param_map_red)).toString.removeLineBreaks»}()) initializer(omp_priv = omp_orig)
 	'''
 
 	/**
@@ -139,7 +131,7 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateMPIFoldFunction(FoldSkeletonVariants foldSkeleton, CollectionObject a) '''
 		void «foldSkeleton.param.functionName»(void *in, void *inout, int *len, MPI_Datatype *dptr){
-			«val type = a.calculateCollectionType.cppType»
+			«val type = foldSkeleton.identity.calculateType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
 			«val param_map = createParameterLookupTable(foldSkeleton.param.functionParameters, foldSkeleton.param.functionArguments)»
@@ -188,8 +180,6 @@ class FoldSkeletonGenerator {
 	/**
 	 * Generates required temporary variables used to store intermediate fold results.
 	 * 
-	 * TODO: only supports int, double, float, and bool at the moment
-	 * 
 	 * @param resource the resource object
 	 * @return generated code
 	 */
@@ -199,31 +189,17 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
 			if (se.skeleton instanceof FoldSkeleton || se.skeleton instanceof MapFoldSkeleton) {
 				val alreadyProcessed = processed.exists [
-					it.obj.calculateCollectionType.cppType == se.obj.calculateCollectionType.cppType
+					(it.skeleton as FoldSkeletonVariants).identity.calculateType.cppType ==
+						(se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
 				]
 
 				if (!alreadyProcessed) {
-					val obj = se.obj
-					switch obj.type {
-						IntArrayType,
-						IntMatrixType:
-							result +=
-								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0;'''
-						BoolArrayType,
-						BoolMatrixType:
-							result +=
-								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = true;'''
-						DoubleArrayType,
-						DoubleMatrixType:
-							result +=
-								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0.0;'''
-						FloatArrayType,
-						FloatMatrixType:
-							result +=
-								'''«obj.calculateCollectionType.cppType» «Config.var_fold_result»_«obj.calculateCollectionType.cppType» = 0.0f;'''
-					}
-					processed.add(se)
+					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
+
+					result +=
+						'''«type» «Config.var_fold_result»_«type»;'''
 				}
+				processed.add(se)
 			}
 		}
 
@@ -247,10 +223,10 @@ class FoldSkeletonGenerator {
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
-		
+
 		// for mapFoldSkeleton
 		param_map.put("return", '''*inoutv''')
-		
+
 		return param_map
 	}
 }
