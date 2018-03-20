@@ -465,17 +465,14 @@ class SkeletonGenerator {
 		Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
-		}else{
-			param_map.put(parameters.drop(inputs.size).head.name, target)
-		}
-		
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
+		param_map.put(parameters.drop(inputs.size).head.name, '''«a.name»[«Config.var_loop_counter»]''')
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
+		
+		param_map.put("return", Config.var_map_fold_tmp)
+		
 		return param_map
 	}
 	
@@ -485,15 +482,20 @@ class SkeletonGenerator {
 
 		if(Config.processes > 1){
 			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
+			param_map.put("return", '''«Config.var_fold_result»_«a.calculateCollectionType.cppType»''')
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
+			param_map.put("return", target)
 		}
 		
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
+		param_map.put(parameters.drop(inputs.size + 1).head.name, Config.var_map_fold_tmp)
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
+		
+		
+		
 		return param_map
 	}
 	
