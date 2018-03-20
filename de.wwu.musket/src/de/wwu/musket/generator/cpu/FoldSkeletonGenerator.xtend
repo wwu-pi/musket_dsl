@@ -164,7 +164,7 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					result += generateMPIFoldOperator(se.skeleton as FoldSkeleton)
+					result += generateMPIFoldOperator(se.skeleton as FoldSkeletonVariants)
 					processed.add(se)
 				}
 			}
@@ -179,7 +179,7 @@ class FoldSkeletonGenerator {
 	 * @param foldSkeleton the fold skeleton
 	 * @return generated code
 	 */
-	def static generateMPIFoldOperator(FoldSkeleton s) '''
+	def static generateMPIFoldOperator(FoldSkeletonVariants s) '''
 		«val name = s.param.functionName»
 		MPI_Op «name»«Config.mpi_op_suffix»;
 		MPI_Op_create( «name», 0, &«name»«Config.mpi_op_suffix» );
@@ -247,6 +247,10 @@ class FoldSkeletonGenerator {
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
+		
+		// for mapFoldSkeleton
+		param_map.put("return", '''*inoutv''')
+		
 		return param_map
 	}
 }
