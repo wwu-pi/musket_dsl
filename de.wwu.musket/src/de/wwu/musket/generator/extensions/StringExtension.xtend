@@ -28,4 +28,14 @@ class StringExtension {
 	def static removeLineBreaks(String s) {
 		s.replaceAll("\n", "")
 	}
+	
+		/**
+	 * This method creates a valid name for a C++ variable, i.e. it removes ( or - etc.
+	 * 
+	 * @param s String to manipulate
+	 * @return String without line breaks 
+	 */
+	def static toCXXIdentifier(String s) {
+		s.replace("\\", "").replace("-", "minus").replace("(", "").replace(")", "").replace('.', '_')
+	}
 }

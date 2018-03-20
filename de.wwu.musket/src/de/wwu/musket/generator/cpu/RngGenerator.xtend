@@ -3,6 +3,7 @@ package de.wwu.musket.generator.cpu
 import de.wwu.musket.musket.Mode
 import de.wwu.musket.musket.MusketFunctionCall
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.util.MusketType
 
@@ -60,24 +61,24 @@ class RngGenerator {
 			switch lower.calculateType {
 				case MusketType.INT:
 					result +=
-						'''std::vector<std::uniform_int_distribution<int>> rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString»;
-						rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString».reserve(«cores»);
+						'''std::vector<std::uniform_int_distribution<int>> rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
-							rand_dist_int_«lower.ValueAsString»_«higher.ValueAsString».push_back(std::uniform_int_distribution<int>(«lower.ValueAsString», «higher.ValueAsString»));
+							rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_int_distribution<int>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
 				case MusketType.DOUBLE:
 					result +=
-						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')»;
-						rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».reserve(«cores»);
+						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
-							rand_dist_double_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».push_back(std::uniform_real_distribution<double>(«lower.ValueAsString», «higher.ValueAsString»));
+							rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_real_distribution<double>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
 				case MusketType.FLOAT:
 					result +=
-						'''std::vector<std::uniform_real_distribution<float>> rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')»;
-						rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».reserve(«cores»);
+						'''std::vector<std::uniform_real_distribution<float>> rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
-							rand_dist_float_«lower.ValueAsString.replace('.', '_')»_«higher.ValueAsString.replace('.', '_')».push_back(std::uniform_real_distribution<float>(«lower.ValueAsString», «higher.ValueAsString»));
+							rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_real_distribution<float>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
 				default:
 					throw new UnsupportedOperationException('Random number generation only for ints, floats, and doubles!')
