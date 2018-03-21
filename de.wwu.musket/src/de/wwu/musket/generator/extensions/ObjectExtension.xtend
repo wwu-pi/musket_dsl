@@ -123,6 +123,15 @@ class ObjectExtension {
 		var tor = or
 		while (tor !== null) {
 			result += '.' + tor.value.name
+			if(!tor.localCollectionIndex.nullOrEmpty){
+				result += '['
+				result += convertLocalCollectionIndex(tor.value.collectionType, tor.localCollectionIndex, null)
+				result += ']'
+			}else if(!tor.globalCollectionIndex.nullOrEmpty){
+				result += '['
+				result += convertGlobalCollectionIndex(tor.value.collectionType, tor.globalCollectionIndex, null)
+				result += ']'
+			}
 			tor = tor.tail
 		}
 		return result
@@ -140,6 +149,7 @@ class ObjectExtension {
 		}
 	}
 
+// TODO: todo, just copy paste, should not work
 	static def convertGlobalCollectionIndex(CollectionType ct, EList<Expression> indices,
 		Map<String, String> param_map) {
 		switch ct {
