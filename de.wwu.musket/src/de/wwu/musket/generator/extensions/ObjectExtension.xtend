@@ -26,6 +26,11 @@ import de.wwu.musket.musket.FloatConstant
 import de.wwu.musket.musket.FloatVal
 import de.wwu.musket.musket.CollectionObjectOrParam
 import de.wwu.musket.musket.CollectionParameter
+import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.Expression
+import org.eclipse.emf.common.util.EList
+import java.util.Map
+import de.wwu.musket.musket.ReferableObject
 
 class ObjectExtension {
 
@@ -91,7 +96,14 @@ class ObjectExtension {
 	}
 
 	// object references
-	def static getCollectionType(CollectionObjectOrParam coop) {
+	def static dispatch getCollectionType(ReferableObject ro) {
+		switch ro {
+			CollectionObject: ro.type
+			CollectionParameter: ro.type
+		}
+	}
+
+	def static dispatch getCollectionType(CollectionObjectOrParam coop) {
 		switch coop {
 			CollectionObject: coop.type
 			CollectionParameter: coop.type
@@ -114,6 +126,29 @@ class ObjectExtension {
 			tor = tor.tail
 		}
 		return result
+	}
+
+	// calculate indices
+	static def convertLocalCollectionIndex(CollectionType ct, EList<Expression> indices,
+		Map<String, String> param_map) {
+		switch ct {
+			ArrayType:
+				indices.head.generateExpression(param_map)
+			MatrixType:
+				indices.get(0).generateExpression(param_map) + "*" + ct.colsLocal + "+" +
+					indices.get(1).generateExpression(param_map)
+		}
+	}
+
+	static def convertGlobalCollectionIndex(CollectionType ct, EList<Expression> indices,
+		Map<String, String> param_map) {
+		switch ct {
+			ArrayType:
+				indices.head.generateExpression(param_map)
+			MatrixType:
+				indices.get(0).generateExpression(param_map) + "*" + ct.colsLocal + "+" +
+					indices.get(1).generateExpression(param_map)
+		}
 	}
 
 	// for arrays

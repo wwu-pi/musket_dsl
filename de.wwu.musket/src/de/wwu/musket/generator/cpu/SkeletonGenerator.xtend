@@ -25,6 +25,7 @@ import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 
@@ -39,6 +40,8 @@ import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
 import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.FoldLocalSkeleton
 import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.CollectionInstantiation
+import de.wwu.musket.musket.CompareExpression
 
 /**
  * Generates the skeleton calls.
@@ -374,7 +377,7 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target) '''
-		«val foldResultType = s.identity.calculateType.cppType»
+		«val foldResultType = s.identity.calculateType.cppType.toCXXIdentifier»
 	
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
 			«Config.var_fold_result»_«foldResultType»  = «s.identity.ValueAsString»;
@@ -409,7 +412,7 @@ class SkeletonGenerator {
 		val param_map = new HashMap<String, String>
 
 		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
 		}
@@ -437,16 +440,28 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target) '''
-		«val foldResultType = s.identity.calculateType.cppType»
-		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«foldResultType»  = «s.identity.ValueAsString»;
+		«val foldResultTypeIdentifier = s.identity.calculateType.cppType.toCXXIdentifier»
+		«val foldResultType = s.identity.calculateType»
+		«IF foldResultType.collection»
+			«val ci = ((s.identity as CompareExpression).eqLeft as CollectionInstantiation)»
+			«IF ci.values.size == 1»
+				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal», «ci.values.head.ValueAsString»);
+			«ELSEIF ci.values.size == foldResultType.collectionType.sizeLocal»
+				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal»);
+				«FOR i : 0 ..< ci.values.size»
+					«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»[«i»] = «ci.values.get(i)»;
+				«ENDFOR»
+			«ELSE»
+				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
+			«ENDIF»
 		«ELSE»
-			«target» = «s.identity.ValueAsString»;
+			«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF» = «s.identity.ValueAsString»;
 		«ENDIF»
+		
 		«val foldName = s.param.functionName»
 		
 		«IF Config.cores > 1»
-			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
+			#pragma omp parallel for simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»)
 		«ENDIF»
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal»; ++«Config.var_loop_counter»){
 «««			map part
@@ -459,8 +474,13 @@ class SkeletonGenerator {
 			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map_fold)»
 		}		
 		
-		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY && co.distributionMode != DistributionMode.LOC»
+«««			array as result
+			«IF s.identity.calculateType.collection»
+				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal» * sizeof(«s.identity.calculateType.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+			«ELSE »
+				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», sizeof(«foldResultTypeIdentifier»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+			«ENDIF»			
 		«ENDIF»
 	'''
 	
@@ -484,8 +504,8 @@ class SkeletonGenerator {
 		val param_map = new HashMap<String, String>
 
 		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
-			param_map.put("return", '''«Config.var_fold_result»_«s.identity.calculateType.cppType»''')
+			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
+			param_map.put("return", '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
 		}else{
 			param_map.put(parameters.drop(inputs.size).head.name, target)
 			param_map.put("return", target)

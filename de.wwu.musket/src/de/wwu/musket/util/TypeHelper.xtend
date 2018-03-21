@@ -162,13 +162,13 @@ class TypeHelper {
 	static dispatch def MusketType calculateType(MusketFunctionCall exp){
 		if (exp.value === null) return null;
 		
-		switch exp.value {
-			case PRINT: return MusketType.STRING
+		switch exp.value {			
 			case RAND: return exp.params?.head?.calculateType
 			case DOUBLE_MIN: return MusketType.DOUBLE
 			case DOUBLE_MAX: return MusketType.DOUBLE
 			case FLOAT_MIN: return MusketType.FLOAT
 			case FLOAT_MAX: return MusketType.FLOAT
+			default: return MusketType.STRING
 		}
 	}
 	

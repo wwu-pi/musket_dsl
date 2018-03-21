@@ -18,6 +18,7 @@ import de.wwu.musket.musket.Type
 import java.util.Objects
 import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
+import de.wwu.musket.musket.CollectionType
 
 class MusketType {
 
@@ -37,6 +38,7 @@ class MusketType {
 	public static final MusketType BOOL_MATRIX = new MusketType(PrimitiveTypeLiteral.BOOL).toMatrix
 
 	protected PrimitiveTypeLiteral type = null
+	protected CollectionType collectionType = null
 	protected DistributionMode distributionMode = DistributionMode.COPY
 	protected String structName = null
 	protected boolean isArray = false
@@ -52,51 +54,61 @@ class MusketType {
 				type = PrimitiveTypeLiteral.INT;
 				toArray;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			DoubleArrayType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toArray;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			FloatArrayType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toArray;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			BoolArrayType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toArray;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			StructArrayType: {
 				structName = t.type.name;
 				toArray;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			IntMatrixType: {
 				type = PrimitiveTypeLiteral.INT;
 				toMatrix;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			DoubleMatrixType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toMatrix;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			FloatMatrixType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toMatrix;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			BoolMatrixType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toMatrix;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			StructMatrixType: {
 				structName = t.type.name;
 				toMatrix;
 				distributionMode = t.distributionMode
+				collectionType = t
 			}
 			PrimitiveType:
 				type = t.type
@@ -196,6 +208,14 @@ class MusketType {
 		return new MusketType(t)
 	}
 
+	def getType() {
+		return this.type
+	}
+
+	def getCollectionType() {
+		return this.collectionType
+	}
+
 	def getCppType() {
 		var primtype = ''
 		// struct
@@ -206,16 +226,16 @@ class MusketType {
 			// primitive type
 			switch (type) {
 				case BOOL: primtype = 'bool'
-				case DOUBLE: primtype =  'double'
-				case FLOAT: primtype =  'float'
-				case INT: primtype =  'int'
-				default: primtype =  'auto'
+				case DOUBLE: primtype = 'double'
+				case FLOAT: primtype = 'float'
+				case INT: primtype = 'int'
+				default: primtype = 'auto'
 			}
 		}
-		
-		if(isArray || isMatrix){
+
+		if (isArray || isMatrix) {
 			return 'std::vector<' + primtype + '>'
-		}else{
+		} else {
 			return primtype
 		}
 	}

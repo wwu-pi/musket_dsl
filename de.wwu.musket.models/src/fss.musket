@@ -285,69 +285,69 @@ main{
 
 	// init fish
 	population.mapInPlace(initFish());
-	
-	double step_size = STEP_SIZE_INITIAL;
-	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
-	//fi.weight
-	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
-	
-	// main loop
+//	
+//	double step_size = STEP_SIZE_INITIAL;
+//	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
+//	//fi.weight
+//	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+//	
+//	// main loop
 	for (int iteration = 0; iteration < ITERATIONS; ++iteration) {
-		// evaluate fitness		
-		population.mapInPlace(evaluateFitness());
-		
-		
-		// update step size	
-		if (iteration > 0) {
-			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / (double)(ITERATIONS - 1));
-			step_size_vol = step_size_vol - ((STEP_SIZE_VOLITIVE_INITIAL - STEP_SIZE_VOLITIVE_FINAL) / (double)(ITERATIONS - 1));
-		}
-		
-		// individual movement
-		population.mapInPlace(individualMovement(step_size)); // incl. fitness eval	
-		
-		// feeding
-//		Fish max_fitness_variation_fish = population.fold(Fish{}, maxFitnessVariation());
-//		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
-		// or
-		double max_fitness_variation = population.mapFold((Fish fi) -> double { return 2.0; }, 0.0, maxFitnessVariation());
-		
-		population.mapInPlace(feeding(max_fitness_variation));
+//		// evaluate fitness		
+//		population.mapInPlace(evaluateFitness());
+//		
+//		
+//		// update step size	
+//		if (iteration > 0) {
+//			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / (double)(ITERATIONS - 1));
+//			step_size_vol = step_size_vol - ((STEP_SIZE_VOLITIVE_INITIAL - STEP_SIZE_VOLITIVE_FINAL) / (double)(ITERATIONS - 1));
+//		}
+//		
+//		// individual movement
+//		population.mapInPlace(individualMovement(step_size)); // incl. fitness eval	
+//		
+//		// feeding
+////		Fish max_fitness_variation_fish = population.fold(Fish{}, maxFitnessVariation());
+////		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
+//		// or
+//		double max_fitness_variation = population.mapFold((Fish fi) -> double { return 2.0; }, 0.0, maxFitnessVariation());
+//		
+//		population.mapInPlace(feeding(max_fitness_variation));
 		
 		// collective instinctive movement
 //		Fish sum_fitness_variation_fish = population.fold(Fish{}, sumFitnessVariation());
 //		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
 		// or 
-		double sum_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, sumFitnessVariation());
+//		double sum_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, sumFitnessVariation());
 		
-		population.mapInPlace(calcDisplacementMap());
-		instinctive_movement_vector = population.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.displacement; }, array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
+//		population.mapInPlace(calcDisplacementMap());
+//		instinctive_movement_vector_copy = population.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.displacement; }, array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
 		
-		instinctive_movement_vector.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
-		
-		instinctive_movement_vector_copy = instinctive_movement_vector.gather();
-		
-		population.mapInPlace(instinctiveMovement());
-		
-		// collective volitive movement
-		double sum_weight = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
-		
-		weighted_fishes = population.map(calcWeightedFish());
-
-		barycenter = weighted_fishes.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.position;}, array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
-
-		barycenter.mapInPlace(calcBarycenterMap(sum_weight));
-		barycenter_copy = barycenter.gather();
-
-		population.mapInPlace(volitiveMovement(step_size_vol, sum_weight, sum_weight_last_iteration));
-		sum_weight_last_iteration = sum_weight;
+//		instinctive_movement_vector.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
+//		
+//		instinctive_movement_vector_copy = instinctive_movement_vector.gather();
+//		
+//		population.mapInPlace(instinctiveMovement());
+//		
+//		// collective volitive movement
+//		double sum_weight = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+//		
+//		weighted_fishes = population.map(calcWeightedFish());
+//
+//		barycenter = weighted_fishes.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.position;}, array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
+//
+//		barycenter.mapInPlace(calcBarycenterMap(sum_weight));
+//		barycenter_copy = barycenter.gather();
+//
+//		population.mapInPlace(volitiveMovement(step_size_vol, sum_weight, sum_weight_last_iteration));
+//		sum_weight_last_iteration = sum_weight;
 	}
 
   	// get best solution
-  	double global_best_fitness = population.mapFold((Fish fi) -> double { return fi.best_fitness;}, mkt::double_min(), getBestSolution());
+//  	double global_best_fitness = population.mapFold((Fish fi) -> double { return fi.best_fitness;}, mkt::double_min(), getBestSolution());
   
   	mkt::roi_end();
   	
   	//print best solution
-	mkt::print('Best solution: %.5f\n', global_best_fitness);
+//	mkt::print('Best solution: %.5f\n', global_best_fitness);
 }

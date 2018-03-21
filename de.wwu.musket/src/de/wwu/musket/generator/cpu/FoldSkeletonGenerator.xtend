@@ -197,7 +197,7 @@ class FoldSkeletonGenerator {
 					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
 
 					result +=
-						'''«type» «Config.var_fold_result»_«type»;'''
+						'''«type» «Config.var_fold_result»_«type.toCXXIdentifier»;'''
 				}
 				processed.add(se)
 			}
