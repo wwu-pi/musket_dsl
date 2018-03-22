@@ -442,20 +442,23 @@ class SkeletonGenerator {
 	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target) '''
 		«val foldResultTypeIdentifier = s.identity.calculateType.cppType.toCXXIdentifier»
 		«val foldResultType = s.identity.calculateType»
+		«val name = if (Config.processes > 1 && co.distributionMode != DistributionMode.COPY) {Config.var_fold_result + "_" + foldResultTypeIdentifier } else {target}»
 		«IF foldResultType.collection»
 			«val ci = ((s.identity as CompareExpression).eqLeft as CollectionInstantiation)»
 			«IF ci.values.size == 1»
-				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal», «ci.values.head.ValueAsString»);
+				«name».clear();
+				«name».resize(«foldResultType.collectionType.sizeLocal», «ci.values.head.ValueAsString»);
 			«ELSEIF ci.values.size == foldResultType.collectionType.sizeLocal»
-				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal»);
+				«name».resize(«foldResultType.collectionType.sizeLocal»);
 				«FOR i : 0 ..< ci.values.size»
-					«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»[«i»] = «ci.values.get(i)»;
+					«name»[«i»] = «ci.values.get(i)»;
 				«ENDFOR»
 			«ELSE»
-				«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF».resize(«foldResultType.collectionType.sizeLocal», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
+				«name».clear();
+				«name».resize(«foldResultType.collectionType.sizeLocal», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
 			«ENDIF»
 		«ELSE»
-			«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF» = «s.identity.ValueAsString»;
+			«name» = «s.identity.ValueAsString»;
 		«ENDIF»
 		
 		«val foldName = s.param.functionName»

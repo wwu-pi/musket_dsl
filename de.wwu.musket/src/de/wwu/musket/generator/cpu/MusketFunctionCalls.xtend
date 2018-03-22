@@ -27,9 +27,9 @@ class MusketFunctionCalls {
 				generatePrint(mfc)
 			case RAND:
 				generateRand(mfc)
-			case FLOAT_MIN: '''std::numeric_limits<float>::min()'''
+			case FLOAT_MIN: '''std::numeric_limits<float>::lowest()'''
 			case FLOAT_MAX: '''std::numeric_limits<float>::max()'''
-			case DOUBLE_MIN: '''std::numeric_limits<double>::min()'''
+			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''
 			case DOUBLE_MAX: '''std::numeric_limits<double>::max()'''
 			case ROI_START:
 				generateRoiStart(mfc)

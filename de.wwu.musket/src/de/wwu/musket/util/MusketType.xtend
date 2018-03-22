@@ -38,6 +38,7 @@ class MusketType {
 	public static final MusketType BOOL_MATRIX = new MusketType(PrimitiveTypeLiteral.BOOL).toMatrix
 
 	protected PrimitiveTypeLiteral type = null
+	protected PrimitiveType primitiveType = null
 	protected CollectionType collectionType = null
 	protected DistributionMode distributionMode = DistributionMode.COPY
 	protected String structName = null
@@ -110,8 +111,10 @@ class MusketType {
 				distributionMode = t.distributionMode
 				collectionType = t
 			}
-			PrimitiveType:
+			PrimitiveType: {
 				type = t.type
+				primitiveType = t
+			}
 			StructType:
 				structName = t.type.name
 		}
@@ -214,6 +217,10 @@ class MusketType {
 
 	def getCollectionType() {
 		return this.collectionType
+	}
+	
+	def getPrimitiveType() {
+		return this.primitiveType
 	}
 
 	def getCppType() {

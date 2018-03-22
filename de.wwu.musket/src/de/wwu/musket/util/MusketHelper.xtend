@@ -21,6 +21,8 @@ import de.wwu.musket.musket.DoubleArrayType
 import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.FloatMatrixType
 import de.wwu.musket.musket.PrimitiveType
+import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import de.wwu.musket.musket.CollectionType
 
 class MusketHelper {
 	// Resolve concrete values from references
@@ -30,15 +32,32 @@ class MusketHelper {
 		}
 		return ref.value
 	}
-	
+
 	static def getCXXPrimitiveDefaultValue(Type t) {
-		switch(t){
-			IntArrayType, IntMatrixType, PrimitiveType case t.type == PrimitiveTypeLiteral.INT: '''0'''
-			 DoubleArrayType, DoubleMatrixType, PrimitiveType case t.type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
-			 FloatArrayType, FloatMatrixType, PrimitiveType case t.type == PrimitiveTypeLiteral.FLOAT:  '''0.0f'''
-			 BoolArrayType, BoolMatrixType, PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL:  '''false'''
-			 PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: ''''''
-			default: null
+		switch (t) {
+			IntArrayType,
+			IntMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.INT: '''0'''
+			DoubleArrayType,
+			DoubleMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
+			FloatArrayType,
+			FloatMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
+			BoolArrayType,
+			BoolMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''false'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: ''''''
+			default:
+				null
+		}
+	}
+
+	static def getCXXDefaultConstructorValue(Type t) {
+		switch (t) {
+			CollectionType: '''(«t.sizeLocal», «t.CXXPrimitiveDefaultValue»)'''
+			PrimitiveType: '''(«t.CXXPrimitiveDefaultValue»)'''
+			default: '''()'''
 		}
 	}
 

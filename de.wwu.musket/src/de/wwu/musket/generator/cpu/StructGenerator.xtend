@@ -3,6 +3,7 @@ package de.wwu.musket.generator.cpu
 import de.wwu.musket.musket.Struct
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.util.MusketHelper.*
 
 /**
  * Generates the declaration of structs.
@@ -20,8 +21,20 @@ class StructGenerator {
 	def static generateStructDeclaration(Struct s) '''
 		struct «s.name.toFirstUpper»{
 			«FOR m : s.attributes»
-				«IF m.calculateType.collection»std::array<«m.calculateType.calculateCollectionType», «m.calculateType.collectionType.size»>«ELSE»«m.calculateType.cppType»«ENDIF» «m.name.toFirstLower»;
+				«m.calculateType.cppType» «m.name.toFirstLower»;
 			«ENDFOR»
+			
+			«s.name.toFirstUpper»();
 		};
+	'''
+	
+	/**
+	 * Generates the default constructor for a struct.
+	 * 
+	 * @param s the struct
+	 * @return the generated declaration
+	 */
+	def static generateStructDefaultConstructor(Struct s) '''
+		«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
 	'''
 }

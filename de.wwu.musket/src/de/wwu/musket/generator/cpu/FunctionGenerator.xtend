@@ -243,11 +243,17 @@ class FunctionGenerator {
 			«FOR s : ic.statements»
 				«s.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
-		} «IF !ic.elseStatements.empty» else {
-										«FOR es : ic.elseStatements»
-											«es.generateFunctionStatement(skeleton, a, target, param_map)»
-										«ENDFOR»
-			}
+		} «FOR ei : ic.elseIfClauses» else if(«ei.condition.generateExpression(param_map)»){	
+			«FOR eis : ei.statements»
+				«eis.generateFunctionStatement(skeleton, a, target, param_map)»
+			«ENDFOR»
+		}
+		«ENDFOR»		
+		«IF !ic.elseStatements.empty» else {
+			«FOR es : ic.elseStatements»
+				«es.generateFunctionStatement(skeleton, a, target, param_map)»
+			«ENDFOR»
+		}
 		«ENDIF»
 	'''
 }

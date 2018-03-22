@@ -13,6 +13,7 @@ import static de.wwu.musket.generator.cpu.FoldSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.RngGenerator.*
+import static extension de.wwu.musket.generator.cpu.StructGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
@@ -55,6 +56,10 @@ class SourceFileGenerator {
 		
 		«FOR d : resource.Data»
 			«d.generateObjectDefinition»
+		«ENDFOR»
+		
+		«FOR s : resource.Structs»
+			«s.generateStructDefaultConstructor»
 		«ENDFOR»
 		
 		«IF Config.processes > 1»
