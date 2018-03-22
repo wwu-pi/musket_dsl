@@ -276,17 +276,15 @@ IteratorForLoop:
 ;
 
 IfClause:
-	'if' '(' condition=CompareExpression ')' '{'
-		statements+=FunctionStatement+
-	'}' 
-	(elseIfClauses+=ElseIfClause)*
+	ifClauses+=IfThen
+	('else' ifClauses+=IfThen)*
 	('else' '{'
 		elseStatements+=FunctionStatement+
 	'}')?
 ;
 
-ElseIfClause:
-	'else' 'if' '(' condition=CompareExpression ')' '{'
+IfThen:
+	'if' '(' condition=CompareExpression ')' '{'
 		statements+=FunctionStatement+
 	'}' 
 ;
@@ -335,11 +333,17 @@ MusketIteratorForLoop:
 ;
 
 MusketIfClause:
-	'if' '(' condition=CompareExpression ')' '{'
-		statements+=MainFunctionStatement+
-	'}' ('else' '{'
+	ifClauses+=MusketIfThen
+	('else' ifClauses+=MusketIfThen)*
+	('else' '{'
 		elseStatements+=MainFunctionStatement+
 	'}')?
+;
+
+MusketIfThen:
+	'if' '(' condition=CompareExpression ')' '{'
+		statements+=MainFunctionStatement+
+	'}' 
 ;
 
 MusketExpression:
