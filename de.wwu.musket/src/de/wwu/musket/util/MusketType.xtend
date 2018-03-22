@@ -18,6 +18,7 @@ import de.wwu.musket.musket.Type
 import java.util.Objects
 import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
+import org.eclipse.xtend.lib.annotations.Accessors
 
 class MusketType {
 	
@@ -37,6 +38,7 @@ class MusketType {
 	public static final MusketType BOOL_MATRIX = new MusketType(PrimitiveTypeLiteral.BOOL).toMatrix
 	
 	protected PrimitiveTypeLiteral type = null
+	@Accessors
 	protected DistributionMode distributionMode = DistributionMode.COPY
 	protected String structName = null
 	protected boolean isArray = false

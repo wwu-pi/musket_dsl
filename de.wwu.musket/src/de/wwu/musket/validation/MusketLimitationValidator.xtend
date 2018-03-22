@@ -7,6 +7,10 @@ import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.Assignment
+
+import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.FoldSkeletonVariants
 
 class MusketLimitationValidator extends AbstractMusketValidator {
 	
@@ -31,6 +35,18 @@ class MusketLimitationValidator extends AbstractMusketValidator {
 					statement,
 					null,
 					-1)
+		}
+	}
+	
+	// Only allow the fold result to be a copy-distrubted data structure
+	@Check
+	def checkFoldAssignmentIsCopyDistributed(Assignment assignment) {
+		if(assignment.value instanceof FoldSkeletonVariants &&
+			assignment.^var.calculateType.distributionMode != DistributionMode.COPY
+		){
+			error('The result of a fold operation can only be stored in copy distributed data structures!', 
+				MusketPackage.eINSTANCE.assignment_Var,
+				INVALID_OPTION)
 		}
 	}
 }
