@@ -1,6 +1,7 @@
 package de.wwu.musket.validation
 
 import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.musket.FoldOption
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.FoldSkeletonVariants
@@ -46,6 +47,9 @@ import de.wwu.musket.musket.MapLocalIndexSkeleton
 import de.wwu.musket.musket.ZipLocalIndexSkeleton
 import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
 import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.ScatterSkeleton
+import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.MusketAssignment
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -210,10 +214,15 @@ class MusketTypeValidator extends AbstractMusketValidator {
 						INVALID_PARAMS)
 				}
 				
-			GatherSkeleton:
+			GatherSkeleton,
+			ScatterSkeleton:
+				// gather/scatter has exactly zero arguments
 				if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== 0){ 
-					// gather has exactly zero arguments
 					error('Skeleton has no arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
+						MusketPackage.eINSTANCE.skeleton_Param,
+						INVALID_PARAMS)
+				} else if (!isFunctionCall && (skel.param as LambdaFunction).params.size !== 0){ 
+					error('Skeleton has no arguments, ' + (skel.param as LambdaFunction).params.size + ' given!', 
 						MusketPackage.eINSTANCE.skeleton_Param,
 						INVALID_PARAMS)
 				}
@@ -390,6 +399,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				ZipInPlaceSkeleton,
 				FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX],
 				GatherSkeleton,
+				ScatterSkeleton,
 				ShiftPartitionsHorizontallySkeleton,
 				ShiftPartitionsVerticallySkeleton:
 					indexParams = 0
@@ -583,5 +593,26 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MusketPackage.eINSTANCE.musketFunctionCall_Params,
 				INVALID_PARAMS)
 		}]
+	}
+	
+	// Scatter skeleton must assign from copy-distributed to distributed data structure
+	@Check
+	def checkScatterAssignmentSourceIsCopyDistributed(SkeletonExpression skel) {
+		if(skel.skeleton instanceof ScatterSkeleton && skel.obj.calculateType.distributionMode != DistributionMode.COPY){
+			error('A scatter operation can only be called on a copy distributed data structures!', 
+				MusketPackage.eINSTANCE.skeletonExpression_Obj,
+				INVALID_TYPE)
+		}
+	}
+	
+	@Check
+	def checkScatterAssignmentIsDistributed(MusketAssignment assignment) {
+		if(assignment.value instanceof SkeletonExpression && (assignment.value as SkeletonExpression).skeleton instanceof ScatterSkeleton &&
+			assignment.^var.value instanceof CollectionObject && (assignment.^var.value as CollectionObject).type.distributionMode == DistributionMode.COPY
+		){
+			error('The result of a scatter operation can only be assigned to a distributed data structures!', 
+				MusketPackage.eINSTANCE.musketAssignment_Var,
+				INVALID_STATEMENT)
+		}
 	}
 }
