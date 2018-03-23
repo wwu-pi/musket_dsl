@@ -239,16 +239,14 @@ class FunctionGenerator {
 	 */
 	def static dispatch generateControlStructure(IfClause ic, Skeleton skeleton, CollectionObject a, String target,
 		Map<String, String> param_map) '''
-		if(«ic.condition.generateExpression(param_map)»){
-			«FOR s : ic.statements»
-				«s.generateFunctionStatement(skeleton, a, target, param_map)»
+		
+		«FOR ifs : ic.ifClauses SEPARATOR "\n} else " AFTER "}"»
+			if(«ifs.condition.generateExpression(param_map)»){
+			«FOR statement: ifs.statements»
+				«statement.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
-		} «FOR ei : ic.elseIfClauses» else if(«ei.condition.generateExpression(param_map)»){	
-			«FOR eis : ei.statements»
-				«eis.generateFunctionStatement(skeleton, a, target, param_map)»
-			«ENDFOR»
-		}
-		«ENDFOR»		
+		«ENDFOR»
+		
 		«IF !ic.elseStatements.empty» else {
 			«FOR es : ic.elseStatements»
 				«es.generateFunctionStatement(skeleton, a, target, param_map)»
