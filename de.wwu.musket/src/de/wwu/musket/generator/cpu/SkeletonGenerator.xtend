@@ -446,16 +446,14 @@ class SkeletonGenerator {
 		«IF foldResultType.collection»
 			«val ci = ((s.identity as CompareExpression).eqLeft as CollectionInstantiation)»
 			«IF ci.values.size == 1»
-				«name».clear();
-				«name».resize(«foldResultType.collectionType.sizeLocal», «ci.values.head.ValueAsString»);
+				«name».assign(«foldResultType.collectionType.sizeLocal», «ci.values.head.ValueAsString»);
 			«ELSEIF ci.values.size == foldResultType.collectionType.sizeLocal»
-				«name».resize(«foldResultType.collectionType.sizeLocal»);
+				«name».assign(«foldResultType.collectionType.sizeLocal»);
 				«FOR i : 0 ..< ci.values.size»
 					«name»[«i»] = «ci.values.get(i)»;
 				«ENDFOR»
 			«ELSE»
-				«name».clear();
-				«name».resize(«foldResultType.collectionType.sizeLocal», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
+				«name».assign(«foldResultType.collectionType.sizeLocal», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
 			«ENDIF»
 		«ELSE»
 			«name» = «s.identity.ValueAsString»;
