@@ -131,10 +131,10 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateMPIFoldFunction(FoldSkeletonVariants foldSkeleton, CollectionObject a) '''
 		void «foldSkeleton.param.functionName»(void *in, void *inout, int *len, MPI_Datatype *dptr){
-			«val type = foldSkeleton.identity.calculateType.cppType»
+			«val type = if(foldSkeleton.identity.calculateType.collection) foldSkeleton.identity.calculateType.calculateCollectionType.cppType else foldSkeleton.identity.calculateType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
-			«val param_map = createParameterLookupTable(foldSkeleton.param.functionParameters, foldSkeleton.param.functionArguments)»
+			«val param_map = createParameterLookupTable(foldSkeleton, foldSkeleton.param.functionParameters, foldSkeleton.param.functionArguments)»
 			«foldSkeleton.param.generateFunctionCallForSkeleton(foldSkeleton, a, null, param_map)»
 		} 
 	'''
@@ -196,8 +196,7 @@ class FoldSkeletonGenerator {
 				if (!alreadyProcessed) {
 					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
 
-					result +=
-						'''«type» «Config.var_fold_result»_«type»;'''
+					result += '''«type» «Config.var_fold_result»_«type.toCXXIdentifier»;'''
 				}
 				processed.add(se)
 			}
@@ -213,19 +212,21 @@ class FoldSkeletonGenerator {
 	 * @param inputs the input expressions
 	 * @return the param map
 	 */
-	def static Map<String, String> createParameterLookupTable(Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs) {
+	def static Map<String, String> createParameterLookupTable(FoldSkeletonVariants fs,
+		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs) {
 		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''*inoutv''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''*inv''')
+		val starOrNot = if(fs.identity.calculateType.collection) "" else "*"
+
+		param_map.put(parameters.drop(inputs.size).head.name, '''«starOrNot»inoutv''')
+		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«starOrNot»inv''')
 
 		for (var i = 0; i < inputs.size; i++) {
 			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null))
 		}
 
 		// for mapFoldSkeleton
-		param_map.put("return", '''*inoutv''')
+		param_map.put("return", '''«starOrNot»inoutv''')
 
 		return param_map
 	}

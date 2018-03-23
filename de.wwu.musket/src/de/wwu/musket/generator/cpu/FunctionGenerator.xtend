@@ -96,7 +96,17 @@ class FunctionGenerator {
 	 */
 	def static dispatch generateStatement(Assignment assignment, Skeleton skeleton, CollectionObject a, String target,
 		Map<String, String> param_map) '''
-		«IF param_map.containsKey(assignment.^var.value.name)»«param_map.get(assignment.^var.value.name)»«ELSE»«assignment.^var.value.name»«ENDIF»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
+		«val targetName = param_map.getOrDefault(assignment.^var.value.name, null) ?: assignment.^var.value.name»
+		«««	collection with local ref	
+		«IF !assignment.^var.localCollectionIndex.nullOrEmpty»
+			«targetName»[«assignment.^var.value.collectionType.convertLocalCollectionIndex(assignment.^var.localCollectionIndex, param_map)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
+		«««	collection with global ref
+		«ELSEIF !assignment.^var.globalCollectionIndex.nullOrEmpty»
+			«targetName»[«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, param_map)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
+		«««	no collection ref
+		«ELSE»
+			«targetName»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(param_map)»;
+		«ENDIF»
 	'''
 
 	/**
@@ -114,7 +124,7 @@ class FunctionGenerator {
 		String target, Map<String, String> param_map) {
 		val lhs = getReturnString(returnStatement, skeleton, target, param_map)
 		val rhs = returnStatement.value.generateExpression(param_map)
-		if (lhs != rhs + ' = ') {
+		if (lhs != rhs.replace("(", "").replace(")", "") + ' = ') {
 			return lhs + rhs + ';'
 		} else {
 			return ''
@@ -233,11 +243,17 @@ class FunctionGenerator {
 			«FOR s : ic.statements»
 				«s.generateFunctionStatement(skeleton, a, target, param_map)»
 			«ENDFOR»
-		} «IF !ic.elseStatements.empty» else {
-									«FOR es : ic.elseStatements»
-										«es.generateFunctionStatement(skeleton, a, target, param_map)»
-									«ENDFOR»
-			}
+		} «FOR ei : ic.elseIfClauses» else if(«ei.condition.generateExpression(param_map)»){	
+			«FOR eis : ei.statements»
+				«eis.generateFunctionStatement(skeleton, a, target, param_map)»
+			«ENDFOR»
+		}
+		«ENDFOR»		
+		«IF !ic.elseStatements.empty» else {
+			«FOR es : ic.elseStatements»
+				«es.generateFunctionStatement(skeleton, a, target, param_map)»
+			«ENDFOR»
+		}
 		«ENDIF»
 	'''
 }
