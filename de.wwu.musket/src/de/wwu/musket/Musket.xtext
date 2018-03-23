@@ -360,6 +360,7 @@ Skeleton:
 	FoldSkeletonVariants | 
 	ZipSkeletonVariants |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
+	{ScatterSkeleton} 'scatter' '(' param=SkeletonParameterInput? ')' |
 	{ShiftPartitionsHorizontallySkeleton} 'shiftPartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
 	{ShiftPartitionsVerticallySkeleton} 'shiftPartitionsVertically' '(' param=SkeletonParameterInput ')' 
 ;

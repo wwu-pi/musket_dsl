@@ -1,16 +1,15 @@
 package de.wwu.musket.validation
 
-import org.eclipse.xtext.validation.Check
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.MusketPackage
-import de.wwu.musket.musket.Struct
-import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.Function
-import de.wwu.musket.musket.Assignment
-
-import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.FoldSkeletonVariants
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.musket.MusketPackage
+import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.Struct
+import org.eclipse.xtext.validation.Check
 
 class MusketLimitationValidator extends AbstractMusketValidator {
 	
@@ -40,12 +39,12 @@ class MusketLimitationValidator extends AbstractMusketValidator {
 	
 	// Only allow the fold result to be a copy-distrubted data structure
 	@Check
-	def checkFoldAssignmentIsCopyDistributed(Assignment assignment) {
-		if(assignment.value instanceof FoldSkeletonVariants &&
-			assignment.^var.calculateType.distributionMode != DistributionMode.COPY
+	def checkFoldAssignmentIsCopyDistributed(MusketAssignment assignment) {
+		if(assignment.value instanceof SkeletonExpression && (assignment.value as SkeletonExpression).skeleton instanceof FoldSkeletonVariants &&
+			assignment.^var.value instanceof CollectionObject && (assignment.^var.value as CollectionObject).type.distributionMode != DistributionMode.COPY
 		){
 			error('The result of a fold operation can only be stored in copy distributed data structures!', 
-				MusketPackage.eINSTANCE.assignment_Var,
+				MusketPackage.eINSTANCE.musketAssignment_Var,
 				INVALID_OPTION)
 		}
 	}
