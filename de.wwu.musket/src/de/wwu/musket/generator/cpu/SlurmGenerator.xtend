@@ -35,19 +35,17 @@ class SlurmGenerator {
 		#SBATCH --ntasks «resource.ConfigBlock.processes»
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
-		#SBATCH --partition normal
+		#SBATCH --partition haswell
+		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
 		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
-		#SBATCH --cpus-per-task 64
+		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
-		#SBATCH --mail-user my@e-mail.de
-		#SBATCH --time 01:00:00
+		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
+		#SBATCH --time 00:15:00
+		#SBATCH -A p_algcpugpu
 		
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
-		
-		«IF Config.processes > 1»
-			mpirun «Config.build_path»bin/«resource.ProjectName»
-		«ELSE»
-			«Config.build_path»bin/«resource.ProjectName»
-		«ENDIF»		
+
+		srun «Config.build_path»benchmark/bin/«resource.ProjectName»
 	'''
 }
