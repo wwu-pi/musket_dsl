@@ -14,6 +14,7 @@ array<int,dim,copy> bcs;
 array<int,dim,copy> ccs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 array<int,dim,dist> temp;
+array<int,dim,copy> temp_copy;
 
 int plusOne(int x){
 	return x + 1;
@@ -36,4 +37,7 @@ main{
 // map
 	temp = ads.map(plusOne());
 	temp.show();
+	
+	temp_copy = bcs.map(plusOne());
+	temp_copy.show();
 }
