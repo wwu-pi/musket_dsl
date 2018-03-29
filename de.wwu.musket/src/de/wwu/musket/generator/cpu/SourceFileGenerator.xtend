@@ -223,7 +223,7 @@ class SourceFileGenerator {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
 						val sizeLocal = a.type.sizeLocal
-						result += a.generateArrayInitializationForProcess(values.drop(sizeLocal * p).take(sizeLocal))
+						result += a.generateArrayInitializationForProcess(values.drop((sizeLocal * p) as int).take(sizeLocal as int))
 					}
 				}
 				result += "break;\n}\n"

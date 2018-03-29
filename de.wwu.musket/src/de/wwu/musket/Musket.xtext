@@ -680,7 +680,7 @@ SIGNED_FLOAT returns ecore::EFloat:
 	SIGN? INT '.' INT 'f'
 ;
 
-SIGNED_INT returns ecore::EInt:
+SIGNED_INT returns ecore::ELong:
 	SIGN? INT
 ;
 	
