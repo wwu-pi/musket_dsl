@@ -39,7 +39,7 @@ class DataGenerator {
 				«m.calculateType.cppType» «m.name.toFirstLower»;
 			«ENDFOR»
 		};
-	''' // this is done in StructGenerator.xtend
+	'''
 
 // Generate definitions	
 	// variables

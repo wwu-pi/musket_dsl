@@ -1,9 +1,8 @@
 package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.Struct
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
-import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
 /**
  * Generates the declaration of structs.
