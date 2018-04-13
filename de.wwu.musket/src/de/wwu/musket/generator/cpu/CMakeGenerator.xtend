@@ -62,13 +62,11 @@ class CMakeGenerator {
 			string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
 		«ENDIF»
 		
-		«IF Config.cores > 1»
-			find_package(OpenMP REQUIRED)
-		«ENDIF»		
+		find_package(OpenMP REQUIRED)	
 		
 		add_executable(«resource.ProjectName» ${PROJECT_SOURCE_DIR}/src/«resource.ProjectName».cpp)
-		    target_include_directories(«resource.ProjectName» PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-		    target_compile_options(«resource.ProjectName» PRIVATE «IF Config.processes > 1»${MPI_CXX_COMPILE_FLAGS}«ENDIF» «IF Config.cores > 1»${OpenMP_CXX_FLAGS}«ENDIF»)
-		    target_link_libraries(«resource.ProjectName» PRIVATE «IF Config.processes > 1»${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES}«ENDIF» «IF Config.cores > 1»${OpenMP_CXX_FLAGS}«ENDIF»)
+		    target_include_directories(«resource.ProjectName» PRIVATE ${PROJECT_SOURCE_DIR}/include/«IF Config.processes > 1» ${MPI_CXX_INCLUDE_PATH}«ENDIF»)
+		    target_compile_options(«resource.ProjectName» PRIVATE«IF Config.processes > 1» ${MPI_CXX_COMPILE_FLAGS}«ENDIF» ${OpenMP_CXX_FLAGS})
+		    target_link_libraries(«resource.ProjectName» PRIVATE«IF Config.processes > 1» ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES}«ENDIF» ${OpenMP_CXX_FLAGS})
 	'''
 }
