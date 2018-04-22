@@ -1,4 +1,4 @@
-#config PLATFORM CPU
+#config PLATFORM CPU CPU_MPMD
 #config PROCESSES 4
 #config CORES 8
 #config MODE debug

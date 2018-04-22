@@ -75,4 +75,8 @@ class ModelElementAccess {
 	def static isPlatformCPU(Resource resource) {
 		resource.allContents.filter(ConfigBlock).head.platformCPU
 	}
+	
+	def static isPlatformCPUMPMD(Resource resource) {
+		resource.allContents.filter(ConfigBlock).head.platformCPUMPMD
+	}
 }
