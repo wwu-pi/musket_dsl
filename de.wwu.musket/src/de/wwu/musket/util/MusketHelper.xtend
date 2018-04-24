@@ -61,6 +61,15 @@ class MusketHelper {
 		}
 	}
 
+	static def toFunction(SkeletonParameterInput spi) {
+		switch spi {
+			InternalFunctionCall:
+				spi.value
+			LambdaFunction:
+				spi
+		}
+	}
+
 	static def getFunctionArguments(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:

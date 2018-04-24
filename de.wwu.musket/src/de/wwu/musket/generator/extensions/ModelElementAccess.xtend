@@ -10,6 +10,9 @@ import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.RegularFunction
+import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.Function
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -38,6 +41,10 @@ class ModelElementAccess {
 	
 	def static Functions(Resource resource) {
 		resource.Model.functions
+	}
+	
+	def static FunctionsAndLambdas(Resource resource) {
+		resource.allContents.filter(Function).toIterable
 	}
 	
 	def static Data(Resource resource) {

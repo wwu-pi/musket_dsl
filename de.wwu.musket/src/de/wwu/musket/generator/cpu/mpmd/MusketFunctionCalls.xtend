@@ -32,9 +32,9 @@ class MusketFunctionCalls {
 			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''
 			case DOUBLE_MAX: '''std::numeric_limits<double>::max()'''
 			case ROI_START:
-				generateRoiStart(mfc)
+				generateRoiStart(mfc, processId)
 			case ROI_END:
-				generateRoiEnd(mfc)
+				generateRoiEnd(mfc, processId)
 			default: ''''''
 		}
 	}
@@ -71,8 +71,10 @@ class MusketFunctionCalls {
 	 * @param mfc the musket function call
 	 * @return the generated code
 	 */
-	def static generateRoiStart(MusketFunctionCall mfc) '''
-		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
+	def static generateRoiStart(MusketFunctionCall mfc, int processId) '''
+		«IF processId == 0»
+			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
+		«ENDIF»
 	'''
 
 	/**
@@ -84,9 +86,11 @@ class MusketFunctionCalls {
 	 * @param mfc the musket function call
 	 * @return the generated code
 	 */
-	def static generateRoiEnd(MusketFunctionCall mfc) '''
-		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
-		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+	def static generateRoiEnd(MusketFunctionCall mfc, int processId) '''
+		«IF processId == 0»
+			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
+			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		«ENDIF»
 	'''
 
 }

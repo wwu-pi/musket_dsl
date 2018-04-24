@@ -21,17 +21,21 @@ class RngGenerator {
 	 * @param cores the number of cores
 	 * @param mode the mode release or debug
 	 */
-	def static generateRandomEnginesArray(int cores, Mode mode) '''			
-		
-		«IF mode == Mode.RELEASE»
+	def static generateRandomEnginesArray(int cores, Mode mode) '''
 			std::vector<std::mt19937> «Config.var_rng_array»;
-			«Config.var_rng_array».reserve(«cores»);
+	'''
+	
+	def static generateRandomEnginesArrayInit(int cores, Mode mode, int processId) '''			
+		«Config.var_rng_array».reserve(«cores»);
+		«IF mode == Mode.RELEASE»			
 			std::random_device rd;
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 				«Config.var_rng_array».push_back(std::mt19937(rd()));
 			}
 		«ELSE»
-			std::vector<std::mt19937> «Config.var_rng_array» «FOR i : 0 ..< cores BEFORE '{' SEPARATOR ',' AFTER '};'»std::mt19937(«IF Config.processes > 1»«Config.var_pid» * «cores» + «i»«ELSE»«i»«ENDIF»)«ENDFOR» 
+			«FOR i : 0 ..< cores»
+				«Config.var_rng_array».push_back(std::mt19937(«IF Config.processes > 1»«processId * cores + i»«ELSE»«i»«ENDIF»));
+			«ENDFOR»
 		«ENDIF»
 	'''
 
@@ -60,22 +64,51 @@ class RngGenerator {
 
 			switch lower.calculateType {
 				case MusketType.INT:
+					result +='''std::vector<std::uniform_int_distribution<int>> rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;'''
+				case MusketType.DOUBLE:
 					result +=
-						'''std::vector<std::uniform_int_distribution<int>> rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;'''
+				case MusketType.FLOAT:
+					result +='''std::vector<std::uniform_real_distribution<float>> rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;'''
+				default:
+					throw new UnsupportedOperationException('Random number generation only for ints, floats, and doubles!')
+			}
+		}
+		result
+	}
+	
+	def static generateDistributionArraysInit(Iterable<MusketFunctionCall> calls, int cores) {
+		var result = ''
+
+		val uniqueCalls = newArrayList
+
+		calls.forEach[e1| if(!uniqueCalls.exists[e2 | e1.params.get(0).calculateType.cppType ==
+					(e2 as MusketFunctionCall).params.get(0).calculateType.cppType &&
+					e1.params.get(0).ValueAsString == (e2 as MusketFunctionCall).params.get(0).ValueAsString &&
+					e1.params.get(0).ValueAsString == (e2 as MusketFunctionCall).params.get(0).ValueAsString]) uniqueCalls.add(e1)]
+
+		for (rc : uniqueCalls) {
+			// assumes that rand takes two params
+			val lower = rc.params.head
+			val higher = rc.params.get(1)
+
+			switch lower.calculateType {
+				case MusketType.INT:
+					result +='''
 						rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_int_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_int_distribution<int>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
 				case MusketType.DOUBLE:
 					result +=
-						'''std::vector<std::uniform_real_distribution<double>> rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						'''
 						rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_double_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_real_distribution<double>(«lower.ValueAsString», «higher.ValueAsString»));
 						}'''
 				case MusketType.FLOAT:
 					result +=
-						'''std::vector<std::uniform_real_distribution<float>> rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier»;
+						'''
 						rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».reserve(«cores»);
 						for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «cores»; ++«Config.var_loop_counter»){
 							rand_dist_float_«lower.ValueAsString.toCXXIdentifier»_«higher.ValueAsString.toCXXIdentifier».push_back(std::uniform_real_distribution<float>(«lower.ValueAsString», «higher.ValueAsString»));

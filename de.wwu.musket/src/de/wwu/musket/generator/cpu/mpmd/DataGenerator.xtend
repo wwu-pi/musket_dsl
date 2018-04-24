@@ -53,8 +53,8 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinition(CollectionObject c, int processId) {
 		switch (c.type) {
-			ArrayType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.toString»«ENDIF»);'''
-			MatrixType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.toString»«ENDIF»);'''
+			ArrayType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.ValueAsString»«ENDIF»);'''
+			MatrixType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.ValueAsString»«ENDIF»);'''
 		}
 	}
 

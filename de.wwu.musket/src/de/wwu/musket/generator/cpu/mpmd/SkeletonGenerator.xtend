@@ -86,33 +86,11 @@ class SkeletonGenerator {
 
 	def static generateMapSkeleton(SkeletonExpression s, String target, String target_type, int processId) '''
 		«val a = s.obj»
-		«val param_map = createParameterLookupTableMap(a, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
-				#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-				for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-					«target_type» «Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
-					«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, a, target, param_map, processId)»
-				}
-	'''
-
-/**
- * Creates the param map for the mapInPlace skeleton.
- * 
- * @param co the collection object the skeleton is used on
- * @param parameters the parameters of the skeleton
- * @param inputs the parameter inputs
- * @return the param map
- */
-	def static Map<String, String> createParameterLookupTableMap(CollectionObject co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-		
-		param_map.put(parameters.drop(inputs.size).head.name, Config.var_map_input)
-		
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+«««			TODO: «target_type» «Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
 		}
-		return param_map
-	}
+	'''
 
 /**
  * Generates the MapInPlace skeleton.
@@ -126,35 +104,11 @@ class SkeletonGenerator {
  */
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
-		«««	create lookup table for parameters
-		«val param_map = createParameterLookupTable(a, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
 		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, a, null, param_map, processId)»
+			«a.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«a.name»[«Config.var_loop_counter»]);
 		}
 	'''
-	
-/**
- * Creates the param map for the mapInPlace skeleton.
- * 
- * @param co the collection object the skeleton is used on
- * @param parameters the parameters of the skeleton
- * @param inputs the parameter inputs
- * @return the param map
- */
-	def static Map<String, String> createParameterLookupTable(CollectionObject co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		if (parameters.length > inputs.size) {
-			param_map.put(parameters.drop(inputs.size).head.name, '''«co.name»[«Config.var_loop_counter»]''')
-		}
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
 	
 // MapIndexInPlace
 
@@ -174,10 +128,9 @@ class SkeletonGenerator {
 		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
 			«Config.var_elem_offset» = 0;
 		«ENDIF»
-		«val param_map = createParameterLookupTableMapIndexSkeleton(a, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
 		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, null, param_map, processId)»
+			«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_elem_offset» + «Config.var_loop_counter», «s.obj.name»[«Config.var_loop_counter»]);
 		}
 	'''
 	
@@ -199,72 +152,18 @@ class SkeletonGenerator {
 			«Config.var_row_offset» = 0;
 			«Config.var_col_offset» = 0;
 		«ENDIF»
-		«««	create lookup table for parameters
-		«val param_map = createParameterLookupTableMapIndexSkeleton(m, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
 		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
 			«IF Config.cores > 1»
 				#pragma omp simd
 			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, null, param_map, processId)»
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_row_offset» + «Config.var_loop_counter_rows», «Config.var_col_offset» + «Config.var_loop_counter_cols», «s.obj.name»[«Config.var_loop_counter»]);
 			}
 		}
 	'''
-	
-/**
- * Creates the param map for the mapIndex skeleton for arrays.
- * There is another version for matrices, because there are two index parameters.
- * 
- * @param co the array the skeleton is used on
- * @param parameters the parameters of the skeleton
- * @param inputs the parameter inputs
- * @return the param map
- */
-	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(ArrayType co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
 
-		if(co.distributionMode == DistributionMode.COPY || Config.processes == 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter»''')
-		}else{
-			param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_elem_offset» + «Config.var_loop_counter»)''')
-		}
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter»]''')
-		
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
-	
-	/**
-	 * Creates the param map for the mapIndex skeleton for matrices.
-	 * There is another version for arrays, because there is only one index parameters.
-	 * 
-	 * @param co the matrix the skeleton is used on
-	 * @param parameters the parameters of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static dispatch Map<String, String> createParameterLookupTableMapIndexSkeleton(MatrixType co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		if(co.distributionMode == DistributionMode.COPY || Config.processes == 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter_rows»''')
-			param_map.put(parameters.drop(inputs.size + 1).head.name, '''«Config.var_loop_counter_cols»''')
-		}else{
-			param_map.put(parameters.drop(inputs.size).head.name, '''(«Config.var_row_offset» + «Config.var_loop_counter_rows»)''')
-			param_map.put(parameters.drop(inputs.size + 1).head.name, '''(«Config.var_col_offset» + «Config.var_loop_counter_cols»)''')
-		}
-		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter_rows» * «co.colsLocal» + «Config.var_loop_counter_cols»]''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
 
 // map local index in place
 /**
@@ -277,7 +176,7 @@ class SkeletonGenerator {
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
 		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(a, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
 		
-		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd		
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 			«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, null, param_map, processId)»
 		}
@@ -362,54 +261,30 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target, int processId) '''
-		«val foldResultType = s.identity.calculateType.cppType.toCXXIdentifier»
+	«val foldResultType = s.identity.calculateType.cppType.toCXXIdentifier»
+
+	«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+		«Config.var_fold_result»_«foldResultType» = «s.identity.ValueAsString»;
+	«ELSE»
+		«target» = «s.identity.ValueAsString»;
+	«ENDIF»
+	«val foldName = s.param.functionName + "_reduction"»
 	
+	#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
+	for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«foldResultType»  = «s.identity.ValueAsString»;
+			«Config.var_fold_result»_«foldResultType» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«foldResultType», «co.name»[«Config.var_loop_counter»]);
 		«ELSE»
-			«target» = «s.identity.ValueAsString»;
+			«target» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«target», «co.name»[«Config.var_loop_counter»]);
 		«ENDIF»
-		«val foldName = s.param.functionName»
-		
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«val param_map = createParameterLookupTableFold(s, co, target, s.param.functionParameters, s.param.functionArguments, processId)»
-			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map, processId)»
-		}		
-		
-		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-		«ENDIF»
+	}
+	
+	«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+		MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+	«ENDIF»
 	'''
 
-	/**
-	 * Creates the param map for the fold skeleton.
-	 * 
-	 * @param a the collection object the skeleton is used on
-	 * @param parameters the parameters of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTableFold(FoldSkeleton s, CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
 
-		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
-		}else{
-			param_map.put(parameters.drop(inputs.size).head.name, target)
-		}
-		
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«a.name»[«Config.var_loop_counter»]''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
-
-
-	
 	/**
  * Generates the MapFold skeleton.
  * <p>

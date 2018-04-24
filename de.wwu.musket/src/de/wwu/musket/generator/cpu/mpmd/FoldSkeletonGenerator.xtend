@@ -71,29 +71,8 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateReductionDeclaration(FoldSkeletonVariants s, CollectionObject a, int processId) '''
-		«val param_map_red = createParameterLookupTableFoldReductionClause(s.param.functionParameters, s.param.functionArguments, processId)»
-		#pragma omp declare reduction(«s.param.functionName» : «s.identity.calculateType.cppType» : omp_out = [&](){«(s.param.generateFunctionCallForSkeleton(null, a, null, param_map_red, processId)).toString.removeLineBreaks»}()) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«s.param.functionName.toFirstLower»_reduction : «s.identity.calculateType.cppType» : omp_out = «s.param.functionName»_function(«FOR p : s.param.functionArguments SEPARATOR ", " AFTER ", "»«p.generateExpression(null, processId)»«ENDFOR»omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	'''
-
-	/**
-	 * Create parameter map for OpenMP reduction clause.
-	 * 
-	 * @param parameters the parameters
-	 * @param inputs the input expressions
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTableFoldReductionClause(
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''omp_out''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''omp_in''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
 
 // MPI part
 	/**
@@ -134,8 +113,7 @@ class FoldSkeletonGenerator {
 			«val type = if(foldSkeleton.identity.calculateType.collection) foldSkeleton.identity.calculateType.calculateCollectionType.cppType else foldSkeleton.identity.calculateType.cppType»
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
-			«val param_map = createParameterLookupTable(foldSkeleton, foldSkeleton.param.functionParameters, foldSkeleton.param.functionArguments, processId)»
-			«foldSkeleton.param.generateFunctionCallForSkeleton(foldSkeleton, a, null, param_map, processId)»
+			*inoutv = «foldSkeleton.param.functionName»_function(«FOR arg : foldSkeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»*inv, *inoutv);
 		} 
 	'''
 
@@ -173,8 +151,8 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateMPIFoldOperator(FoldSkeletonVariants s) '''
 		«val name = s.param.functionName»
-		MPI_Op «name»«Config.mpi_op_suffix»;
-		MPI_Op_create( «name», 0, &«name»«Config.mpi_op_suffix» );
+		MPI_Op «name»_reduction«Config.mpi_op_suffix»;
+		MPI_Op_create( «name», 0, &«name»_reduction«Config.mpi_op_suffix» );
 	'''
 
 	/**

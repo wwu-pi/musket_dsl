@@ -14,11 +14,13 @@ import static de.wwu.musket.generator.cpu.mpmd.FoldSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.RngGenerator.*
+import static extension de.wwu.musket.generator.cpu.mpmd.FunctorGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import static extension de.wwu.musket.util.MusketHelper.*
 
 /** 
  * Generates the source file of the project.
@@ -49,7 +51,7 @@ class SourceFileGenerator {
 		#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
 		
 		«generateGlobalConstants(processId)»
-		«generateGlobalVariables»
+		«generateGlobalVariables(resource)»
 		«generateTmpVariables»
 		
 		
@@ -61,9 +63,20 @@ class SourceFileGenerator {
 			«s.generateStructDefaultConstructor»
 		«ENDFOR»
 		
+		«val fold_functions = resource.FoldSkeletons.map[it.param.toFunction]»
+
+		«FOR f : fold_functions»
+			«f.generateFunction(processId)»
+		«ENDFOR»
+		
+		«FOR f : resource.FunctionsAndLambdas»
+			«f.generateFunctor(processId)»
+		«ENDFOR»
+		
 		«IF Config.processes > 1»
 			«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
 		«ENDIF»
+		
 		«generateMainFunction(resource, processId)»
 	'''
 
@@ -100,11 +113,17 @@ class SourceFileGenerator {
 	/**
 	 * Generates global variables, which are required but not in the model.
 	 */
-	def static generateGlobalVariables() '''
+	def static generateGlobalVariables(Resource resource) '''
 		«IF Config.processes > 1»
 			int «Config.var_mpi_rank» = -1;
 			int «Config.var_mpi_procs» = 0;
 		«ENDIF»
+		
+		«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
+			«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
+		«ENDIF»
+		«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
+		«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
 	'''
 
 	/**
@@ -127,14 +146,17 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
 			«ENDIF»
 			
-«««			TODO: as global variable
+«««			functor instantiation
+			«FOR f : resource.FunctionsAndLambdas»
+				«f.generateFunctorInstantiation(processId)»
+			«ENDFOR»
+			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
-				«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
+				«generateRandomEnginesArrayInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
 			«ENDIF»
 			
 			«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
-			«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
-«««			rng end
+			«generateDistributionArraysInit(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource, processId)»
 			«generateReductionDeclarations(resource, processId)»

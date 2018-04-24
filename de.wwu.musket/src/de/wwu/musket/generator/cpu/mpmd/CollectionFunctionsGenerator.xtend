@@ -88,7 +88,11 @@ class CollectionFunctionsGenerator {
 				«State.setArrayName("temp" + State.counter)»
 				std::array<«a.calculateCollectionType.cppType», «a.type.size»> «State.arrayName»{};
 			«ENDIF»
-			«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType.cppType, State.arrayName + '.data()')»
+			«IF processId == 0»
+				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType.cppType, State.arrayName + '.data()')»
+			«ELSE»
+				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType.cppType, "nullptr")»
+			«ENDIF»
 		«ENDIF»
 		
 		«IF processId == 0»
@@ -121,7 +125,11 @@ class CollectionFunctionsGenerator {
 				«State.setArrayName("temp" + State.counter)»
 				std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
 			«ENDIF»
-			«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType.cppType, State.arrayName + '.data()')»
+			«IF processId == 0»
+				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType.cppType, State.arrayName + '.data()')»
+			«ELSE»
+				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType.cppType, 'nullptr')»
+			«ENDIF»
 		«ENDIF»
 		
 		«val streamName = 's' + State.counter»
