@@ -178,7 +178,7 @@ class SkeletonGenerator {
 		
 		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, a.eContainer as CollectionObject, null, param_map, processId)»
+			«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_loop_counter», «s.obj.name»[«Config.var_loop_counter»]);
 		}
 	'''
 	
@@ -190,15 +190,14 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m, int processId) '''
-		«««	create lookup table for parameters
-		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(m, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
 		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
 		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
 			«IF Config.cores > 1»
 				#pragma omp simd
 			«ENDIF»
 			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«s.skeleton.param.generateFunctionCallForSkeleton(s.skeleton, m.eContainer as CollectionObject, null, param_map, processId)»
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_loop_counter_rows», «Config.var_loop_counter_cols», «s.obj.name»[«Config.var_loop_counter»]);
 			}
 		}
 	'''
@@ -401,7 +400,7 @@ class SkeletonGenerator {
 	def static generateShiftPartitionsHorizontallySkeleton(ShiftPartitionsHorizontallySkeleton s, MatrixType m, int processId) '''		
 				«val pos = m.partitionPosition(processId)»
 «««				generate Function Call
-				«Config.var_shift_steps» = «s.param.functionName»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.key»);
+				«Config.var_shift_steps» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.key»);
 				
 				«Config.var_shift_target» = ((((«pos.value» + «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
 				«Config.var_shift_source» = ((((«pos.value» - «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
@@ -437,9 +436,9 @@ class SkeletonGenerator {
 	 * @return the param map
 	 */
 	def static generateShiftPartitionsVerticallySkeleton(ShiftPartitionsVerticallySkeleton s, MatrixType m, int processId) '''		
-				«val pos = m.partitionPosition(processId)»			
+				«val pos = m.partitionPosition(processId)»
 «««				generate Function Call
-				«Config.var_shift_steps» = «s.param.functionName»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.value»);
+				«Config.var_shift_steps» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.value»);
 				«Config.var_shift_target» = ((((«pos.key» + «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				«Config.var_shift_source» = ((((«pos.key» - «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 
