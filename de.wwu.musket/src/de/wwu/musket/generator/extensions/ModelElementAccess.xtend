@@ -13,6 +13,7 @@ import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.LambdaFunction
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -65,6 +66,10 @@ class ModelElementAccess {
 	
 	def static Structs(Resource resource) {
 		resource.Model.data.filter(Struct)
+	}
+	
+	def static MapFoldSkeletons(Resource resource) {
+		resource.allContents.filter(MapFoldSkeleton).toIterable
 	}
 	
 	def static FoldSkeletons(Resource resource) {

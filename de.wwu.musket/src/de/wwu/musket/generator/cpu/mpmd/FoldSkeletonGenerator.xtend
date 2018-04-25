@@ -12,7 +12,6 @@ import java.util.Map
 import org.eclipse.emf.ecore.resource.Resource
 
 import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
-import static extension de.wwu.musket.generator.cpu.mpmd.FunctionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.MusketHelper.*
