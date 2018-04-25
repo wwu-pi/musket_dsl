@@ -15,12 +15,15 @@ import static de.wwu.musket.generator.cpu.mpmd.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.RngGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.FunctorGenerator.*
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.util.MusketHelper.*
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 
 /** 
  * Generates the source file of the project.
@@ -164,6 +167,11 @@ class SourceFileGenerator {
 			«IF Config.processes > 1»
 				«generateMPIFoldOperators(resource)»
 				«generateTmpFoldResults(resource)»
+				
+				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
+					«generateShiftSkeletonVariables(processId)»
+				«ENDIF»
+				
 				«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
 			«ENDIF»
 			

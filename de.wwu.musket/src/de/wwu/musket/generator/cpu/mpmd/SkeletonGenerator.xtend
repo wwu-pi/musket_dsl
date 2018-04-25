@@ -399,12 +399,9 @@ class SkeletonGenerator {
 	 * @return the param map
 	 */
 	def static generateShiftPartitionsHorizontallySkeleton(ShiftPartitionsHorizontallySkeleton s, MatrixType m, int processId) '''		
-				«val pos = m.partitionPosition(processId)»				
-				int «Config.var_shift_source» = «processId»;
-				int «Config.var_shift_target» = «processId»;
+				«val pos = m.partitionPosition(processId)»
 «««				generate Function Call
-				«val param_map = createParameterLookupTableShiftPartitionsHorizontally(m, processId, s.param.functionParameters, s.param.functionArguments, processId)»
-				int «s.param.generateFunctionCallForSkeleton(s, m.eContainer as CollectionObject, null, param_map, processId)»
+				«Config.var_shift_steps» = «s.param.functionName»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.key»);
 				
 				«Config.var_shift_target» = ((((«pos.value» + «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
 				«Config.var_shift_source» = ((((«pos.value» - «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
@@ -424,28 +421,6 @@ class SkeletonGenerator {
 	'''
 	
 	/**
-	 * Creates the param map for the ShiftPartitionsVertically skeleton.
-	 * 
-	 * @param m the matrix the skeleton is used on
-	 * @param pid the process id
-	 * @param inputs the parameter of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTableShiftPartitionsHorizontally(MatrixType m, int pid,
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs, int processId) {
-
-		val param_map = new HashMap<String, String>
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).key»''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
-	
-	/**
 	 * Generates the shift partitions vertically skeleton.
 	 * <p>
 	 * The skeleton only exists for matrices. First, the source and target have to be calculated.
@@ -463,12 +438,8 @@ class SkeletonGenerator {
 	 */
 	def static generateShiftPartitionsVerticallySkeleton(ShiftPartitionsVerticallySkeleton s, MatrixType m, int processId) '''		
 				«val pos = m.partitionPosition(processId)»			
-				int «Config.var_shift_source» = «processId»;
-				int «Config.var_shift_target» = «processId»;
 «««				generate Function Call
-				«val param_map = createParameterLookupTableShiftPartitionsVertically(m, processId, s.param.functionParameters, s.param.functionArguments, processId)»
-				int «s.param.generateFunctionCallForSkeleton(s, m.eContainer as CollectionObject, null, param_map, processId)»
-				
+				«Config.var_shift_steps» = «s.param.functionName»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.value»);
 				«Config.var_shift_target» = ((((«pos.key» + «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 				«Config.var_shift_source» = ((((«pos.key» - «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
 
@@ -485,29 +456,7 @@ class SkeletonGenerator {
 					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());		
 				}
 	'''
-	
-	/**
-	 * Creates the param map for the ShiftPartitionsVertically skeleton.
-	 * 
-	 * @param m the matrix the skeleton is used on
-	 * @param pid the process id
-	 * @param inputs the parameter of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTableShiftPartitionsVertically(MatrixType m, int pid,
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs, int processId) {
-
-		val param_map = new HashMap<String, String>
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''«m.partitionPosition(pid).value»''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
-	
+		
 	/**
  * Generates the gather skeleton.
  * <p>
