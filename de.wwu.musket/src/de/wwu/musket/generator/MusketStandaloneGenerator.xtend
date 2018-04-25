@@ -35,7 +35,7 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/fold.musket',
 			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
-//			'../de.wwu.musket.models/src/fss.musket',
+			'../de.wwu.musket.models/src/fss.musket',
 //			'../de.wwu.musket.models/src/matmult.musket',
 			'../de.wwu.musket.models/src/matmult_float.musket',
 //			'../de.wwu.musket.models/src/matmult_float_transposed.musket',
