@@ -89,9 +89,9 @@ class CollectionFunctionsGenerator {
 				std::array<«a.calculateCollectionType.cppType», «a.type.size»> «State.arrayName»{};
 			«ENDIF»
 			«IF processId == 0»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType.cppType, State.arrayName + '.data()')»
+				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, State.arrayName + '.data()')»
 			«ELSE»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType.cppType, "nullptr")»
+				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, "nullptr")»
 			«ENDIF»
 		«ENDIF»
 		
@@ -126,9 +126,9 @@ class CollectionFunctionsGenerator {
 				std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
 			«ENDIF»
 			«IF processId == 0»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType.cppType, State.arrayName + '.data()')»
+				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, State.arrayName + '.data()')»
 			«ELSE»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType.cppType, 'nullptr')»
+				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, 'nullptr')»
 			«ENDIF»
 		«ENDIF»
 		

@@ -16,6 +16,7 @@ import static de.wwu.musket.generator.cpu.mpmd.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.RngGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.FunctorGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
+import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
@@ -101,6 +102,7 @@ class SourceFileGenerator {
 		#include <random>
 		#include <limits>
 		#include <memory>
+		#include <cstddef>
 	'''
 
 	/**
@@ -165,6 +167,9 @@ class SourceFileGenerator {
 			«generateReductionDeclarations(resource, processId)»
 			
 			«IF Config.processes > 1»
+				«FOR s : resource.Structs»
+					«s.generateCreateDatatypeStruct»
+				«ENDFOR»
 				«generateMPIFoldOperators(resource)»
 				«generateTmpFoldResults(resource)»
 				

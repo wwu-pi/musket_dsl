@@ -279,7 +279,7 @@ class SkeletonGenerator {
 	}
 	
 	«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-		MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», sizeof(«foldResultType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», «Config.processes», «s.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 	«ENDIF»
 	'''
 
@@ -336,7 +336,7 @@ class SkeletonGenerator {
 			«IF s.identity.calculateType.collection»
 				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)» * sizeof(«s.identity.calculateType.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ELSE »
-				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», sizeof(«foldResultTypeIdentifier»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», «Config.processes», «foldResultType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ENDIF»			
 		«ENDIF»
 	'''
@@ -411,8 +411,8 @@ class SkeletonGenerator {
 					MPI_Status statuses[2];
 					«val buffer_name = Config.tmp_shift_buffer»
 					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal(processId)»);
-					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
+					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());
@@ -448,8 +448,8 @@ class SkeletonGenerator {
 					MPI_Status statuses[2];
 					«val buffer_name = Config.tmp_shift_buffer»
 					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal(processId)»);
-					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType.cppType, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType.cppType, Config.var_shift_target, "&requests[0]")»
+					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_source, "&requests[1]")»
+					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_target, "&requests[0]")»
 					«generateMPIWaitall(2, "requests", "statuses")»
 					
 					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());		
@@ -471,7 +471,7 @@ class SkeletonGenerator {
  */
 	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target, int processId) '''
 		«IF Config.processes > 1»
-			«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal(processId), se.obj.calculateCollectionType.cppType, target + '.data()')»
+			«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal(processId), se.obj.calculateCollectionType, target + '.data()')»
 		«ELSE»
 			std::copy(«se.obj.name».begin(), «se.obj.name».end(), «target».begin());
 		«ENDIF»

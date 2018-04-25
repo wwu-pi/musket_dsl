@@ -220,7 +220,7 @@ class MusketType {
 	def getCollectionType() {
 		return this.collectionType
 	}
-	
+
 	def getPrimitiveType() {
 		return this.primitiveType
 	}
@@ -246,6 +246,24 @@ class MusketType {
 			return 'std::vector<' + primtype + '>'
 		} else {
 			return primtype
+		}
+	}
+
+	def getMPIType() {
+		var mpi_type = ''
+		// struct
+		if (structName !== null) {
+			mpi_type = structName + "_mpi_type"
+		} else {
+			// primitive type
+			switch (type) {
+				case BOOL: mpi_type = 'MPI_BOOL'
+				case DOUBLE: mpi_type = 'MPI_DOUBLE'
+				case FLOAT: mpi_type = 'MPI_FLOAT'
+				case INT: mpi_type = 'MPI_INT'
+				case STRING: mpi_type = 'MPI_CHAR'
+				default: mpi_type = 'MPI_BYTE'
+			}
 		}
 	}
 
