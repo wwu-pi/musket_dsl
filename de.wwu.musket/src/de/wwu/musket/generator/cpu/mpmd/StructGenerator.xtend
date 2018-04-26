@@ -25,13 +25,13 @@ class StructGenerator {
 		struct «s.name.toFirstUpper»{
 			«FOR m : s.attributes»
 				«IF m instanceof CollectionObject»
-					«m.calculateType.cppType» «m.name.toFirstLower»;
+					std::array<«m.calculateCollectionType.cppType»,«(m.type as CollectionType).size»> «m.name.toFirstLower»;
 				«ELSE»
 					«m.calculateType.cppType» «m.name.toFirstLower»;
 				«ENDIF»
 			«ENDFOR»
 			
-			«s.name.toFirstUpper»();
+			//«s.name.toFirstUpper»();
 		};
 	'''
 	
@@ -42,6 +42,6 @@ class StructGenerator {
 	 * @return the generated declaration
 	 */
 	def static generateStructDefaultConstructor(Struct s) '''
-		«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
+		//«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
 	'''
 }
