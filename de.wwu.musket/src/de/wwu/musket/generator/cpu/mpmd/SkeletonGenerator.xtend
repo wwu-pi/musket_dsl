@@ -319,24 +319,21 @@ class SkeletonGenerator {
 		«val foldName = s.param.functionName»
 		
 		
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»)
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»_reduction:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»)
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 «««			map part
-			«s.mapFunction.calculateType.cppType» «Config.var_map_fold_tmp»;
-			«val param_map_map = createParameterLookupTableMapFoldMap(co, target, s.mapFunction.functionParameters, s.mapFunction.functionArguments, processId)»
-			«s.mapFunction.generateFunctionCallForSkeleton(s, co, null, param_map_map, processId)»
+			«s.mapFunction.calculateType.cppType» «Config.var_map_fold_tmp» = «s.mapFunction.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«co.name»[«Config.var_loop_counter»]);
 
 «««			fold part
-			«val param_map_fold = createParameterLookupTableMapFoldFold(s, co, target, s.param.functionParameters, s.param.functionArguments, processId)»
-			«s.param.generateFunctionCallForSkeleton(s, co, null, param_map_fold, processId)»
+			«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier», «Config.var_map_fold_tmp»);
 		}		
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY && co.distributionMode != DistributionMode.LOC»
 «««			array as result
 			«IF s.identity.calculateType.collection»
-				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)» * sizeof(«s.identity.calculateType.calculateCollectionType.cppType»), MPI_BYTE, «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)» * sizeof(«s.identity.calculateType.calculateCollectionType.cppType»), MPI_BYTE, «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ELSE »
-				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», «Config.processes», «foldResultType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», «Config.processes», «foldResultType.MPIType», «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ENDIF»			
 		«ENDIF»
 	'''

@@ -3,6 +3,10 @@ package de.wwu.musket.generator.cpu.mpmd
 import de.wwu.musket.musket.Struct
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
+import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.CollectionObject
 
 /**
  * Generates the declaration of structs.
@@ -20,7 +24,11 @@ class StructGenerator {
 	def static generateStructDeclaration(Struct s) '''
 		struct «s.name.toFirstUpper»{
 			«FOR m : s.attributes»
-				«m.calculateType.cppType» «m.name.toFirstLower»;
+				«IF m instanceof CollectionObject»
+					«m.calculateType.cppType» «m.name.toFirstLower»;
+				«ELSE»
+					«m.calculateType.cppType» «m.name.toFirstLower»;
+				«ENDIF»
 			«ENDFOR»
 			
 			«s.name.toFirstUpper»();

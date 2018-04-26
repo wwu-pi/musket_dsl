@@ -16,6 +16,7 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
 
 class FunctorGenerator {
 	

@@ -38,4 +38,5 @@ class StringExtension {
 	def static toCXXIdentifier(String s) {
 		s.replace("\\", "").replace("-", "minus").replace("(", "").replace(")", "").replace('.', '_').replace("::", "_").replace("<", "_").replace(">", "_")
 	}
+
 }
