@@ -18,8 +18,8 @@ const double STEP_SIZE_FINAL = 0.00001;
 const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 0.00002;
 
-const int NUMBER_OF_FISH = 512;
-const int ITERATIONS = 1000;
+const int NUMBER_OF_FISH = 32;
+const int ITERATIONS = 100;
 const int DIMENSIONS = 512;
 
 // Fish
@@ -227,7 +227,7 @@ Fish calcWeightedFish(Fish fi){
 	return fi;
 }
 
-array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, array<double,DIMENSIONS,copy> position){
+array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,loc> arr, array<double,DIMENSIONS,loc> position){
 	for(int i = 0; i < DIMENSIONS; ++i){
 		arr[i] += position[i];
 	}

@@ -14,6 +14,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
@@ -70,7 +71,7 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateReductionDeclaration(FoldSkeletonVariants s, CollectionObject a, int processId) '''
-		#pragma omp declare reduction(«s.param.functionName.toFirstLower»_reduction : «s.identity.calculateType.cppType» : omp_out = «s.param.functionName»_function(«FOR p : s.param.functionArguments SEPARATOR ", " AFTER ", "»«p.generateExpression(null, processId)»«ENDFOR»omp_in, omp_out)) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«s.param.functionName.toFirstLower»_reduction : «s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString)» : omp_out = «s.param.functionName»_function(«FOR p : s.param.functionArguments SEPARATOR ", " AFTER ", "»«p.generateExpression(null, processId)»«ENDFOR»omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	'''
 
 // MPI part
@@ -109,7 +110,7 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateMPIFoldFunction(FoldSkeletonVariants foldSkeleton, CollectionObject a, int processId) '''
 «««		«val type = if(foldSkeleton.identity.calculateType.collection) foldSkeleton.identity.calculateType.calculateCollectionType.cppType else foldSkeleton.identity.calculateType.cppType»
-		«val type = foldSkeleton.identity.calculateType.cppType»
+		«val type = foldSkeleton.identity.calculateType.cppType.replace("0", foldSkeleton.identity.calculateType.collectionType?.size.toString)»
 		void «foldSkeleton.param.functionName»(void* in, void* inout, int *len, MPI_Datatype *dptr){
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
@@ -172,7 +173,7 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
+					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType.replace("0", (se.skeleton as FoldSkeletonVariants).identity.calculateType.collectionType?.size.toString)
 
 					result += '''«type» «Config.var_fold_result»_«type.toCXXIdentifier»;'''
 				}
@@ -181,31 +182,5 @@ class FoldSkeletonGenerator {
 		}
 
 		return result
-	}
-
-	/**
-	 * create parameter map for MPI fold function.
-	 * 
-	 * @param parameters the parameters
-	 * @param inputs the input expressions
-	 * @return the param map
-	 */
-	def static Map<String, String> createParameterLookupTable(FoldSkeletonVariants fs,
-		Iterable<de.wwu.musket.musket.Parameter> parameters, Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		val starOrNot = if(fs.identity.calculateType.collection) "" else "*"
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''«starOrNot»inoutv''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«starOrNot»inv''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-
-		// for mapFoldSkeleton
-		param_map.put("return", '''«starOrNot»inoutv''')
-
-		return param_map
 	}
 }

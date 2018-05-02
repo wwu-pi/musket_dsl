@@ -297,20 +297,19 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target, int processId) '''
-		«val foldResultTypeIdentifier = s.identity.calculateType.cppType.toCXXIdentifier»
+		«val foldResultTypeIdentifier = s.identity.calculateType.cppType.replace("0", s.mapFunction.calculateType.collectionType?.size.toString).toCXXIdentifier»
 		«val foldResultType = s.identity.calculateType»
 		«val name = if (Config.processes > 1 && co.distributionMode != DistributionMode.COPY) {Config.var_fold_result + "_" + foldResultTypeIdentifier } else {target}»
 		«IF foldResultType.collection»
 			«val ci = ((s.identity as CompareExpression).eqLeft as CollectionInstantiation)»
 			«IF ci.values.size == 1»
-				«name».assign(«foldResultType.collectionType.sizeLocal(processId)», «ci.values.head.ValueAsString»);
+				«name».fill(«ci.values.head.ValueAsString»);
 			«ELSEIF ci.values.size == foldResultType.collectionType.sizeLocal(processId)»
-				«name».assign(«foldResultType.collectionType.sizeLocal(processId)»);
 				«FOR i : 0 ..< ci.values.size»
 					«name»[«i»] = «ci.values.get(i)»;
 				«ENDFOR»
 			«ELSE»
-				«name».assign(«foldResultType.collectionType.sizeLocal(processId)», «foldResultType.collectionType.CXXPrimitiveDefaultValue»);
+				«name».fill(«foldResultType.collectionType.CXXPrimitiveDefaultValue»);
 			«ENDIF»
 		«ELSE»
 			«name» = «s.identity.ValueAsString»;
@@ -322,60 +321,22 @@ class SkeletonGenerator {
 		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»_reduction:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»)
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 «««			map part
-			«s.mapFunction.calculateType.cppType» «Config.var_map_fold_tmp» = «s.mapFunction.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«co.name»[«Config.var_loop_counter»]);
+			«s.mapFunction.calculateType.cppType.replace("0", s.mapFunction.calculateType.collectionType?.size.toString)» «Config.var_map_fold_tmp» = «s.mapFunction.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«co.name»[«Config.var_loop_counter»]);
 
 «««			fold part
-			«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier», «Config.var_map_fold_tmp»);
+			«Config.var_fold_result»_«s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString).toCXXIdentifier» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString).toCXXIdentifier», «Config.var_map_fold_tmp»);
 		}		
 		
 		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY && co.distributionMode != DistributionMode.LOC»
 «««			array as result
 			«IF s.identity.calculateType.collection»
-				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)» * sizeof(«s.identity.calculateType.calculateCollectionType.cppType»), MPI_BYTE, «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)», «s.identity.calculateType.calculateCollectionType.MPIType», «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ELSE »
 				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», «Config.processes», «foldResultType.MPIType», «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 			«ENDIF»			
 		«ENDIF»
 	'''
-	
-		def static Map<String, String> createParameterLookupTableMapFoldMap(CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''«a.name»[«Config.var_loop_counter»]''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
 		
-		param_map.put("return", Config.var_map_fold_tmp)
-		
-		return param_map
-	}
-	
-		def static Map<String, String> createParameterLookupTableMapFoldFold(MapFoldSkeleton s, CollectionObject a, String target, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		if(Config.processes > 1){
-			param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
-			param_map.put("return", '''«Config.var_fold_result»_«s.identity.calculateType.cppType.toCXXIdentifier»''')
-		}else{
-			param_map.put(parameters.drop(inputs.size).head.name, target)
-			param_map.put("return", target)
-		}
-		
-		param_map.put(parameters.drop(inputs.size + 1).head.name, Config.var_map_fold_tmp)
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		
-		
-		
-		return param_map
-	}
-	
 	// Shift partitions
 	
 	/**

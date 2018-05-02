@@ -36,7 +36,7 @@ class StringExtension {
 	 * @return String without line breaks 
 	 */
 	def static toCXXIdentifier(String s) {
-		s.replace("\\", "").replace("-", "minus").replace("(", "").replace(")", "").replace('.', '_').replace("::", "_").replace("<", "_").replace(">", "_")
+		s.replace("\\", "").replace("-", "minus").replace("(", "").replace(")", "").replace('.', '_').replace("::", "_").replace("<", "_").replace(">", "_").replace(",", "_")
 	}
 
 }

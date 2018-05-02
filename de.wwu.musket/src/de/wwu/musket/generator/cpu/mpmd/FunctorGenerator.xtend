@@ -17,6 +17,8 @@ import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CollectionType
 
 class FunctorGenerator {
 	
@@ -26,7 +28,7 @@ class FunctorGenerator {
 
 	def static generateFunctor(Function f, int processId) '''
 		struct «f.name.toFirstUpper»_functor{
-			«f.returnType.calculateType.cppType» operator()(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType» «p.name»«ENDFOR») const{
+			auto operator()(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR») const{
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
@@ -34,8 +36,10 @@ class FunctorGenerator {
 		};
 	'''
 
+
 	def static generateFunction(Function f, int processId) '''
-		inline «f.returnType.calculateType.cppType» «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType» «p.name»«ENDFOR»){
+		// generate Function
+		inline auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR»){
 			«FOR s : f.statement»
 				«s.generateFunctionStatement(processId)»
 			«ENDFOR»
