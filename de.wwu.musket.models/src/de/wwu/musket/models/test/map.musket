@@ -1,0 +1,50 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dim = 16;
+
+struct Complex{
+	float real;
+	float imaginary;
+};
+
+array<int,dim,dist> as = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+array<Complex,dim,dist> cs;
+
+array<int,dim,dist> ras;
+array<Complex,dim,dist> rcs;
+
+int plusY(int y, int x){
+	return x + y;
+}
+
+Complex timesY(float y, Complex x){
+	Complex result;
+	result.real = x.real * y;
+	result.imaginary = x.imaginary * y;
+	return result;
+}
+
+Complex init(int i, Complex x){
+	x.real = (float) i;
+	x.imaginary = (float) i / 2.0f;
+	return x;
+}
+
+main{
+
+// init
+	cs.mapIndexInPlace(init());
+	as.show();
+	cs.show();
+	
+// map
+	ras = as.map(plusY(42));
+	rcs = cs.map(timesY(2.0f));
+	
+// result
+	ras.show();
+	rcs.show();
+}

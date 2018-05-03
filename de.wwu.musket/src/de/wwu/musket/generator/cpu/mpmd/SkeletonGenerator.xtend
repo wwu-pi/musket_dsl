@@ -35,7 +35,7 @@ import static de.wwu.musket.generator.cpu.mpmd.MPIRoutines.generateMPIIrecv
 import static de.wwu.musket.generator.cpu.mpmd.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.cpu.mpmd.MPIRoutines.generateMPIWaitall
 
-import static extension de.wwu.musket.generator.cpu.mpmd.FunctionGenerator.*
+import static de.wwu.musket.generator.cpu.mpmd.FunctionGenerator.generateFunctionCall
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
@@ -61,7 +61,7 @@ class SkeletonGenerator {
  */
 	def static generateSkeletonExpression(SkeletonExpression s, String target, String target_type, int processId) {
 		switch s.skeleton {
-			MapSkeleton: generateMapSkeleton(s, target, target_type, processId)
+			MapSkeleton: generateMapSkeleton(s, target, processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
 			MapIndexSkeleton: '''// TODO: MapIndexSkeleton''' //generateMapIndexSkeleton(s)			
 			MapLocalIndexSkeleton: '''// TODO: MapLocalIndexSkeleton''' //generateMapLocalIndexSkeleton(s)
@@ -84,11 +84,12 @@ class SkeletonGenerator {
 	}
 
 
-	def static generateMapSkeleton(SkeletonExpression s, String target, String target_type, int processId) '''
+	def static generateMapSkeleton(SkeletonExpression s, String target, int processId) '''
 		«val a = s.obj»
+		«val skel = s.skeleton as MapSkeleton»
 		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-«««			TODO: «target_type» «Config.var_map_input» = «a.name»[«Config.var_loop_counter»];
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, a, processId)»
 		}
 	'''
 
