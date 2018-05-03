@@ -63,8 +63,8 @@ class SkeletonGenerator {
 		switch s.skeleton {
 			MapSkeleton: generateMapSkeleton(s, target, processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
-			MapIndexSkeleton: '''// TODO: MapIndexSkeleton''' //generateMapIndexSkeleton(s)			
-			MapLocalIndexSkeleton: '''// TODO: MapLocalIndexSkeleton''' //generateMapLocalIndexSkeleton(s)
+			MapIndexSkeleton: generateMapIndexSkeleton(s, s.obj.type, target, processId)			
+			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, target, processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
 			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target, processId)
@@ -90,6 +90,66 @@ class SkeletonGenerator {
 		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, a, processId)»
+		}
+	'''
+	
+	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+		«val skel = s.skeleton as MapIndexSkeleton»
+		
+		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_elem_offset» = «a.globalOffset(processId)»;
+		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_elem_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, processId)»
+		}
+	'''
+	
+	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
+		«val skel = s.skeleton as MapIndexSkeleton»
+		
+		«IF m.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_row_offset» = «processId / m.blocksInColumn * m.rowsLocal»;
+			«Config.var_col_offset» = «processId % m.blocksInRow * m.colsLocal»;
+		«ELSEIF m.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_row_offset» = 0;
+			«Config.var_col_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, processId)»
+			}
+		}
+	'''
+	
+	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+		«val skel = s.skeleton as MapLocalIndexSkeleton»
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, a, processId)»
+		}
+	'''
+	
+	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
+		«val skel = s.skeleton as MapLocalIndexSkeleton»
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, processId)»
+			}
 		}
 	'''
 
