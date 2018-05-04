@@ -243,6 +243,26 @@ class DataHelper {
 			default: 0
 		}
 	}
+	
+	def static globalRowOffset(MatrixType m, int processId) {
+		switch m.distributionMode {
+			case DIST: (processId / m.blocksInColumn) * m.rowsLocal
+			case COPY: 0
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static globalColOffset(MatrixType m, int processId) {
+		switch m.distributionMode {
+			case DIST: (processId % m.blocksInRow) * m.colsLocal
+			case COPY: 0
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.colsLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
 
 	/**
 	 * Returns a tuple that holds the position of the partition for a given matrix and the process id.
