@@ -43,6 +43,14 @@ class CollectionFunctionsGenerator {
 					MatrixType: generateShowMatrix(cfc.^var, processId)
 				}
 			}
+			
+			case SHOW_LOCAL: {
+				switch (cfc.^var.type) {
+					ArrayType: generateShowLocalArray(cfc.^var, processId)
+					MatrixType: generateShowLocalMatrix(cfc.^var, processId)
+				}
+			}
+			
 			case COLUMNS:
 				(cfc.^var.type as MatrixType).cols
 			case COLUMNS_LOCAL:
@@ -158,6 +166,53 @@ class CollectionFunctionsGenerator {
 			«streamName» << "]" << std::endl;
 			printf("%s", «streamName».str().c_str());
 		«ENDIF»
+	'''
+
+	/**
+	 * Generates the showLocal() method for arrays.
+	 * 
+	 * @param a the array
+	 * @return generated code
+	 */
+	def static generateShowLocalArray(CollectionObject a, int processId) '''
+		«val streamName = 's' + State.counter»
+		«State.incCounter»
+		std::ostringstream «streamName»;
+		«streamName» << "«a.name» on «processId»: " << std::endl << "[";
+		for (int i = 0; i < «(a.type as ArrayType).sizeLocal(processId) - 1»; i++) {
+		«streamName» << «generateShowElements(a, a.name, "i")»;
+		«streamName» << "; ";
+		}
+		«streamName» << «generateShowElements(a, a.name, ((a.type as ArrayType).sizeLocal(processId) - 1).toString)» << "]" << std::endl;
+		«streamName» << std::endl;
+		printf("%s", «streamName».str().c_str());
+	'''
+
+	/**
+	 * Generates the showLocal() method for matrices.
+	 * 
+	 * @param a the array
+	 * @return generated code
+	 */
+	def static generateShowLocalMatrix(CollectionObject m, int processId) '''
+		«val type = m.type as MatrixType»
+		«val streamName = 's' + State.counter»
+		«State.incCounter»
+		std::ostringstream «streamName»;
+		«streamName» << "«m.name» on «processId»: " << std::endl << "[";
+		
+		for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«streamName» << "[";
+			for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.colsLocal»; ++«Config.var_loop_counter_cols»){
+				«streamName» << «generateShowElements(m, m.name, Config.var_loop_counter_rows + " * " + type.rowsLocal + " + " + Config.var_loop_counter_cols)»;
+				if(«Config.var_loop_counter_cols» < «type.colsLocal - 1»){
+					«streamName» << "; ";
+				}else{
+					«streamName» << "]" << std::endl;
+				}
+			}
+		}
+		printf("%s", «streamName».str().c_str());
 	'''
 
 	// helper

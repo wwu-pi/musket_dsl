@@ -42,7 +42,7 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ScatterSkeleton
-import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.MusketVariable
 
 /**
  * Generates the skeleton calls.
@@ -59,27 +59,28 @@ class SkeletonGenerator {
  * @param target where to write the result of the skeleton expression
  * @return generated skeleton call
  */
-	def static generateSkeletonExpression(SkeletonExpression s, String target, String target_type, int processId) {
-		switch s.skeleton {
-			MapSkeleton: generateMapSkeleton(s, target, processId)
+	def static generateSkeletonExpression(SkeletonExpression s, Object target, int processId) {
+		val skel = s.skeleton
+		switch skel {
+			MapSkeleton: generateMapSkeleton(s, (target as CollectionObject).name, processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
-			MapIndexSkeleton: generateMapIndexSkeleton(s, s.obj.type, target, processId)			
-			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, target, processId)
+			MapIndexSkeleton: generateMapIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)			
+			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
-			FoldSkeleton: generateFoldSkeleton(s.skeleton as FoldSkeleton, s.obj, target, processId)
+			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
-			MapFoldSkeleton: generateMapFoldSkeleton(s.skeleton as MapFoldSkeleton, s.obj, target, processId)
+			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
 			ZipSkeleton:  '''// TODO: ZipSkeleton'''
 			ZipInPlaceSkeleton:  '''// TODO: ZipInPlaceSkeleton'''
 			ZipIndexSkeleton: '''// TODO: ZipIndexSkeleton'''		
 			ZipLocalIndexSkeleton: '''// TODO: ZipLocalIndexSkeleton'''
 			ZipIndexInPlaceSkeleton:  '''// TODO: ZipIndexInPlaceSkeleton'''
 			ZipLocalIndexInPlaceSkeleton:  '''// TODO: ZipLocalIndexInPlaceSkeleton'''
-			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(s.skeleton as ShiftPartitionsHorizontallySkeleton, s.obj.type as MatrixType, processId)}
-			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(s.skeleton as ShiftPartitionsVerticallySkeleton, s.obj.type as MatrixType, processId)}
-			GatherSkeleton: generateGatherSkeleton(s, s.skeleton as GatherSkeleton, target, processId)
-			ScatterSkeleton: generateScatterSkeleton()
+			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(skel, s.obj.type as MatrixType, processId)}
+			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(skel, s.obj.type as MatrixType, processId)}
+			GatherSkeleton: generateGatherSkeleton(s, skel, (target as CollectionObject).name, processId)
+			ScatterSkeleton: generateScatterSkeleton(s, skel, s.obj.type, (target as CollectionObject).type, processId)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
 	}
@@ -502,12 +503,12 @@ class SkeletonGenerator {
 			«Config.var_elem_offset» = «output.globalOffset(processId)»;
 			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-				«(output as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_elem_offset» + «Config.var_loop_counter»];
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_elem_offset» + «Config.var_loop_counter»];
 			}
 		«ELSE»
 			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-				«(output as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
 			}
 		«ENDIF»
 	'''
@@ -518,14 +519,12 @@ class SkeletonGenerator {
 			«Config.var_col_offset» = «output.globalColOffset(processId)»;
 			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-				«Config.var_loop_counter_rows» = 0;
-				«Config.var_loop_counter_cols» = 0;
-				«(output as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«»];
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[(«Config.var_loop_counter» / «output.colsLocal») * «input.cols.concreteValue» + «Config.var_row_offset» * «input.cols.concreteValue» + («Config.var_loop_counter» % «output.colsLocal» + «Config.var_col_offset»)];
 			}
 		«ELSE»
 			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
 			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «se.obj.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-				«(output as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
 			}
 		«ENDIF»
 	'''

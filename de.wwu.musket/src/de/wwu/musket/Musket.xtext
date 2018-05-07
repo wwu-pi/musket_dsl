@@ -476,7 +476,7 @@ fragment FunctionParameters*:
 ;
 
 enum CollectionFunctionName:
-	size | sizeLocal | show | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
+	size | sizeLocal | show | showLocal | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
 ;
 
 enum MusketFunctionName:
