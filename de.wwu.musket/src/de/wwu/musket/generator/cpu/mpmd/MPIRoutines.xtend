@@ -3,6 +3,8 @@ package de.wwu.musket.generator.cpu.mpmd
 import de.wwu.musket.util.MusketType
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.MatrixType
 
 /**
  * Generates MPI routines.
@@ -19,6 +21,10 @@ class MPIRoutines {
 
 	def static generateMPIAllgather(String send_buffer, long count, MusketType type, String recv_buffer) '''
 		MPI_Allgather(«send_buffer», «count», «type.MPIType», «recv_buffer», «count», «type.MPIType», MPI_COMM_WORLD);
+	'''
+	
+	def static generateMPIAllgather(String send_buffer, long send_count, MusketType send_type, String recv_buffer, long recv_count, MatrixType recv_type) '''
+		MPI_Allgather(«send_buffer», «send_count», «send_type.MPIType», «recv_buffer», «recv_count», «(recv_type.eContainer as CollectionObject).name + "_partition_type"», MPI_COMM_WORLD);
 	'''
 
 	def static generateMPIIsend(int source, String send_buffer, long count, MusketType type, int target,

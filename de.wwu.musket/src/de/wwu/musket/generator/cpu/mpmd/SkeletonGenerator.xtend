@@ -79,7 +79,7 @@ class SkeletonGenerator {
 			ZipLocalIndexInPlaceSkeleton:  '''// TODO: ZipLocalIndexInPlaceSkeleton'''
 			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(skel, s.obj.type as MatrixType, processId)}
 			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(skel, s.obj.type as MatrixType, processId)}
-			GatherSkeleton: generateGatherSkeleton(s, skel, (target as CollectionObject).name, processId)
+			GatherSkeleton: generateGatherSkeleton(s, skel, s.obj.type, (target as CollectionObject).type, processId)
 			ScatterSkeleton: generateScatterSkeleton(s, skel, s.obj.type, (target as CollectionObject).type, processId)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
 		}
@@ -490,11 +490,26 @@ class SkeletonGenerator {
  * @param target the target where the results should be written
  * @return the generated skeleton code 
  */
-	def static generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, String target, int processId) '''
+	def static dispatch generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, ArrayType input, ArrayType output, int processId) '''
 		«IF Config.processes > 1»
-			«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal(processId), se.obj.calculateCollectionType, target + '.data()')»
+			«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal(processId), se.obj.calculateCollectionType, (output.eContainer as CollectionObject).name + '.data()')»
 		«ELSE»
-			std::copy(«se.obj.name».begin(), «se.obj.name».end(), «target».begin());
+			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
+			}
+		«ENDIF»
+	'''
+	
+	def static dispatch generateGatherSkeleton(SkeletonExpression se, GatherSkeleton gs, MatrixType input, MatrixType output, int processId) '''
+		«IF Config.processes > 1»
+			MPI_Allgatherv(«se.obj.name».data(), «se.obj.type.sizeLocal(processId)», «se.obj.calculateCollectionType.MPIType», «(output.eContainer as CollectionObject).name».data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»1«ENDFOR»}).data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»«input.sizeLocal(i) * input.partitionPosition(i).key + input.partitionPosition(i).value»«ENDFOR»}).data(), «se.obj.name»_partition_type_resized, MPI_COMM_WORLD);
+			//«generateMPIAllgather(se.obj.name + '.data()', se.obj.type.sizeLocal(processId), se.obj.calculateCollectionType, (output.eContainer as CollectionObject).name + '.data()', 1l, input)»
+		«ELSE»
+			#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+			for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+				«(output.eContainer as CollectionObject).name»[«Config.var_loop_counter»] = «se.obj.name»[«Config.var_loop_counter»];
+			}
 		«ENDIF»
 	'''
 	

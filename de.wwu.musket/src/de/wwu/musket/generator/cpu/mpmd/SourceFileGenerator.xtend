@@ -15,7 +15,8 @@ import static de.wwu.musket.generator.cpu.mpmd.LogicGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.MapSkeletonGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.RngGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.FunctorGenerator.*
-import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateMPIVectorType
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateShiftSkeletonVariables
 import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
@@ -25,6 +26,7 @@ import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.MatrixType
 
 /** 
  * Generates the source file of the project.
@@ -170,6 +172,13 @@ class SourceFileGenerator {
 				«FOR s : resource.Structs»
 					«s.generateCreateDatatypeStruct»
 				«ENDFOR»
+				
+				«val dist_matrices = resource.Matrices.filter[it.type.distributionMode == DistributionMode.DIST]»
+				
+				«FOR m : dist_matrices»
+					«generateMPIVectorType(m.type as MatrixType, processId)»
+				«ENDFOR»
+
 				«generateMPIFoldOperators(resource)»
 				«generateTmpFoldResults(resource)»
 				
