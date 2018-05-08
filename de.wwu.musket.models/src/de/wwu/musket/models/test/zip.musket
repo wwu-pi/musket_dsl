@@ -1,0 +1,50 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dim = 16;
+
+struct Complex{
+	float real;
+	float imaginary;
+};
+
+array<Complex,dim,dist> cs1;
+array<Complex,dim,dist> cs2;
+array<Complex,dim,dist> rcs;
+
+
+Complex sumComplex(Complex y, Complex x){
+	Complex result;
+	result.real = x.real + y.real;
+	result.imaginary = x.imaginary + y.imaginary;
+	return result;
+}
+
+Complex init1(int i, Complex x){
+	x.real = (float) i;
+	x.imaginary = (float) i / 2.0f;
+	return x;
+}
+
+Complex init2(int i, Complex x){
+	x.real = (float) i*3;
+	x.imaginary = (float) i;
+	return x;
+}
+
+main{
+
+// init
+	cs1.mapIndexInPlace(init1());
+	cs2.mapIndexInPlace(init2());
+	cs1.show();
+	cs2.show();
+	
+// zip
+	rcs = cs1.zip(cs2, sumComplex());
+	
+// result
+	rcs.show();
+}
