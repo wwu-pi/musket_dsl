@@ -96,6 +96,7 @@ class SkeletonGenerator {
 	'''
 	
 	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+		// MapIndexSkeleton Array Start
 		«val skel = s.skeleton as MapIndexSkeleton»
 		
 		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
@@ -108,9 +109,11 @@ class SkeletonGenerator {
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, processId)»
 		}
+		// MapIndexSkeleton Array End
 	'''
 	
 	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
+		// MapIndexSkeleton Matrix Start
 		«val skel = s.skeleton as MapIndexSkeleton»
 		
 		«IF m.distributionMode == DistributionMode.DIST && Config.processes > 1»
@@ -131,6 +134,7 @@ class SkeletonGenerator {
 				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, processId)»
 			}
 		}
+		// MapIndexSkeleton Matrix End
 	'''
 	
 	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
@@ -232,13 +236,13 @@ class SkeletonGenerator {
 /**
  * Generates the mapLocalIndexInPlace skeleton for arrays.
  * 
+ * TODO
+ * 
  * @param s the skeleton expression
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
-		«val param_map = createParameterLookupTableMapLocalIndexSkeleton(a, s.skeleton.param.functionParameters, s.skeleton.param.functionArguments, processId)»
-		
+	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''		
 		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
 			«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_loop_counter», «s.obj.name»[«Config.var_loop_counter»]);
@@ -265,50 +269,7 @@ class SkeletonGenerator {
 		}
 	'''
 	
-	/**
-	 * Creates the param map for the mapLocalIndex skeleton for arrays.
-	 * There is another version for matrices, because there are two index parameters.
-	 * 
-	 * @param co the array the skeleton is used on
-	 * @param parameters the parameters of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(ArrayType co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
 
-		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter»''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter»]''')
-		
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
-
-	/**
-	 * Creates the param map for the mapLocalIndex skeleton for matrices.
-	 * There is another version for arrays, because there is only one index parameters.
-	 * 
-	 * @param co the matrix the skeleton is used on
-	 * @param parameters the parameters of the skeleton
-	 * @param inputs the parameter inputs
-	 * @return the param map
-	 */
-	def static dispatch Map<String, String> createParameterLookupTableMapLocalIndexSkeleton(MatrixType co, Iterable<de.wwu.musket.musket.Parameter> parameters,
-		Iterable<Expression> inputs, int processId) {
-		val param_map = new HashMap<String, String>
-
-		param_map.put(parameters.drop(inputs.size).head.name, '''«Config.var_loop_counter_rows»''')
-		param_map.put(parameters.drop(inputs.size + 1).head.name, '''«Config.var_loop_counter_cols»''')
-		param_map.put(parameters.drop(inputs.size + 2).head.name, '''«(co.eContainer as CollectionObject).name»[«Config.var_loop_counter_rows» * «co.colsLocal» + «Config.var_loop_counter_cols»]''')
-
-		for (var i = 0; i < inputs.size; i++) {
-			param_map.put(parameters.get(i).name, inputs.get(i).generateExpression(null, processId))
-		}
-		return param_map
-	}
 
 // Fold
 /**
