@@ -25,14 +25,14 @@ Complex plusIndexA(int i, Complex x){
 	Complex result;
 	result.real = x.real + i;
 	result.imaginary = x.imaginary + i / 2;
-	return x;
+	return result;
 }
 
 Complex plusIndexM(int r, int c, Complex x){
 	Complex result;
 	result.real = x.real + r;
 	result.imaginary = x.imaginary + c;
-	return x;
+	return result;
 }
 
 Complex timesY(float y, Complex x){

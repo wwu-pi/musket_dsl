@@ -55,11 +55,11 @@ class FunctionGenerator {
 
 	def static dispatch generateFunctionCall(MapSkeleton s, CollectionObject input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«input.name»[«Config.var_loop_counter»]);'''
 	
-	def static dispatch generateFunctionCall(MapIndexSkeleton s, ArrayType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter» + «Config.var_elem_offset», «(input as CollectionObject).name»[«Config.var_loop_counter»]);'''
-	def static dispatch generateFunctionCall(MapIndexSkeleton s, MatrixType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter_rows» + «Config.var_row_offset», «Config.var_loop_counter_cols» + «Config.var_col_offset», «(input as CollectionObject).name»[«Config.var_loop_counter»]);'''
+	def static dispatch generateFunctionCall(MapIndexSkeleton s, ArrayType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter» + «Config.var_elem_offset», «(input.eContainer as CollectionObject).name»[«Config.var_loop_counter»]);'''
+	def static dispatch generateFunctionCall(MapIndexSkeleton s, MatrixType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter_rows» + «Config.var_row_offset», «Config.var_loop_counter_cols» + «Config.var_col_offset», «(input.eContainer as CollectionObject).name»[«Config.var_loop_counter»]);'''
 		
-	def static dispatch generateFunctionCall(MapLocalIndexSkeleton s, ArrayType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter», «(input as CollectionObject).name»[«Config.var_loop_counter»]);'''
-	def static dispatch generateFunctionCall(MapLocalIndexSkeleton s, MatrixType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter_rows», «Config.var_loop_counter_cols», «(input as CollectionObject).name»[«Config.var_loop_counter»]);'''
+	def static dispatch generateFunctionCall(MapLocalIndexSkeleton s, ArrayType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter», «(input.eContainer as CollectionObject).name»[«Config.var_loop_counter»]);'''
+	def static dispatch generateFunctionCall(MapLocalIndexSkeleton s, MatrixType input, int processId) '''«s.param.functionName.toFirstLower»_functor(«s.param.functionArguments.generateArguments(processId)»«Config.var_loop_counter_rows», «Config.var_loop_counter_cols», «(input.eContainer as CollectionObject).name»[«Config.var_loop_counter»]);'''
 	
 	
 	def static generateArguments(EList<Expression> args, int processId) '''«FOR arg : args SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»'''	
