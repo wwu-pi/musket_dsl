@@ -236,8 +236,6 @@ class SkeletonGenerator {
 /**
  * Generates the mapLocalIndexInPlace skeleton for arrays.
  * 
- * TODO
- * 
  * @param s the skeleton expression
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
