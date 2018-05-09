@@ -6,6 +6,8 @@ import de.wwu.musket.musket.MapIndexSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.ScatterSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
 
 /**
  * Generate everything required for the map skeleton, except for the actual map skeleton call.
@@ -27,7 +29,7 @@ class MapSkeletonGenerator {
 		var result = ""
 
 		if (skeletons.exists [
-			(it.skeleton instanceof MapIndexSkeleton || it.skeleton instanceof MapIndexInPlaceSkeleton || it.skeleton instanceof ScatterSkeleton) &&
+			(it.skeleton instanceof MapIndexSkeleton || it.skeleton instanceof MapIndexInPlaceSkeleton || it.skeleton instanceof ZipIndexSkeleton || it.skeleton instanceof ZipIndexInPlaceSkeleton || it.skeleton instanceof ScatterSkeleton) &&
 				it.obj.type instanceof MatrixType
 		]) {
 			result += "size_t " + Config.var_row_offset + " = 0;"
@@ -35,7 +37,7 @@ class MapSkeletonGenerator {
 		}
 
 		if (skeletons.exists [
-			(it.skeleton instanceof MapIndexSkeleton || it.skeleton instanceof MapIndexInPlaceSkeleton || it.skeleton instanceof ScatterSkeleton) &&
+			(it.skeleton instanceof MapIndexSkeleton || it.skeleton instanceof MapIndexInPlaceSkeleton || it.skeleton instanceof ZipIndexSkeleton || it.skeleton instanceof ZipIndexInPlaceSkeleton || it.skeleton instanceof ScatterSkeleton) &&
 				it.obj.type instanceof ArrayType
 		]) {
 			result += "size_t " + Config.var_elem_offset + " = 0;"

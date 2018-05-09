@@ -26,18 +26,6 @@ matrix<Complex,dimM,dimM,copy> mc2;
 matrix<Complex,dimM,dimM,copy> mcr;
 
 
-Complex init1(Complex x){
-	x.real = (float) 42;
-	x.imaginary = (float) 21;
-	return x;
-}
-
-Complex init2(Complex x){
-	x.real = (float) 17;
-	x.imaginary = (float) 13;
-	return x;
-}
-
 Complex initIndexA1(int i, Complex x){
 	x.real = (float) i;
 	x.imaginary = (float) i / 2.0f;
@@ -70,47 +58,31 @@ Complex sumComplex(Complex y, Complex x){
 	return result;
 }
 
-Complex plusIndexA(int i, Complex x){
+Complex subComplex(Complex y, Complex x){
 	Complex result;
-	result.real = x.real + i;
-	result.imaginary = x.imaginary + i / 2;
+	result.real = x.real - y.real;
+	result.imaginary = x.imaginary - y.imaginary;
 	return result;
 }
 
-Complex plusIndexM(int r, int c, Complex x){
+Complex sumComplexPlusAIndex(int in, Complex y, Complex x){
 	Complex result;
-	result.real = x.real + r;
-	result.imaginary = x.imaginary + c;
+	result.real = x.real + y.real + in;
+	result.imaginary = x.imaginary + y.imaginary + in;
 	return result;
 }
 
-Complex timesY(float y, Complex x){
+Complex sumComplexPlusMIndex(int r, int c, Complex y, Complex x){
 	Complex result;
-	result.real = x.real * y;
-	result.imaginary = x.imaginary * y;
+	result.real = x.real + y.real + r;
+	result.imaginary = x.imaginary + y.imaginary + c;
 	return result;
 }
-
-
 
 // should test: zip, zipInPlace, zipIndex, zipLocalIndex, zipIndexInPlace, zipLocalIndexInPlace
 // for matrix and array, dist and copy
 
 main{
-
-// init
-//	cs1.mapIndexInPlace(init1());
-//	cs2.mapIndexInPlace(init2());
-//	cs1.show();
-//	cs2.show();
-	
-// zip
-//	rcs = cs1.zip(cs2, sumComplex());
-	
-// result
-//	rcs.show();
-
-
 
 // initial 
 mkt::print("Inital:\n");
@@ -128,7 +100,7 @@ md1.show();
 mc1.show();
 
 // zip
-mkt::print("Zip; expected result: sum.\n");
+mkt::print("Zip; expected result: values * 2.\n");
 adr = ad1.zip(ad2, sumComplex());
 acr = ac1.zip(ac2, sumComplex());
 mdr = md1.zip(md2, sumComplex());
@@ -139,12 +111,12 @@ acr.show();
 mdr.show();
 mcr.show();
 
-// map
-/*mkt::print("Map:\n");
-adr = ad.map(timesY(2.0f));
-acr = ac.map(timesY(2.0f));
-mdr = md.map(timesY(2.0f));
-mcr = mc.map(timesY(2.0f));
+// zipInPlace
+mkt::print("zipInPlace; expected result: values / 2.\n");
+adr.zipInPlace(ad1, subComplex());
+acr.zipInPlace(ac1, subComplex());
+mdr.zipInPlace(md1, subComplex());
+mcr.zipInPlace(mc1, subComplex());
 
 adr.show();
 acr.show();
@@ -152,53 +124,52 @@ mdr.show();
 mcr.show();
 
 
-// mapIndexInPlace
-mkt::print("MapIndexInPlace:\n");
-ad.mapIndexInPlace(initIndexA());
-ac.mapIndexInPlace(initIndexA());
-md.mapIndexInPlace(initIndexM());
-mc.mapIndexInPlace(initIndexM());
-
-ad.show();
-ac.show();
-md.show();
-mc.show();
-
-// mapIndex
-mkt::print("MapIndex:\n");
-adr = ad.mapIndex(plusIndexA());
-acr = ac.mapIndex(plusIndexA());
-mdr = md.mapIndex(plusIndexM());
-mcr = mc.mapIndex(plusIndexM());
+// zipIndex
+mkt::print("ZipIndex:\n");
+adr = ad1.zipIndex(ad2, sumComplexPlusAIndex());
+acr = ac1.zipIndex(ac2, sumComplexPlusAIndex());
+mdr = md1.zipIndex(md2, sumComplexPlusMIndex());
+mcr = mc1.zipIndex(mc2, sumComplexPlusMIndex());
 
 adr.show();
 acr.show();
 mdr.show();
 mcr.show();
 
-// mapLocalIndexInPlace
-mkt::print("MapLocalIndexInPlace:\n");
-ad.mapLocalIndexInPlace(initIndexA());
-ac.mapLocalIndexInPlace(initIndexA());
-md.mapLocalIndexInPlace(initIndexM());
-mc.mapLocalIndexInPlace(initIndexM());
-
-ad.show();
-ac.show();
-md.show();
-mc.show();
-
-// mapLocalIndex
-mkt::print("MapLocalIndex:\n");
-adr = ad.mapLocalIndex(plusIndexA());
-acr = ac.mapLocalIndex(plusIndexA());
-mdr = md.mapLocalIndex(plusIndexM());
-mcr = mc.mapLocalIndex(plusIndexM());
+// zipIndexInPlace
+mkt::print("ZipIndexInPlace:\n");
+adr.zipIndexInPlace(ad2, sumComplexPlusAIndex());
+acr.zipIndexInPlace(ac2, sumComplexPlusAIndex());
+mdr.zipIndexInPlace(md2, sumComplexPlusMIndex());
+mcr.zipIndexInPlace(mc2, sumComplexPlusMIndex());
 
 adr.show();
 acr.show();
 mdr.show();
 mcr.show();
-*/
+
+// zipLocalIndex
+mkt::print("ZipLocalIndex:\n");
+adr = ad1.zipLocalIndex(ad2, sumComplexPlusAIndex());
+acr = ac1.zipLocalIndex(ac2, sumComplexPlusAIndex());
+mdr = md1.zipLocalIndex(md2, sumComplexPlusMIndex());
+mcr = mc1.zipLocalIndex(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// zipLocalIndexInPlace
+mkt::print("ZipLocalIndexInPlace:\n");
+adr.zipLocalIndexInPlace(ad2, sumComplexPlusAIndex());
+acr.zipLocalIndexInPlace(ac2, sumComplexPlusAIndex());
+mdr.zipLocalIndexInPlace(md2, sumComplexPlusMIndex());
+mcr.zipLocalIndexInPlace(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
 
 }

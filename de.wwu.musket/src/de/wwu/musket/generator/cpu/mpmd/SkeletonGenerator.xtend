@@ -3,7 +3,6 @@ package de.wwu.musket.generator.cpu.mpmd
 import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.MapInPlaceSkeleton
@@ -26,9 +25,6 @@ import de.wwu.musket.musket.FoldLocalSkeleton
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.CollectionInstantiation
 import de.wwu.musket.musket.CompareExpression
-
-import java.util.HashMap
-import java.util.Map
 
 import static de.wwu.musket.generator.cpu.mpmd.MPIRoutines.generateMPIAllgather
 import static de.wwu.musket.generator.cpu.mpmd.MPIRoutines.generateMPIIrecv
@@ -71,12 +67,12 @@ class SkeletonGenerator {
 			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
 			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
-			ZipSkeleton:  '''// TODO: ZipSkeleton'''
-			ZipInPlaceSkeleton:  '''// TODO: ZipInPlaceSkeleton'''
-			ZipIndexSkeleton: '''// TODO: ZipIndexSkeleton'''		
-			ZipLocalIndexSkeleton: '''// TODO: ZipLocalIndexSkeleton'''
-			ZipIndexInPlaceSkeleton:  '''// TODO: ZipIndexInPlaceSkeleton'''
-			ZipLocalIndexInPlaceSkeleton:  '''// TODO: ZipLocalIndexInPlaceSkeleton'''
+			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
+			ZipInPlaceSkeleton:  generateZipInPlaceSkeleton(s, processId)
+			ZipIndexSkeleton: generateZipIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)		
+			ZipLocalIndexSkeleton: generateZipLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
+			ZipIndexInPlaceSkeleton:  generateZipIndexInPlaceSkeleton(s, s.obj.type, processId)
+			ZipLocalIndexInPlaceSkeleton: generateZipLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
 			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(skel, s.obj.type as MatrixType, processId)}
 			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(skel, s.obj.type as MatrixType, processId)}
 			GatherSkeleton: generateGatherSkeleton(s, skel, s.obj.type, (target as CollectionObject).type, processId)
@@ -266,7 +262,175 @@ class SkeletonGenerator {
 			}
 		}
 	'''
+
+
+// Zip
+	def static generateZipSkeleton(SkeletonExpression s, String target, int processId) '''
+		// Zip skeleton start
+		«val obj = s.obj»
+		«val skel = s.skeleton as ZipSkeleton»
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «obj.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, obj, skel.zipWith.value as CollectionObject, processId)»
+		}
+		// Zip skeleton end
+	'''
 	
+// ZipInPlace
+	def static generateZipInPlaceSkeleton(SkeletonExpression s, int processId) '''
+		// Zip skeleton start
+		«val obj = s.obj»
+		«val skel = s.skeleton as ZipInPlaceSkeleton»
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «obj.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«obj.name»[«Config.var_loop_counter»] = «generateFunctionCall(skel, obj, skel.zipWith.value as CollectionObject, processId)»
+		}
+		// Zip skeleton end
+	'''
+
+// ZipIndex
+	def static dispatch generateZipIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+		// ZipIndexSkeleton Array Start
+		«val skel = s.skeleton as ZipIndexSkeleton»
+		
+		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_elem_offset» = «a.globalOffset(processId)»;
+		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_elem_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, (skel.zipWith.value as CollectionObject).type, processId)»
+		}
+		// ZipIndexSkeleton Array End
+	'''
+	
+	def static dispatch generateZipIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
+		// ZipIndexSkeleton Matrix Start
+		«val skel = s.skeleton as ZipIndexSkeleton»
+		
+		«IF m.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_row_offset» = «m.globalRowOffset(processId)»;
+			«Config.var_col_offset» = «m.globalColOffset(processId)»;
+		«ELSEIF m.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_row_offset» = 0;
+			«Config.var_col_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, (skel.zipWith.value as CollectionObject).type, processId)»
+			}
+		}
+		// ZipIndexSkeleton Matrix End
+	'''
+
+// ZipLocalIndex
+	def static dispatch generateZipLocalIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+		// ZipLocalIndexSkeleton Array Start
+		«val skel = s.skeleton as ZipLocalIndexSkeleton»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, (skel.zipWith.value as CollectionObject).type, processId)»
+		}
+		// ZipLocalIndexSkeleton Array End
+	'''
+	
+	def static dispatch generateZipLocalIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
+		// ZipLocalIndexSkeleton Matrix Start
+		«val skel = s.skeleton as ZipLocalIndexSkeleton»
+
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, (skel.zipWith.value as CollectionObject).type, processId)»
+			}
+		}
+		// ZipLocalIndexSkeleton Matrix End
+	'''
+
+// ZipIndexInPlace
+	def static dispatch generateZipIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
+		// ZipIndexInPlaceSkeleton Array Start
+		«val skel = s.skeleton as ZipIndexInPlaceSkeleton»
+		«val obj = s.obj»
+		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_elem_offset» = «a.globalOffset(processId)»;
+		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_elem_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«obj.name»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, (skel.zipWith.value as CollectionObject).type, processId)»
+		}
+		// ZipIndexInPlaceSkeleton Array End
+	'''
+	
+	def static dispatch generateZipIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m, int processId) '''
+		// ZipIndexInPlaceSkeleton Matrix Start
+		«val skel = s.skeleton as ZipIndexInPlaceSkeleton»
+		«val obj = s.obj»
+		«IF m.distributionMode == DistributionMode.DIST && Config.processes > 1»
+			«Config.var_row_offset» = «m.globalRowOffset(processId)»;
+			«Config.var_col_offset» = «m.globalColOffset(processId)»;
+		«ELSEIF m.distributionMode == DistributionMode.COPY && Config.processes > 1»
+			«Config.var_row_offset» = 0;
+			«Config.var_col_offset» = 0;
+		«ENDIF»
+		
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«obj.name»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, (skel.zipWith.value as CollectionObject).type, processId)»
+			}
+		}
+		// ZipIndexInPlaceSkeleton Matrix End
+	'''
+
+// ZipLocalIndexInPlace
+	def static dispatch generateZipLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
+		// ZipLocalIndexInPlaceSkeleton Array Start
+		«val skel = s.skeleton as ZipLocalIndexInPlaceSkeleton»
+		«val obj = s.obj»
+		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
+		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
+			«obj.name»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, (skel.zipWith.value as CollectionObject).type, processId)»
+		}
+		// ZipLocalIndexInPlaceSkeleton Array End
+	'''
+	
+	def static dispatch generateZipLocalIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m, int processId) '''
+		// ZipLocalIndexInPlaceSkeleton Matrix Start
+		«val skel = s.skeleton as ZipLocalIndexInPlaceSkeleton»
+		«val obj = s.obj»
+		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
+		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
+			«IF Config.cores > 1»
+				#pragma omp simd
+			«ENDIF»
+			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
+				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
+				«obj.name»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, (skel.zipWith.value as CollectionObject).type, processId)»
+			}
+		}
+		// ZipLocalIndexInPlaceSkeleton Matrix End
+	'''
 
 
 // Fold
