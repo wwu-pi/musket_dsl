@@ -22,6 +22,7 @@ ConfigBlock:
 	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformGPU?='GPU')?)) &
 	('#config' 'PROCESSES' processes=INT) &
 	('#config' 'CORES' cores=INT)?	&
+	('#config' 'GPUS' gpus=INT)?	&
 	('#config' 'MODE' mode=Mode)?
 ;
 
