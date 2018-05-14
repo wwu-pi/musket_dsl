@@ -1,5 +1,6 @@
 package de.wwu.musket.generator.cpu.mpmd
 
+import de.wwu.musket.musket.Object
 import de.wwu.musket.musket.Assignment
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.Expression
@@ -79,7 +80,7 @@ class LogicGenerator {
 
 	def static dispatch generateStatement(MusketIntVariable s, int processId) '''
 		int «s.name» = 0;
-		«s?.initExpression.generateSkeletonExpression(s.name, processId)»
+		«s?.initExpression.generateSkeletonExpression(s, processId)»
 	'''
 
 	def static dispatch generateStatement(MusketDoubleVariable s, int processId) '''
@@ -121,7 +122,7 @@ class LogicGenerator {
 		switch s.value {
 			Expression: '''«s.^var.value.name» = «(s.value as Expression).generateExpression(null, processId)»;'''
 			SkeletonExpression:
-				(s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value, processId)
+				(s.value as SkeletonExpression).generateSkeletonExpression(s.^var.value as Object, processId)
 			default: '''// TODO: LogicGenerator: generateStatement: MusketAssignment'''
 		}
 	}

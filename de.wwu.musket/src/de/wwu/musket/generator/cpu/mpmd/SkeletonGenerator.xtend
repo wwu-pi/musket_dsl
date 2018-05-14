@@ -1,6 +1,7 @@
 package de.wwu.musket.generator.cpu.mpmd
 
 import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.Object
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.FoldSkeleton
@@ -38,7 +39,6 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ScatterSkeleton
-import de.wwu.musket.musket.MusketVariable
 
 /**
  * Generates the skeleton calls.
@@ -64,9 +64,9 @@ class SkeletonGenerator {
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
-			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
+			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as Object).name, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
-			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as MusketVariable).name, processId)
+			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as Object).name, processId)
 			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
 			ZipInPlaceSkeleton:  generateZipInPlaceSkeleton(s, processId)
 			ZipIndexSkeleton: generateZipIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)		
