@@ -19,7 +19,7 @@ Include:
 
 //-----------------------------------------------------------
 ConfigBlock:
-	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformGPU?='GPU')?)) &
+	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformCPUMPMD?='CPU_MPMD')? & (platformGPU?='GPU')?)) &
 	('#config' 'PROCESSES' processes=INT) &
 	('#config' 'CORES' cores=INT)?	&
 	('#config' 'GPUS' gpus=INT)?	&
@@ -477,7 +477,7 @@ fragment FunctionParameters*:
 ;
 
 enum CollectionFunctionName:
-	size | sizeLocal | show | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
+	size | sizeLocal | show | showLocal | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
 ;
 
 enum MusketFunctionName:

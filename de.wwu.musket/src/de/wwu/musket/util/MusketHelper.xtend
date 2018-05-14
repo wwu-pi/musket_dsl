@@ -60,6 +60,26 @@ class MusketHelper {
 			default: '''()'''
 		}
 	}
+	
+	static def toMPIPrimitiveType(Type t){
+		switch(t){
+			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''MPI_BOOL'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.INT: '''MPI_INT'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.FLOAT: '''MPI_FLOAT'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.DOUBLE: '''MPI_DOUBLE'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: '''MPI_CHAR'''
+			default: ''''''
+		}
+	}
+	
+	static def toFunction(SkeletonParameterInput spi) {
+		switch spi {
+			InternalFunctionCall:
+				spi.value
+			LambdaFunction:
+				spi
+		}
+	}
 
 	static def getFunctionArguments(SkeletonParameterInput spi) {
 		switch spi {

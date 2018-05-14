@@ -1,0 +1,175 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dimA = 16;
+const int dimM = 4;
+
+struct Complex{
+	float real;
+	float imaginary;
+};
+
+array<Complex,dimA,dist> ad1;
+array<Complex,dimA,dist> ad2;
+array<Complex,dimA,dist> adr;
+array<Complex,dimA,copy> ac1;
+array<Complex,dimA,copy> ac2;
+array<Complex,dimA,copy> acr;
+
+matrix<Complex,dimM,dimM,dist> md1;
+matrix<Complex,dimM,dimM,dist> md2;
+matrix<Complex,dimM,dimM,dist> mdr;
+matrix<Complex,dimM,dimM,copy> mc1;
+matrix<Complex,dimM,dimM,copy> mc2;
+matrix<Complex,dimM,dimM,copy> mcr;
+
+
+Complex initIndexA1(int i, Complex x){
+	x.real = (float) i;
+	x.imaginary = (float) i / 2.0f;
+	return x;
+}
+
+Complex initIndexA2(int i, Complex x){
+	x.real = (float) i;
+	x.imaginary = (float) i / 2.0f;
+	return x;
+}
+
+
+Complex initIndexM1(int r, int c, Complex x){
+	x.real = (float) r;
+	x.imaginary = (float) c;
+	return x;
+}
+
+Complex initIndexM2(int r, int c, Complex x){
+	x.real = (float) r;
+	x.imaginary = (float) c;
+	return x;
+}
+
+Complex sumComplex(Complex y, Complex x){
+	Complex result;
+	result.real = x.real + y.real;
+	result.imaginary = x.imaginary + y.imaginary;
+	return result;
+}
+
+Complex subComplex(Complex y, Complex x){
+	Complex result;
+	result.real = x.real - y.real;
+	result.imaginary = x.imaginary - y.imaginary;
+	return result;
+}
+
+Complex sumComplexPlusAIndex(int in, Complex y, Complex x){
+	Complex result;
+	result.real = x.real + y.real + in;
+	result.imaginary = x.imaginary + y.imaginary + in;
+	return result;
+}
+
+Complex sumComplexPlusMIndex(int r, int c, Complex y, Complex x){
+	Complex result;
+	result.real = x.real + y.real + r;
+	result.imaginary = x.imaginary + y.imaginary + c;
+	return result;
+}
+
+// should test: zip, zipInPlace, zipIndex, zipLocalIndex, zipIndexInPlace, zipLocalIndexInPlace
+// for matrix and array, dist and copy
+
+main{
+
+// initial 
+mkt::print("Inital:\n");
+ad1.mapIndexInPlace(initIndexA1());
+ad2.mapIndexInPlace(initIndexA2());
+ac1.mapIndexInPlace(initIndexA1());
+ac2.mapIndexInPlace(initIndexA2());
+md1.mapIndexInPlace(initIndexM1());
+md2.mapIndexInPlace(initIndexM2());
+mc1.mapIndexInPlace(initIndexM1());
+mc2.mapIndexInPlace(initIndexM2());
+ad1.show();
+ac1.show();
+md1.show();
+mc1.show();
+
+// zip
+mkt::print("Zip; expected result: values * 2.\n");
+adr = ad1.zip(ad2, sumComplex());
+acr = ac1.zip(ac2, sumComplex());
+mdr = md1.zip(md2, sumComplex());
+mcr = mc1.zip(mc2, sumComplex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// zipInPlace
+mkt::print("zipInPlace; expected result: values / 2.\n");
+adr.zipInPlace(ad1, subComplex());
+acr.zipInPlace(ac1, subComplex());
+mdr.zipInPlace(md1, subComplex());
+mcr.zipInPlace(mc1, subComplex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+
+// zipIndex
+mkt::print("ZipIndex:\n");
+adr = ad1.zipIndex(ad2, sumComplexPlusAIndex());
+acr = ac1.zipIndex(ac2, sumComplexPlusAIndex());
+mdr = md1.zipIndex(md2, sumComplexPlusMIndex());
+mcr = mc1.zipIndex(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// zipIndexInPlace
+mkt::print("ZipIndexInPlace:\n");
+adr.zipIndexInPlace(ad2, sumComplexPlusAIndex());
+acr.zipIndexInPlace(ac2, sumComplexPlusAIndex());
+mdr.zipIndexInPlace(md2, sumComplexPlusMIndex());
+mcr.zipIndexInPlace(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// zipLocalIndex
+mkt::print("ZipLocalIndex:\n");
+adr = ad1.zipLocalIndex(ad2, sumComplexPlusAIndex());
+acr = ac1.zipLocalIndex(ac2, sumComplexPlusAIndex());
+mdr = md1.zipLocalIndex(md2, sumComplexPlusMIndex());
+mcr = mc1.zipLocalIndex(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// zipLocalIndexInPlace
+mkt::print("ZipLocalIndexInPlace:\n");
+adr.zipLocalIndexInPlace(ad2, sumComplexPlusAIndex());
+acr.zipLocalIndexInPlace(ac2, sumComplexPlusAIndex());
+mdr.zipLocalIndexInPlace(md2, sumComplexPlusMIndex());
+mcr.zipLocalIndexInPlace(mc2, sumComplexPlusMIndex());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+}

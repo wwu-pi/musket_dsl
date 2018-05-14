@@ -10,6 +10,7 @@ import org.apache.log4j.Logger
 import org.apache.log4j.LogManager
 
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import de.wwu.musket.generator.cpu.mpmd.MusketCPUMPMDGenerator
 
 /**
  * Generates code from your model files on save.
@@ -26,7 +27,11 @@ class MusketGenerator extends AbstractGenerator {
 		if (resource.isPlatformCPU) {
 			MusketCPUGenerator.doGenerate(resource, fsa, context)
 		}
-
+		
+		if (resource.isPlatformCPUMPMD) {
+			MusketCPUMPMDGenerator.doGenerate(resource, fsa, context)
+		}
+		
 		logger.info("Musket generator done.")
 		logger.info("Done.")
 	}
