@@ -1,0 +1,362 @@
+#config PLATFORM CPU
+#config PROCESSES 8
+#config CORES 6
+#config MODE release
+
+const double PI = 3.141592653589793;
+const double EULER = 2.718281828459045;
+
+const double UPPER_BOUND = 5.12;
+const double LOWER_BOUND = -5.12;
+const double PROBLEM_RANGE = 10.24;
+const double INIT_UPPER_BOUND = 5.12;
+const double INIT_LOWER_BOUND = -5.12;
+const double WEIGHT_UPPER_BOUND = 5000.0;
+const double WEIGHT_LOWER_BOUND = 1.0;
+const double STEP_SIZE_INITIAL = 0.1;
+const double STEP_SIZE_FINAL = 0.00001;
+const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
+const double STEP_SIZE_VOLITIVE_FINAL = 0.00002;
+
+const int NUMBER_OF_FISH = 2048;
+const int ITERATIONS = 5000;
+const int DIMENSIONS = 512;
+
+// Fish
+struct Fish{
+	array<double,DIMENSIONS,loc> position;
+	double fitness;
+	
+	array<double,DIMENSIONS,loc> candidate_position;
+	double candidate_fitness;
+	
+	array<double,DIMENSIONS,loc> displacement;	
+	double fitness_variation;
+	
+	double weight;
+	
+	array<double,DIMENSIONS,loc> best_position;
+	double best_fitness;
+};
+
+// Data structures
+array<Fish,NUMBER_OF_FISH,dist> population;
+
+//array<double,DIMENSIONS,dist> instinctive_movement_vector;
+array<double,DIMENSIONS,copy> instinctive_movement_vector_copy;
+
+array<Fish,NUMBER_OF_FISH,dist> weighted_fishes;
+//array<double,DIMENSIONS,dist> barycenter;
+array<double,DIMENSIONS,copy> barycenter_copy;
+
+// functions
+// init
+Fish initFish(Fish fi){
+	fi.fitness = mkt::double_min(); 
+	fi.candidate_fitness = mkt::double_min(); 
+	fi.weight = WEIGHT_LOWER_BOUND;
+	fi.fitness_variation = 0.0;
+	fi.best_fitness = mkt::double_min(); 
+	
+	for(int i = 0; i < DIMENSIONS; ++i){
+		fi.position[i] = mkt::rand(INIT_LOWER_BOUND, INIT_UPPER_BOUND);
+		fi.candidate_position[i] = 0.0;
+		fi.displacement[i] = 0.0;
+		fi.best_position[i] = 0.0;
+	}
+	
+	return fi;
+}
+
+// individual movement
+Fish evaluateFitness(Fish fi){
+	
+	double sum = 0.0;
+	for (int j = 0; j < DIMENSIONS; ++j) {
+		double value = fi.position[j];
+		sum += std::pow(value, 2) - 10 * std::cos(2 * PI * value);
+	}
+	fi.fitness = -(10 * DIMENSIONS + sum);
+	
+	if(fi.fitness > fi.best_fitness){
+		fi.best_fitness = fi.fitness;
+		
+//		mkt::copy(fi.position, fi.best_position);
+		for(int k = 0; k < DIMENSIONS; ++k){
+			fi.best_position[k] = fi.position[k];
+		}
+	}
+	
+	return fi;
+}
+
+Fish individualMovement(double step_size, Fish fi){
+	// update position
+	for (int i = 0; i < DIMENSIONS; ++i) {
+		double rand_factor = mkt::rand(-1.0, 1.0);
+
+		double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND);
+
+		double new_value = fi.position[i] + direction;
+
+		if (new_value < LOWER_BOUND) {
+			new_value = LOWER_BOUND;
+		} else if (new_value > UPPER_BOUND) {
+			new_value = UPPER_BOUND;
+		}
+		
+		fi.candidate_position[i] = new_value;
+	}
+	
+	// fitness function
+	double sum = 0.0;
+	for (int j = 0; j < DIMENSIONS; ++j) {
+		double value = fi.candidate_position[j];
+		sum += (std::pow(value, 2) - 10 * std::cos(2 * PI * value));
+	}
+	fi.candidate_fitness = -(10 * DIMENSIONS + sum);
+	
+	// update values
+	if(fi.candidate_fitness > fi.fitness){
+		fi.fitness_variation = fi.candidate_fitness - fi.fitness;
+		fi.fitness = fi.candidate_fitness;
+		
+		//	mkt::copy(fi.candidate_position, fi.position);
+		for(int k = 0; k < DIMENSIONS; ++k){
+			fi.displacement[k] = fi.candidate_position[k] - fi.position[k];
+			fi.position[k] = fi.candidate_position[k];
+		}
+		
+		if(fi.fitness > fi.best_fitness){
+			fi.best_fitness = fi.fitness;
+			
+//			mkt::copy(fi.position, fi.best_position);
+			for(int k = 0; k < DIMENSIONS; ++k){
+				fi.best_position[k] = fi.position[k];
+			}
+		}
+	} else {
+		fi.fitness_variation = 0.0;
+		
+		for(int k = 0; k < DIMENSIONS; ++k){
+			fi.displacement[k] = 0.0;
+		}
+	}
+	
+	return fi;
+}
+
+// feeding
+Fish feeding(double max_fitness_variation, Fish fi){
+	if (max_fitness_variation != 0.0){
+		double result = fi.weight + fi.fitness_variation / max_fitness_variation;
+
+		if (result > WEIGHT_UPPER_BOUND) {
+			result = WEIGHT_UPPER_BOUND;
+		} else if (result < WEIGHT_LOWER_BOUND) {
+			result = WEIGHT_LOWER_BOUND;
+		}
+		
+		fi.weight = result;
+	}
+	return fi;
+}
+
+double maxFitnessVariation(double max_fitness_variation, double fitness_variation){
+	double result;
+	if(max_fitness_variation > fitness_variation){
+		result = max_fitness_variation;
+	} else {
+		result = fitness_variation;
+	}
+	return result;
+}
+
+
+// instinctive movement
+double sumFitnessVariation(double sum_fitness_variation, double fitness_variation){
+	return sum_fitness_variation + fitness_variation;
+}
+
+Fish calcDisplacementMap(Fish fi){
+	for(int i = 0; i < DIMENSIONS; ++i){
+		fi.displacement[i] *= fi.fitness_variation;
+	}
+	return fi;
+}
+
+array<double, DIMENSIONS, loc> calcDisplacementFold(array<double, DIMENSIONS, loc> arr, array<double, DIMENSIONS, loc> displacement){
+	for(int i = 0; i < DIMENSIONS; ++i){
+		arr[i] += displacement[i];
+	}
+	return arr;
+}
+
+
+double calcInstinctiveMovementVector(double sum_fitness_variation, double x){
+	double result = x;
+	if(sum_fitness_variation != 0.0){
+		result = x /sum_fitness_variation;
+	}
+	return result;
+}
+
+
+Fish instinctiveMovement(Fish fi){
+	for(int i = 0; i < DIMENSIONS; ++i){
+		double new_position = fi.position[i] + instinctive_movement_vector_copy[i];
+		if (new_position < LOWER_BOUND) {
+			new_position = LOWER_BOUND;
+		} else if (new_position > UPPER_BOUND) {
+			new_position = UPPER_BOUND;
+		}
+		fi.position[i] = new_position;
+	}
+	return fi;
+}
+
+// volitiveMovement
+double sumWeight(double sum_weight, double fishWeight){
+	return sum_weight + fishWeight;
+}
+
+Fish calcWeightedFish(Fish fi){
+	for(int i = 0; i < DIMENSIONS; ++i){
+		fi.position[i] *= fi.weight;
+	}
+	return fi;
+}
+
+array<double,DIMENSIONS,loc> calcBarycenterFold(array<double,DIMENSIONS,copy> arr, array<double,DIMENSIONS,copy> position){
+	for(int i = 0; i < DIMENSIONS; ++i){
+		arr[i] += position[i];
+	}
+	return arr;
+}
+
+double calcBarycenterMap(double sum_weight, double x){
+	double result = x;
+	if(sum_weight != 0){
+		result = x / sum_weight;
+	}
+	return result;
+}
+
+Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_last_iteration, Fish fi){
+	// euclidean distance
+	double distance = 0.0;
+	for (int i = 0; i < DIMENSIONS; ++i) {
+		distance += (fi.position[i] - barycenter_copy[i]) * (fi.position[i] - barycenter_copy[i]);
+	}
+	
+	distance = std::sqrt(distance);
+	
+	if(distance != 0.0){
+		double rand_factor = mkt::rand(0.0, 1.0);
+
+		for (int i = 0; i < DIMENSIONS; ++i) {			
+			double direction = rand_factor * step_size * (UPPER_BOUND - LOWER_BOUND) * ((fi.position[i] - barycenter_copy[i]) / distance);
+		
+			double new_position = fi.position[i];
+	
+			if (sum_weight > sum_weight_last_iteration) {
+				new_position -= direction;
+			} else {
+				new_position += direction;
+			}
+	
+			if (new_position < LOWER_BOUND) {
+				new_position = LOWER_BOUND;
+			} else if (new_position > UPPER_BOUND) {
+				new_position = UPPER_BOUND;
+			}
+			fi.position[i] = new_position;		
+		}		
+	}
+	
+	return fi;
+}
+
+double getBestSolution(double best_solution, double best_fitness){
+	double result = best_solution;
+	
+	if(best_fitness > best_solution){
+		result = best_fitness;
+	}
+	
+	return result;
+}
+
+main{
+
+	mkt::roi_start();
+
+	// init fish
+	population.mapInPlace(initFish());
+	
+	double step_size = STEP_SIZE_INITIAL;
+	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
+	//fi.weight
+	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+	
+	// main loop
+	for (int iteration = 0; iteration < ITERATIONS; ++iteration) {
+		// evaluate fitness		
+		population.mapInPlace(evaluateFitness());
+		
+		
+		// update step size	
+		if (iteration > 0) {
+			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / (double)(ITERATIONS - 1));
+			step_size_vol = step_size_vol - ((STEP_SIZE_VOLITIVE_INITIAL - STEP_SIZE_VOLITIVE_FINAL) / (double)(ITERATIONS - 1));
+		}
+		
+		// individual movement
+		population.mapInPlace(individualMovement(step_size)); // incl. fitness eval	
+		
+		// feeding
+//		Fish max_fitness_variation_fish = population.fold(Fish{}, maxFitnessVariation());
+//		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
+		// or
+		double max_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, maxFitnessVariation());
+		
+		population.mapInPlace(feeding(max_fitness_variation));
+		
+		// collective instinctive movement
+//		Fish sum_fitness_variation_fish = population.fold(Fish{}, sumFitnessVariation());
+//		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
+		// or 
+		double sum_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, sumFitnessVariation());
+		
+		population.mapInPlace(calcDisplacementMap());
+		instinctive_movement_vector_copy = population.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.displacement; }, array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
+		
+		instinctive_movement_vector_copy.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
+		
+//		instinctive_movement_vector_copy = instinctive_movement_vector.gather();
+		
+		population.mapInPlace(instinctiveMovement());
+		
+		// collective volitive movement
+		double sum_weight = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+		
+		weighted_fishes = population.map(calcWeightedFish());
+
+		barycenter_copy = weighted_fishes.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.position;}, array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
+
+		barycenter_copy.mapInPlace(calcBarycenterMap(sum_weight));
+//		barycenter_copy = barycenter.gather();
+
+		population.mapInPlace(volitiveMovement(step_size_vol, sum_weight, sum_weight_last_iteration));
+		sum_weight_last_iteration = sum_weight;
+	}
+
+  	// get best solution
+  	double global_best_fitness = population.mapFold((Fish fi) -> double { return fi.best_fitness;}, mkt::double_min(), getBestSolution());
+  
+  	mkt::roi_end();
+  	
+  	//print best solution
+	mkt::print('Best solution: %.5f\n', global_best_fitness);
+}
+

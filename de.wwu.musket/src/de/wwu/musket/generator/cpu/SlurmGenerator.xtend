@@ -41,11 +41,14 @@ class SlurmGenerator {
 		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
 		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
-		#SBATCH --time 00:15:00
+		#SBATCH --time 05:00:00
 		#SBATCH -A p_algcpugpu
 		
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
-
-		srun «Config.build_path»benchmark/bin/«resource.ProjectName»
+		
+		RUNS=10
+		for ((i=1;i<=RUNS;i++)); do
+		    srun «Config.build_path»benchmark/bin/«resource.ProjectName»
+		done		
 	'''
 }

@@ -54,7 +54,24 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/lambda.musket'
 		]
 
-		for (String s : models) {
+		val benchmark_names = #['frobenius', 'fss', 'matmult_float', 'nbody_float', 'high/frobenius', 'high/fss']
+		val nodes = #[1, 4, 16]
+		val cores = #[1, 6, 12, 18, 24]
+
+		var benchmark_models = newArrayList
+
+		for (name : benchmark_names) {
+			for (n : nodes) {
+				for (c : cores) {
+					benchmark_models.add('../de.wwu.musket.models/src/hlpp18/' + name + '-n-' + n + '-c-' + c +
+						'.musket')
+				}
+			}
+		}
+
+		benchmark_models.addAll(models)
+
+		for (String s : benchmark_models) {
 			logger.info("Generate: " + s + '.')
 			// load a resource by URI, in this case from the file system
 			val resource = resourceSet.getResource(URI.createFileURI(s), true)
