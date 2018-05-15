@@ -1,10 +1,10 @@
 #config PLATFORM GPU CPU_MPMD
 #config PROCESSES 4
-#config CORES 4
-#config GPUS 1
-#config MODE debug
+#config CORES 24
+#config GPUS 4
+#config MODE release
 
-const int dim = 4;
+const int dim = 500000;
 const int steps = 5;
 
 const float EPSILON = 0.0000000001f;
@@ -21,7 +21,7 @@ struct Particle{
 	float charge;
 };
 
-array<Particle,dim,dist,dist> P;d
+array<Particle,dim,dist,dist> P;
 array<Particle,dim,copy,copy> oldP;
 
 Particle init_particles(int i, Particle p){
@@ -96,22 +96,15 @@ Particle calc_force(int curIndex, Particle curParticle) {
 }
 
 main{
-	P.mapIndexInPlace(init_particles());
-	
+	P.mapIndexInPlace(init_particles());	
 	oldP = P.gather();
 	
-	mkt::print('Initial Particle System:\n');
-	oldP.show();
-	
 	mkt::roi_start();
-	
+
 	for (int i = 0; i < steps; ++i) {
 		P.mapIndexInPlace(calc_force());	
 		oldP = P.gather();
 	}
   
 	mkt::roi_end();
-  
-	mkt::print('Final Particle System:\n');
-	oldP.show();
 }

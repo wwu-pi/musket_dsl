@@ -1,6 +1,6 @@
-#config PLATFORM CPU CPU_MPMD
-#config PROCESSES 1
-#config CORES 8
+#config PLATFORM GPU CPU_MPMD
+#config PROCESSES 4
+#config CORES 24
 #config MODE release
 
 const double PI = 3.141592653589793;

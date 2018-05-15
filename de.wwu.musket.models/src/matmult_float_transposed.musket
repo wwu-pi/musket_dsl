@@ -1,9 +1,9 @@
 #config PLATFORM CPU CPU_MPMD
 #config PROCESSES 4
-#config CORES 8
-#config MODE debug
+#config CORES 24
+#config MODE release
 
-const int matrix_dim = 4;
+const int matrix_dim = 16384;
 
 matrix<float,matrix_dim,matrix_dim,dist> as = {1.0f};
 matrix<float,matrix_dim,matrix_dim,dist> bs = {0.001f};
@@ -42,10 +42,6 @@ float dotProduct(int i, int j, float Cij){
 main{
 	as.mapIndexInPlace(initA());
 	bs.mapIndexInPlace(initB());
-
-	as.show();
-	bs.show();
-	cs.show();
 	
 	mkt::roi_start();
 	
@@ -62,6 +58,4 @@ main{
 	bs.shiftPartitionsVertically(identity());
 	
 	mkt::roi_end();
-	
-	cs.show();
 }

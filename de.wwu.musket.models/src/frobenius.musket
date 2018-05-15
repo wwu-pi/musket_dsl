@@ -1,10 +1,10 @@
 #config PLATFORM GPU CPU_MPMD
 #config PROCESSES 4
-#config GPUS 1
-#config CORES 4
-#config MODE debug
+#config GPUS 4
+#config CORES 24
+#config MODE release
 
-const int dim = 32;
+const int dim = 32768;
 
 matrix<double,dim,dim,dist,dist> as;
 
@@ -21,7 +21,6 @@ double square(double a){
 
 main{
 	as.mapIndexInPlace(init());
-	as.show();
 	
 	mkt::roi_start();
 	

@@ -1,7 +1,7 @@
 #config PLATFORM CPU CPU_MPMD
 #config PROCESSES 4
-#config CORES 8
-#config MODE debug
+#config CORES 24
+#config MODE release
 
 const int steps = 5;
 
@@ -19,8 +19,8 @@ struct Particle{
 	double charge;
 };
 
-array<Particle,16,dist> P;
-array<Particle,16,copy> oldP;
+array<Particle,524288,dist> P;
+array<Particle,524288,copy> oldP;
 
 Particle init_particles(int i, Particle p){
 	p.x = mkt::rand(0.0,1.0);
@@ -98,18 +98,11 @@ main{
 	
 	oldP = P.gather();
 	
-	mkt::print('Initial Particle System:\n');
-	oldP.show();
-	
 	mkt::roi_start();
 	
 	for (int i = 0; i < steps; ++i) {
 		P.mapIndexInPlace(calc_force());	
 		oldP = P.gather();
-	}
-  
+	}  
   mkt::roi_end();
-  		
-	mkt::print('Final Particle System:\n');
-	oldP.show();
 }

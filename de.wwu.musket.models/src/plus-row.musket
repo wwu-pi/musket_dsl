@@ -1,7 +1,7 @@
 #config PLATFORM CPU_MPMD
 #config PROCESSES 4
-#config CORES 8
-#config MODE debug
+#config CORES 24
+#config MODE release
 
 // data structures
 matrix<int, 4, 4, dist> m = {1};
@@ -13,9 +13,7 @@ int func(int r, int c, int i){
 
 // logic
 main{
-	m.show();
 	mkt::roi_start();
 	m.mapIndexInPlace(func());
 	mkt::roi_end();
-	m.show();
 }
