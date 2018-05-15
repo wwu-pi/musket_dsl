@@ -1,6 +1,6 @@
 # Musket
-/src-gen/
-
+#/src-gen/
+src-gen/**/build
 
 # JAVA
 
