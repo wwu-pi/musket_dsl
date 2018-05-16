@@ -1,9 +1,14 @@
 package de.wwu.musket.generator.preprocessor
 
-import static de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
-
-import org.eclipse.emf.ecore.resource.Resource
+import de.wwu.musket.generator.preprocessor.transformations.MapVariantTransformation
+import de.wwu.musket.generator.preprocessor.transformations.PreprocessorTransformation
 import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
+import org.eclipse.emf.ecore.resource.Resource
+
+import static de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
+import java.util.Collection
+import de.wwu.musket.generator.preprocessor.transformations.MapFusionTransformation
+import de.wwu.musket.generator.preprocessor.transformations.DummyTransformation
 
 class MusketPreprocessor {
 	
@@ -61,6 +66,17 @@ class MusketPreprocessor {
 	 * Actual preprocessing
 	 */
 	private def Resource preprocessModel() {
-		// TODO
+		
+		val workingModel = copyModel(unprocessedModel)
+		
+		val Collection<PreprocessorTransformation> transformations = #[
+			new MapVariantTransformation,
+			new MapFusionTransformation,
+			new DummyTransformation
+		]
+				
+		transformations.forEach[it.run(workingModel)]
+		
+		return workingModel
 	}
 }
