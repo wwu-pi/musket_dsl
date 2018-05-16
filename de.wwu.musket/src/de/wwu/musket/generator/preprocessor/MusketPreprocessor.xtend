@@ -70,9 +70,9 @@ class MusketPreprocessor {
 		val workingModel = copyModel(unprocessedModel)
 		
 		val Collection<PreprocessorTransformation> transformations = #[
-			new MapVariantTransformation,
-			new MapFusionTransformation,
-			new DummyTransformation
+			new MapVariantTransformation(factory),
+			new MapFusionTransformation(factory),
+			new DummyTransformation(factory)
 		]
 				
 		transformations.forEach[it.run(workingModel)]

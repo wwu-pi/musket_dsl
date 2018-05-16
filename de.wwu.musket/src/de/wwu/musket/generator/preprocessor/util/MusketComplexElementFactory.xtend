@@ -1,6 +1,7 @@
 package de.wwu.musket.generator.preprocessor.util
 
 import de.wwu.musket.musket.impl.MusketFactoryImpl
+import de.wwu.musket.musket.PrimitiveTypeLiteral
 
 /**
  * Helper factory class that creates complex/compound Musket elements.
@@ -13,5 +14,11 @@ class MusketComplexElementFactory extends MusketFactoryImpl {
 	
 	new() {
 		super()
+	}
+	
+	def createPrimitiveType(PrimitiveTypeLiteral literal){
+		val type = createPrimitiveType
+		type.type = literal
+		type
 	}
 }

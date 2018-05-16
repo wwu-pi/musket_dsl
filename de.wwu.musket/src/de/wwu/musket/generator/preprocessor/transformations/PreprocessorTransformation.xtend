@@ -1,8 +1,15 @@
 package de.wwu.musket.generator.preprocessor.transformations
 
 import org.eclipse.emf.ecore.resource.Resource
+import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
 
-interface PreprocessorTransformation {
+abstract class PreprocessorTransformation {
 	
-	def void run(Resource input);
+	protected MusketComplexElementFactory factory;
+	
+	new(MusketComplexElementFactory factory){
+		this.factory = factory
+	}
+	
+	abstract def void run(Resource input);
 }
