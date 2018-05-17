@@ -96,7 +96,7 @@ class ModelSimplificationTransformation extends PreprocessorTransformation {
 		val maps = resource.allContents.filter(FoldSkeleton)
 		
 		maps.forEach[
-			if(it.options.contains(FoldOption.INDEX)){
+			if(it.options.contains(FoldOption.LOCAL)){
 				// FoldIndex
 				val skel = factory.createFoldLocalSkeleton
 				skel.param = it.param

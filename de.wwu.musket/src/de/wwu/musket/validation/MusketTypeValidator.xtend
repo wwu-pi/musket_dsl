@@ -173,7 +173,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					}
 				}
 				
-			FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX]: 
+			FoldSkeleton,
+			FoldLocalSkeleton: 
 				if(callFunction.params.size < foldParamsOut){
 					// Check minimum amount of parameters in target function
 					error('Referenced function requires at least ' + foldParamsOut + ' parameters, ' + callFunction.params.size + ' given!', 
@@ -182,20 +183,6 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-foldParamsOut){
 					// Check provided argument count matches target function parameter count
 					error('Skeleton function call requires ' + (callFunction.params.size-foldParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
-						MusketPackage.eINSTANCE.skeleton_Param,
-						INVALID_PARAMS)
-				}
-				
-			FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-			FoldLocalSkeleton:
-				if(callFunction.params.size < indexParams+foldParamsOut){
-					// Check minimum amount of parameters in target function
-					error('Referenced function requires at least ' + (indexParams+foldParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
-						MusketPackage.eINSTANCE.skeleton_Param,
-						INVALID_PARAMS)
-				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-indexParams-foldParamsOut){
-					// Check provided argument count matches target function parameter count
-					error('Skeleton function call requires ' + (callFunction.params.size-indexParams-foldParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
 						MusketPackage.eINSTANCE.skeleton_Param,
 						INVALID_PARAMS)
 				}
@@ -373,9 +360,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 			ZipSkeleton case skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 			ZipIndexSkeleton,
 			ZipIndexInPlaceSkeleton,
-			ZipLocalIndexInPlaceSkeleton,
-			FoldSkeleton case skel.options.exists[it == FoldOption.INDEX],
-			FoldLocalSkeleton: 
+			ZipLocalIndexInPlaceSkeleton: 
 				if(callFunction.params.size >= 3 && callFunction.params.get(callFunction.params.size - 3)?.calculateType != MusketType.INT &&
 					(isArray || callFunction.params.get(callFunction.params.size - 4)?.calculateType != MusketType.INT)
 				){
@@ -397,7 +382,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 				MapInPlaceSkeleton,
 				ZipSkeleton case !skel.options.exists[it == ZipOption.INDEX || it == ZipOption.LOCAL_INDEX],
 				ZipInPlaceSkeleton,
-				FoldSkeleton case !skel.options.exists[it == FoldOption.INDEX],
+				FoldSkeleton,
+				FoldLocalSkeleton,
 				GatherSkeleton,
 				ScatterSkeleton,
 				ShiftPartitionsHorizontallySkeleton,

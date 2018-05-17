@@ -395,7 +395,7 @@ enum MapOption:
 ;
 
 enum FoldOption:
-	index
+	local
 ;
 
 enum ZipOption:

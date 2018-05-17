@@ -28,12 +28,12 @@ class MusketPreprocessor {
 	 * the current one. If they equal, the preprocessing can be skipped and the stored preprocessedModel
 	 * is returned.
 	 */
-	private static Resource unprocessedModel
+	protected static Resource unprocessedModel
 
 	/**
 	 * Cloned working model, only generated once and stored in this class attribute.
 	 */
-	private static Resource preprocessedModel
+	protected static Resource preprocessedModel
 	
 	/**
 	 * Constructor ensures to initialize the preprocessor with the factory to be used to 
@@ -66,7 +66,7 @@ class MusketPreprocessor {
 	/**
 	 * Actual preprocessing
 	 */
-	private def Resource preprocessModel() {
+	protected def Resource preprocessModel() {
 		
 		val workingModel = copyModel(unprocessedModel)
 		

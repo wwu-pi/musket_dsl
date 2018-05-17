@@ -44,7 +44,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 				val functionCall = it.param as InternalFunctionCall
 				val targetFunction = functionCall.value
 								
-				// Check if other functions also call this user function
+				// Check if other skeletons also call this user function
 				if(resource.allContents.filter(InternalFunctionCall).filter[it !== functionCall].map[it.value].filter[it === functionCall.value].size == 0){
 					// Dealing with struct?
 					if(targetFunction.params.last.calculateType.isStruct){
@@ -59,6 +59,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 						}
 					}
 				}
+				// TODO else duplicate function
 			}
 		]
 	}
