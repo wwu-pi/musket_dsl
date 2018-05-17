@@ -23,6 +23,8 @@ class ModelSimplificationTransformation extends PreprocessorTransformation {
 		replaceMultiCollectionObjects(input)
 		
 		replaceGenericMapSkeleton(input)
+		replaceGenericFoldSkeleton(input)
+		replaceGenericZipSkeleton(input)
 	}
 	
 	/**
@@ -51,6 +53,9 @@ class ModelSimplificationTransformation extends PreprocessorTransformation {
 		]
 	}
 	
+	/**
+	 * Simplify parametrized MapSkeleton by replacing it with the concrete definitions
+	 */
 	def replaceGenericMapSkeleton(Resource resource) {
 		val maps = resource.allContents.filter(MapSkeleton)
 		
@@ -84,6 +89,9 @@ class ModelSimplificationTransformation extends PreprocessorTransformation {
 		]
 	}
 	
+	/**
+	 * Simplify parametrized FoldSkeleton by replacing it with the concrete definitions
+	 */
 	def replaceGenericFoldSkeleton(Resource resource) {
 		val maps = resource.allContents.filter(FoldSkeleton)
 		
@@ -97,6 +105,9 @@ class ModelSimplificationTransformation extends PreprocessorTransformation {
 		]
 	}
 	
+	/**
+	 * Simplify parametrized ZipSkeleton by replacing it with the concrete definitions
+	 */
 	def replaceGenericZipSkeleton(Resource resource) {
 		val maps = resource.allContents.filter(ZipSkeleton)
 		

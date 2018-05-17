@@ -9,6 +9,7 @@ import static de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
 import java.util.Collection
 import de.wwu.musket.generator.preprocessor.transformations.MapFusionTransformation
 import de.wwu.musket.generator.preprocessor.transformations.DummyTransformation
+import de.wwu.musket.generator.preprocessor.transformations.ModelSimplificationTransformation
 
 class MusketPreprocessor {
 	
@@ -70,6 +71,7 @@ class MusketPreprocessor {
 		val workingModel = copyModel(unprocessedModel)
 		
 		val Collection<PreprocessorTransformation> transformations = #[
+			new ModelSimplificationTransformation(factory),
 			new MapVariantTransformation(factory),
 			new MapFusionTransformation(factory),
 			new DummyTransformation(factory)
