@@ -14,6 +14,10 @@ import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.StructType
 
+/**
+ * Dependencies:
+ * - should be executed AFTER MapFusion, SkeletonFusion
+ */
 class MapVariantTransformation extends PreprocessorTransformation {
 	
 	new(MusketComplexElementFactory factory) {
@@ -27,6 +31,16 @@ class MapVariantTransformation extends PreprocessorTransformation {
 		transformMapWithSideEffects(input)
 	}
 	
+	/**
+	 * Replace object references within a map (not in place) user function that deals 
+	 * with modifying a struct to avoid overwriting original values, e.g.
+	 * 
+	 * SomeStruct square(SomeStruct s){     -->		SomeStruct square(SomeStruct s){ 
+	 * 		s.val = s.val * s.val;						SomeStruct _s(s)
+	 * 		return s;									_s.val = _s.val * _s.val;
+	 * }												return _s;
+	 * 												}
+	 */
 	def transformMapWithSideEffects(Resource resource) {
 		val maps = resource.allContents.filter(MapSkeleton)
 		
@@ -63,7 +77,9 @@ class MapVariantTransformation extends PreprocessorTransformation {
 	}
 	
 	/**
-	 * Replace a return statement within a map user function that deals with modifying a struct, e.g.
+	 * Replace a return statement within a mapInPlace user function that deals with 
+	 * modifying a struct, e.g.
+	 * 
 	 * SomeStruct square(SomeStruct s){     -->		void square(SomeStruct s){ 
 	 * 		s.val = s.val * s.val;						s.val = s.val * s.val;
 	 * 		return s;								}
