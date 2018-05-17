@@ -99,7 +99,7 @@ BoolVariableElement returns BoolVariable:
 ;
 
 StructVariable:
-	type=[Struct] name=ID (',' vars+=StructVariableElement)* ('=' initExpression=Expression)?
+	type=[Struct] name=ID (',' vars+=StructVariableElement)* (('=' initExpression=Expression)? | '(' copyFrom=ObjectRef ')')
 ;
 
 StructVariableElement returns StructVariable:
