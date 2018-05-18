@@ -1,7 +1,11 @@
 package de.wwu.musket.generator.preprocessor.util
 
-import de.wwu.musket.musket.impl.MusketFactoryImpl
+import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.FoldOption
+import de.wwu.musket.musket.FoldSkeletonVariants
+import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.PrimitiveTypeLiteral
+import de.wwu.musket.musket.impl.MusketFactoryImpl
 
 /**
  * Helper factory class that creates complex/compound Musket elements.
@@ -20,5 +24,17 @@ class MusketComplexElementFactory extends MusketFactoryImpl {
 		val type = createPrimitiveType
 		type.type = literal
 		type
+	}
+	
+	def createMapFoldSkeleton(MapSkeleton map, FoldSkeletonVariants fold){
+		val mapFold = createMapFoldSkeleton
+		
+		if(fold instanceof FoldLocalSkeleton)
+			mapFold.options.add(FoldOption.LOCAL)
+		
+		mapFold.mapFunction = map.param
+		mapFold.identity = fold.identity
+		mapFold.param = fold.param
+		mapFold
 	}
 }

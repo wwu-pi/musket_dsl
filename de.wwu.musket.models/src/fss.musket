@@ -298,7 +298,7 @@ main{
 	double step_size = STEP_SIZE_INITIAL;
 	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
 	//fi.weight
-	pop2 = population.map((Fish fi) -> double { return fi.weight;}); 
+	pop2 = population.map((Fish fi) -> double { return fi.weight;});
 	double sum_weight_last_iteration = pop2.fold(0.0, sumWeight());
 	//double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 	
