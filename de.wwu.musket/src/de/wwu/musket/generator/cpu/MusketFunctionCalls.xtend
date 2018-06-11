@@ -2,7 +2,7 @@ package de.wwu.musket.generator.cpu
 
 import de.wwu.musket.musket.MusketFunctionCall
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 

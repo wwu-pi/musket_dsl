@@ -4,7 +4,7 @@ import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Constant
 import de.wwu.musket.musket.Variable
 
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.CollectionObject

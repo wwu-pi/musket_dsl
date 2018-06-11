@@ -104,6 +104,7 @@ class MusketHelper {
 		}
 	}
 
+<<<<<<< HEAD
 	/**
 	 * Map Musket type to a C++ constructor call
 	 * // TODO: does not really work out since the size of collections is not known here
@@ -119,6 +120,8 @@ class MusketHelper {
 	/**
 	 * Map Musket type to a corresponding MPI primitive type
 	 */
+=======
+>>>>>>> move ObjectExtension in subpackage of cpu generator
 	static def toMPIPrimitiveType(Type t){
 		switch(t){
 			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''MPI_BOOL'''

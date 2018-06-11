@@ -3,8 +3,10 @@ package de.wwu.musket.generator.cpu.mpmd
 import de.wwu.musket.musket.Struct
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.musket.CollectionObject
@@ -33,7 +35,7 @@ class StructGenerator {
 				«ENDIF»
 			«ENDFOR»
 			
-			//«s.name.toFirstUpper»();
+			«s.name.toFirstUpper»();
 		};
 	'''
 	
@@ -43,8 +45,8 @@ class StructGenerator {
 	 * @param s the struct
 	 * @return the generated declaration
 	 */
-	def static generateStructDefaultConstructor(Struct s) '''
-		//«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
+	def static generateStructDefaultConstructor(Struct s, int pid) '''
+		«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»(«m.calculateType.collectionType.sizeLocal(pid)», «m.calculateType.collectionType.CXXPrimitiveDefaultValue»)«ELSE»(«m.calculateType.primitiveType.CXXPrimitiveDefaultValue»)«ENDIF»«ENDFOR» {}
 	'''
 	
 	def static generateMPIStructTypeDeclarations(Resource r) {

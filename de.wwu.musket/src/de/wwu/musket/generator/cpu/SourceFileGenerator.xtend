@@ -17,7 +17,7 @@ import static extension de.wwu.musket.generator.cpu.StructGenerator.*
 
 import static extension de.wwu.musket.generator.cpu.DataGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.DistributionMode
 

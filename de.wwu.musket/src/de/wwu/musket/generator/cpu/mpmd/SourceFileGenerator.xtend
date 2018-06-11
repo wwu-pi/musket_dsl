@@ -68,7 +68,7 @@ class SourceFileGenerator {
 			
 			«generateGlobalConstants(processId)»
 			«generateGlobalVariables(resource, processId)»
-		
+
 			
 			«FOR d : resource.Data»
 				«d.generateObjectDefinition(processId)»

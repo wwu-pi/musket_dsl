@@ -30,7 +30,7 @@ import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExternalFunctionCallGenerator.*
 import static extension de.wwu.musket.generator.cpu.MusketFunctionCalls.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*

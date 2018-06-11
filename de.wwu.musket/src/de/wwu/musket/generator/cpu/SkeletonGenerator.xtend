@@ -24,7 +24,7 @@ import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.cpu.MPIRoutines.generateMPIWaitall
 
 import static extension de.wwu.musket.generator.cpu.FunctionGenerator.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*

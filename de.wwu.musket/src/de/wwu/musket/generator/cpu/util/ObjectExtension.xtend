@@ -1,4 +1,4 @@
-package de.wwu.musket.generator.extensions
+package de.wwu.musket.generator.cpu.util
 
 import de.wwu.musket.generator.gpu.Config
 import de.wwu.musket.musket.ArrayType

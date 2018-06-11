@@ -25,7 +25,7 @@ import de.wwu.musket.musket.Variable
 import java.util.Map
 
 import static extension de.wwu.musket.generator.cpu.ExpressionGenerator.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.SkeletonParameterInput
 import de.wwu.musket.musket.LambdaFunction

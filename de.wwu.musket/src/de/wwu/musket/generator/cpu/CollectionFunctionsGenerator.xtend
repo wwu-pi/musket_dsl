@@ -11,7 +11,7 @@ import de.wwu.musket.musket.StructMatrixType
 
 import static de.wwu.musket.generator.cpu.MPIRoutines.*
 import static extension de.wwu.musket.util.MusketHelper.*
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
+import static extension de.wwu.musket.generator.cpu.util.ObjectExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
 /**
