@@ -17,4 +17,4 @@ export OMP_NUM_THREADS=24
 RUNS=10
 for ((i=1;i<=RUNS;i++)); do
     srun /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU/build/benchmark/bin/nbody_float-n-4-c-24
-done		
+done

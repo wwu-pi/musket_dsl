@@ -52,6 +52,7 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/array.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/matrix.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/lambda.musket'
+
 		]
 
 		val benchmark_names = #['frobenius', 'fss', 'matmult_float', 'nbody_float', 'high/frobenius', 'high/fss']
@@ -71,6 +72,7 @@ class MusketStandaloneGenerator {
 
 		benchmark_models.addAll(models)
 
+ 
 		for (String s : benchmark_models) {
 			logger.info("Generate: " + s + '.')
 			// load a resource by URI, in this case from the file system
