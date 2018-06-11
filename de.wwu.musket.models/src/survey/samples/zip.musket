@@ -1,0 +1,22 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+matrix<int,4,4,dist> a;
+matrix<int,4,4,dist> b;
+matrix<int,4,4,dist> c;
+
+int init(int row, int col, int v){
+  return row;
+}
+
+int add(int a, int b){
+  return a + b;
+}
+
+main{
+  a.mapLocalIndexInPlace(init());
+  b.mapLocalIndexInPlace(init());	
+  c = a.zip(b, add());
+
+  c.show();
+}

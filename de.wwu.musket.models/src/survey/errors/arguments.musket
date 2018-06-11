@@ -1,0 +1,12 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+matrix<float,4,4,dist> a;
+
+float fill(int factor, int row, int col, float v){
+  return (float) row * (float) factor;
+}
+
+main{
+  a.mapLocalIndexInPlace(fill());
+}

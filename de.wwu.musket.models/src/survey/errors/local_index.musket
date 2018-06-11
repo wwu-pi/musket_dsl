@@ -1,0 +1,27 @@
+#config PLATFORM CPU
+#config PROCESSES 4
+
+array<double,16,dist> a = {1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0};
+array<double,16,dist> b;
+
+double times_index(int ind, double v){
+  return ind * v;
+}
+
+double max(double j, double i){
+  double result = j;
+    if(i > j){
+      result = i;
+    }
+  return result;
+}
+
+main{	
+  // expected result: b = {0.0, 2.0, 6.0, 12.0, 4.0, 10.0, 18.0, 28.0, 8.0, 18.0, 30.0, 44.0, 12.0, 26.0, 42.0, 60.0}
+  // actual result: b = {0.0, 2.0, 6.0, 12.0, 0.0, 2.0, 6.0, 12.0, 0.0, 2.0, 6.0, 12.0, 0.0, 2.0, 6.0, 12.0}
+  b = a.mapLocalIndex(times_index());
+
+  // expected result: 60.0
+  // actual result: 12.0
+  double result = a.fold(mkt::double_min(), max());
+}
