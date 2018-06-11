@@ -65,7 +65,7 @@ class RunScriptGenerator {
 	 */
 	def static BuildAndSubmitScriptContent(Resource resource) '''
 		#!/bin/bash
-				
+
 		source_folder=${PWD} && \
 		
 		# remove files and create folder
@@ -77,7 +77,9 @@ class RunScriptGenerator {
 		cd «Config.build_path»benchmark && \
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-		make «resource.ProjectName» && \
+		«FOR p: 0 ..< Config.processes»
+			make «resource.ProjectName»_«p» && \
+		«ENDFOR»
 		cd ${source_folder} && \
 
 		sbatch job.sh
