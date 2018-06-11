@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node 1
 #SBATCH --partition haswell
 #SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
-#SBATCH --output ~/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/out/nbody_float-n-4-c-24-release-nodes-4-cpu-24.out
+#SBATCH --output /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/out/nbody_float-n-4-c-24-release-nodes-4-cpu-24.out
 #SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
 #SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
@@ -16,5 +16,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=10
 for ((i=1;i<=RUNS;i++)); do
-    srun  ~/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_0 : ~/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_1 : ~/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_2 : ~/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_3
+    srun  /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_0 : /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_1 : /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_2 : /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/benchmark/bin/nbody_float-n-4-c-24_3
 done	
