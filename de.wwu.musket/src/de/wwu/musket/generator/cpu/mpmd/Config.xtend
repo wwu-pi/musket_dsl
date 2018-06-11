@@ -26,7 +26,7 @@ class Config {
 	public static final String source_path = "src/" // assumption that depth is only one folder
 	public static final String build_folder = "build"
 	public static final String out_folder = "out"
-	public static final String home_path = "~/musket-build/"
+	public static final String home_path = "/home/fwrede/musket-build/"
 	
 	// file extensions
 	public static final String header_extension = ".hpp"
