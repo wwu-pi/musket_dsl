@@ -31,23 +31,24 @@ class SlurmGenerator {
 	 */
 	def static JobScriptContent(Resource resource) '''
 		#!/bin/bash
-		#SBATCH --job-name «resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
+		#SBATCH --job-name «resource.ProjectName»-«Config.mode»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
 		#SBATCH --ntasks «resource.ConfigBlock.processes»
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
-		#SBATCH --partition normal
-		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
-		#SBATCH --cpus-per-task 64
+		#SBATCH --partition haswell
+		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
+		#SBATCH --output «Config.out_path»«resource.ProjectName»-«Config.mode»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
+		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
-		#SBATCH --mail-user my@e-mail.de
-		#SBATCH --time 01:00:00
+		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
+		#SBATCH --time 05:00:00
+		#SBATCH -A p_algcpugpu
 		
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
 		
-		«IF Config.processes > 1»
-			mpirun «Config.build_path»bin/«resource.ProjectName»
-		«ELSE»
-			«Config.build_path»bin/«resource.ProjectName»
-		«ENDIF»		
+		RUNS=10
+		for ((i=1;i<=RUNS;i++)); do
+		    srun  «FOR p : 0 ..< Config.processes SEPARATOR " : "»«Config.build_path»benchmark/bin/«resource.ProjectName»_«p»«ENDFOR»
+		done	
 	'''
 }

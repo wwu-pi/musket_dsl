@@ -49,6 +49,6 @@ class SlurmGenerator {
 		RUNS=10
 		for ((i=1;i<=RUNS;i++)); do
 		    srun «Config.build_path»benchmark/bin/«resource.ProjectName»
-		done		
+		done
 	'''
 }
