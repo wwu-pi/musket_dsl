@@ -31,13 +31,13 @@ class SlurmGenerator {
 	 */
 	def static JobScriptContent(Resource resource) '''
 		#!/bin/bash
-		#SBATCH --job-name «resource.ProjectName»-«Config.mode»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
+		#SBATCH --job-name «resource.ProjectName»-CPU-MPMD-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
 		#SBATCH --ntasks «resource.ConfigBlock.processes»
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
 		#SBATCH --partition haswell
 		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
-		#SBATCH --output «Config.out_path»«resource.ProjectName»-«Config.mode»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
+		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
 		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
 		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
