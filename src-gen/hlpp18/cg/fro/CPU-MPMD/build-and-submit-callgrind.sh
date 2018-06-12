@@ -3,9 +3,9 @@
 source_folder=${PWD} && \
 
 # remove files and create folder
-mkdir -p /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/out/callgrind && \
-rm -rf -- /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/build/callgrind && \
-mkdir -p /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/build/callgrind && \
+mkdir -p /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/out/cg && \
+rm -rf -- /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/build/cg && \
+mkdir -p /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/build/cg && \
 
 # run cmake
 cd /home/fwrede/musket-build/hlpp18/cg/fro/CPU-MPMD/build/callgrind && \
