@@ -104,7 +104,7 @@ class RunScriptGenerator {
 		mkdir -p «Config.build_path»cg && \
 		
 		# run cmake
-		cd «Config.build_path»callgrind && \
+		cd «Config.build_path»cg && \
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Callgrind ${source_folder} && \
 
 		«FOR p: 0 ..< Config.processes»
