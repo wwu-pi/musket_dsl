@@ -25,6 +25,7 @@ class RunScriptGenerator {
 		logger.info("Generate run scripts.")
 		fsa.generateFile(Config.base_path + "build-and-run.sh", BuildAndRunScriptContent(resource))
 		fsa.generateFile(Config.base_path + "build-and-submit.sh", BuildAndSubmitScriptContent(resource))
+		fsa.generateFile(Config.base_path + "build-and-submit-callgrind.sh", BuildAndSubmitCallgrindScriptContent(resource))
 		logger.info("Generation of run scripts done.")
 	}
 
@@ -83,6 +84,35 @@ class RunScriptGenerator {
 		cd ${source_folder} && \
 
 		sbatch job.sh
+	'''
+	
+	/**
+	 * Generates the content of the build-and-submit-callgrind script.
+	 * The file job-callgrind.sh is generated in the SlurmGenerator.
+	 * 
+	 * @param resource the resource object
+	 * @return the content of the build-and-submit script
+	 */
+	def static BuildAndSubmitCallgrindScriptContent(Resource resource) '''
+		#!/bin/bash
+
+		source_folder=${PWD} && \
+		
+		# remove files and create folder
+		mkdir -p «Config.out_path»callgrind && \
+		rm -rf -- «Config.build_path»callgrind && \
+		mkdir -p «Config.build_path»callgrind && \
+		
+		# run cmake
+		cd «Config.build_path»callgrind && \
+		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Callgrind ${source_folder} && \
+
+		«FOR p: 0 ..< Config.processes»
+			make «resource.ProjectName»_«p» && \
+		«ENDFOR»
+		cd ${source_folder} && \
+
+		sbatch job-callgrind.sh
 	'''
 
 }
