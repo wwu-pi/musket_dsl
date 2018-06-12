@@ -26,7 +26,8 @@ class Config {
 	public static final String source_path = "src/" // assumption that depth is only one folder
 	public static final String build_folder = "build"
 	public static final String out_folder = "out"
-	public static final String home_path = "/home/fwrede/musket-build/"
+	public static final String home_path_build = "/home/fwrede/musket-build/"
+	public static final String home_path_source = "/home/fwrede/musket/"
 	
 	// file extensions
 	public static final String header_extension = ".hpp"
@@ -76,8 +77,8 @@ class Config {
 	def static init(Resource resource) {		
 		val subfolders = URI.createFileURI(resource.URI.trimFileExtension.trimFragment.trimQuery.segmentsList.dropWhile[it != "src"].drop(1).join("/")).trimSegments(1)
 		base_path = subfolders.appendSegment(resource.ProjectName).appendSegment("CPU-MPMD").path + "/"
-		build_path = home_path + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(build_folder).path + "/"
-		out_path = home_path + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(out_folder).path + "/"
+		build_path = home_path_build + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(build_folder).path + "/"
+		out_path = home_path_build + URI.createFileURI(base_path.substring(0, base_path.length - 1)).appendSegment(out_folder).path + "/"
 		
 		processes = resource.Processes
 		cores = resource.ConfigBlock.cores

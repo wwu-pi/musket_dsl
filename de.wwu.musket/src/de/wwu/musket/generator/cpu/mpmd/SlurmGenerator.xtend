@@ -21,6 +21,10 @@ class SlurmGenerator {
 		logger.info("Generate job.sh.")
 		fsa.generateFile(Config.base_path + "job.sh", JobScriptContent(resource))
 		logger.info("Generation of job.sh done.")
+		
+		logger.info("Generate job.conf.")
+		fsa.generateFile(Config.base_path + "job.conf", JobConfContent(resource))
+		logger.info("Generation of job.conf done.")
 	}
 
 	/**
@@ -48,7 +52,19 @@ class SlurmGenerator {
 		
 		RUNS=10
 		for ((i=1;i<=RUNS;i++)); do
-		    srun  «FOR p : 0 ..< Config.processes SEPARATOR " : "»«Config.build_path»benchmark/bin/«resource.ProjectName»_«p»«ENDFOR»
+		    srun --multi-prog «Config.home_path_source»«Config.base_path»job.conf
 		done	
+	'''
+	
+	/**
+	 * Generates the content of the job config file.
+	 * 
+	 * @param resource the resource object
+	 * @return the content of the job file
+	 */
+	def static JobConfContent(Resource resource) '''
+		«FOR p : 0 ..< Config.processes»
+			«p» «Config.build_path»benchmark/bin/«resource.ProjectName»_«p»
+		«ENDFOR»
 	'''
 }
