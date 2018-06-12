@@ -71,11 +71,12 @@ class MusketStandaloneGenerator {
 		}
 
 		benchmark_models.addAll(models)
-
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/valgrind/frobenius-valgrind-n-4-c-24.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/valgrind/fss-valgrind-n-4-c-24.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/valgrind/matmult_float-valgrind-n-4-c-24.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/valgrind/nbody_float-valgrind-n-4-c-24.musket')
+ 		
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/' + 'nbody_float' + '-n-' + '4' + '-c-' + '24' + '.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fro.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fss.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/mat.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/nbo.musket')
  
 		for (String s : benchmark_models) {
 			logger.info("Generate: " + s + '.')
