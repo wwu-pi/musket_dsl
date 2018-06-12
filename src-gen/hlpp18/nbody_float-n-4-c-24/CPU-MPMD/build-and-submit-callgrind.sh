@@ -8,7 +8,7 @@ rm -rf -- /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/c
 mkdir -p /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/cg && \
 
 # run cmake
-cd /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/callgrind && \
+cd /home/fwrede/musket-build/hlpp18/nbody_float-n-4-c-24/CPU-MPMD/build/cg && \
 cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Callgrind ${source_folder} && \
 
 make nbody_float-n-4-c-24_0 && \

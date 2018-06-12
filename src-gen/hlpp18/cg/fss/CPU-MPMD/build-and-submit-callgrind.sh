@@ -8,7 +8,7 @@ rm -rf -- /home/fwrede/musket-build/hlpp18/cg/fss/CPU-MPMD/build/cg && \
 mkdir -p /home/fwrede/musket-build/hlpp18/cg/fss/CPU-MPMD/build/cg && \
 
 # run cmake
-cd /home/fwrede/musket-build/hlpp18/cg/fss/CPU-MPMD/build/callgrind && \
+cd /home/fwrede/musket-build/hlpp18/cg/fss/CPU-MPMD/build/cg && \
 cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Callgrind ${source_folder} && \
 
 make fss_0 && \
