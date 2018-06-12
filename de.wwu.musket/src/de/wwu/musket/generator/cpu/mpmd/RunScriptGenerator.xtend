@@ -99,9 +99,9 @@ class RunScriptGenerator {
 		source_folder=${PWD} && \
 		
 		# remove files and create folder
-		mkdir -p «Config.out_path»callgrind && \
-		rm -rf -- «Config.build_path»callgrind && \
-		mkdir -p «Config.build_path»callgrind && \
+		mkdir -p «Config.out_path»cg && \
+		rm -rf -- «Config.build_path»cg && \
+		mkdir -p «Config.build_path»cg && \
 		
 		# run cmake
 		cd «Config.build_path»callgrind && \

@@ -107,7 +107,7 @@ class SlurmGenerator {
 	 */
 	def static JobCallgrindConfContent(Resource resource) '''
 		«FOR p : 0 ..< Config.processes»
-			«p» valgrind --tool=callgrind --cache-sim=yes --cacheuse=yes --callgrind-out-file=«Config.out_path»callgrind/«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out.%p «Config.build_path»benchmark/bin/«resource.ProjectName»_«p»
+			«p» valgrind --tool=callgrind --cache-sim=yes --cacheuse=yes --callgrind-out-file=«Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out.%p «Config.build_path»cg/bin/«resource.ProjectName»_«p»
 		«ENDFOR»
 	'''
 
