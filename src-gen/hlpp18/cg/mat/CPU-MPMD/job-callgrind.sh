@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node 1
 #SBATCH --partition haswell
 #SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
-#SBATCH --output /home/fwrede/musket-build/hlpp18/cg/mat/CPU-MPMD/out/callgrind/mat-nodes-4-cpu-24.out
+#SBATCH --output /home/fwrede/musket-build/hlpp18/cg/mat/CPU-MPMD/out/mat-nodes-4-cpu-24.out
 #SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
 #SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
