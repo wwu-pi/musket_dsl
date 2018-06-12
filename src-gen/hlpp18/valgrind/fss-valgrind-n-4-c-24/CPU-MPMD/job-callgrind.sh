@@ -14,4 +14,4 @@
 
 export OMP_NUM_THREADS=24
 
-srun --multi-prog /home/fwrede/musket/hlpp18/valgrind/fss-valgrind-n-4-c-24/CPU-MPMD/job-callgrind.conf
+srun --multi-prog /home/fwrede/musket/src-gen/hlpp18/valgrind/fss-valgrind-n-4-c-24/CPU-MPMD/job-callgrind.conf

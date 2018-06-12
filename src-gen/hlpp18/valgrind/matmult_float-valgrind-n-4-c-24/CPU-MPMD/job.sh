@@ -16,5 +16,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=10
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/hlpp18/valgrind/matmult_float-valgrind-n-4-c-24/CPU-MPMD/job.conf
+    srun --multi-prog /home/fwrede/musket/src-gen/hlpp18/valgrind/matmult_float-valgrind-n-4-c-24/CPU-MPMD/job.conf
 done	
