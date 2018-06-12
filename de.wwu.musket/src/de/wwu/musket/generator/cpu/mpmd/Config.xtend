@@ -27,7 +27,7 @@ class Config {
 	public static final String build_folder = "build"
 	public static final String out_folder = "out"
 	public static final String home_path_build = "/home/fwrede/musket-build/"
-	public static final String home_path_source = "/home/fwrede/musket/"
+	public static final String home_path_source = "/home/fwrede/musket/src-gen/"
 	
 	// file extensions
 	public static final String header_extension = ".hpp"
