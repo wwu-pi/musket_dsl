@@ -27,7 +27,7 @@ const float DT = 0.01f;
 std::vector<Particle> P(1250);
 std::vector<Particle> oldP(5000);
 
-Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
+//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 
 
 

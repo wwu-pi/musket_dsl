@@ -23,7 +23,7 @@ std::vector<double> as(4096);
 
 
 
-// generate Function
+// FunctorGenerator::generate Function
 inline auto sum_function(double a, double b){
 	return ((a) + (b));
 }

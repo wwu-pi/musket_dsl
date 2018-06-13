@@ -10,7 +10,7 @@ struct Particle{
 	float mass;
 	float charge;
 	
-	Particle();
+	//Particle();
 };
 
 extern std::vector<Particle> P;

@@ -1,17 +1,17 @@
 #pragma once
 
 struct Fish{
-	std::array<double,32> position;
+	std::array<double,128> position;
 	double fitness;
-	std::array<double,32> candidate_position;
+	std::array<double,128> candidate_position;
 	double candidate_fitness;
-	std::array<double,32> displacement;
+	std::array<double,128> displacement;
 	double fitness_variation;
 	double weight;
-	std::array<double,32> best_position;
+	std::array<double,128> best_position;
 	double best_fitness;
 	
-	Fish();
+	//Fish();
 };
 
 extern std::vector<Fish> population;
