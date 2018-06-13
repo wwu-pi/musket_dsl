@@ -3,7 +3,7 @@
 #config CORES 24
 #config MODE release
 
-const int steps = 3;
+const int steps = 2;
 
 const float EPSILON = 0.0000000001f;
 const float DT = 0.01f;
@@ -19,8 +19,8 @@ struct Particle{
 	float charge;
 };
 
-array<Particle,10000,dist> P;
-array<Particle,10000,copy> oldP;
+array<Particle,5000,dist> P;
+array<Particle,5000,copy> oldP;
 
 Particle init_particles(int i, Particle p){
 	p.x = mkt::rand(0.0f,1.0f);

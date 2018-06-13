@@ -3,7 +3,7 @@
 #config CORES 24
 #config MODE release
 
-matrix<double,512,512,dist> as;
+matrix<double,128,128,dist> as;
 
 double init(int x, int y, double a){
 	return (double) x + y + 1;
