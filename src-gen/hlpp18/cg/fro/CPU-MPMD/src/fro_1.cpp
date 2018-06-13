@@ -19,7 +19,7 @@ int mpi_world_size = 0;
 size_t tmp_size_t = 0;
 
 
-std::vector<double> as(65536);
+std::vector<double> as(4096);
 
 
 
@@ -74,8 +74,8 @@ int main(int argc, char** argv) {
 	
 	
 	MPI_Datatype as_partition_type, as_partition_type_resized;
-	MPI_Type_vector(256, 256, 512, MPI_DOUBLE, &as_partition_type);
-	MPI_Type_create_resized(as_partition_type, 0, sizeof(double) * 256, &as_partition_type_resized);
+	MPI_Type_vector(64, 64, 128, MPI_DOUBLE, &as_partition_type);
+	MPI_Type_create_resized(as_partition_type, 0, sizeof(double) * 64, &as_partition_type_resized);
 	MPI_Type_free(&as_partition_type);
 	MPI_Type_commit(&as_partition_type_resized);
 
@@ -87,17 +87,17 @@ int main(int argc, char** argv) {
 	size_t row_offset = 0;size_t col_offset = 0;
 	
 	row_offset = 0;
-	col_offset = 256;
+	col_offset = 64;
 	#pragma omp parallel for 
-	for(size_t counter_rows = 0; counter_rows < 256; ++counter_rows){
+	for(size_t counter_rows = 0; counter_rows < 64; ++counter_rows){
 		#pragma omp simd
-		for(size_t counter_cols = 0; counter_cols < 256; ++counter_cols){
-			size_t counter = counter_rows * 256 + counter_cols;
+		for(size_t counter_cols = 0; counter_cols < 64; ++counter_cols){
+			size_t counter = counter_rows * 64 + counter_cols;
 			as[counter] = init_functor(row_offset + counter_rows, col_offset + counter_cols, as[counter]);
 		}
 	}
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter < 65536; ++counter){
+	for(size_t counter = 0; counter < 4096; ++counter){
 		as[counter] = square_functor(as[counter]);
 	}
 	double fn = 0.0;
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 	fold_result_double = 0.0;
 	
 	#pragma omp parallel for simd reduction(sum_reduction:fold_result_double)
-	for(size_t counter = 0; counter < 65536; ++counter){
+	for(size_t counter = 0; counter < 4096; ++counter){
 		fold_result_double = sum_functor(fold_result_double, as[counter]);
 	}
 	

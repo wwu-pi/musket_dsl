@@ -14,7 +14,7 @@ int process_id = -1;
 size_t tmp_size_t = 0;
 
 
-std::vector<double> as(65536);
+std::vector<double> as(4096);
 
 
 void sum(void *in, void *inout, int *len, MPI_Datatype *dptr){
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 	
 	
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter  < 65536; ++counter){
+	for(size_t counter = 0; counter  < 4096; ++counter){
 		as[counter] = 0;
 	}
 	#pragma omp declare reduction(sum : double : omp_out = [&](){return ((omp_out) + (omp_in));}()) initializer(omp_priv = omp_orig)
@@ -62,31 +62,31 @@ int main(int argc, char** argv) {
 	}
 	case 1: {
 		row_offset = 0;
-		col_offset = 256;
+		col_offset = 64;
 		break;
 	}
 	case 2: {
-		row_offset = 256;
+		row_offset = 64;
 		col_offset = 0;
 		break;
 	}
 	case 3: {
-		row_offset = 256;
-		col_offset = 256;
+		row_offset = 64;
+		col_offset = 64;
 		break;
 	}
 	}		
 	#pragma omp parallel for 
-	for(size_t counter_rows = 0; counter_rows < 256; ++counter_rows){
+	for(size_t counter_rows = 0; counter_rows < 64; ++counter_rows){
 		#pragma omp simd
-		for(size_t counter_cols = 0; counter_cols < 256; ++counter_cols){
+		for(size_t counter_cols = 0; counter_cols < 64; ++counter_cols){
 			
-			as[counter_rows * 256 + counter_cols] = ((static_cast<double>(((row_offset + counter_rows))) + ((col_offset + counter_cols))) + 1);
+			as[counter_rows * 64 + counter_cols] = ((static_cast<double>(((row_offset + counter_rows))) + ((col_offset + counter_cols))) + 1);
 		}
 	}
 	std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter < 65536; ++counter){
+	for(size_t counter = 0; counter < 4096; ++counter){
 		
 		as[counter] = ((as[counter]) * (as[counter]));
 	}
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 		fold_result_double  = 0.0;
 		
 		#pragma omp parallel for simd reduction(sum:fold_result_double)
-		for(size_t counter = 0; counter < 65536; ++counter){
+		for(size_t counter = 0; counter < 4096; ++counter){
 			
 			fold_result_double = ((fold_result_double) + (as[counter]));
 		}		

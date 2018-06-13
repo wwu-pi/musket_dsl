@@ -14,11 +14,11 @@ int process_id = -1;
 size_t tmp_size_t = 0;
 
 
-const int steps = 3;
+const int steps = 2;
 const float EPSILON = 1.0E-10f;
 const float DT = 0.01f;
-std::vector<Particle> P(2500);
-std::vector<Particle> oldP(10000);
+std::vector<Particle> P(1250);
+std::vector<Particle> oldP(5000);
 
 Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 
@@ -62,20 +62,20 @@ int main(int argc, char** argv) {
 		break;
 	}
 	case 1: {
-		elem_offset = 2500;
+		elem_offset = 1250;
 		break;
 	}
 	case 2: {
-		elem_offset = 5000;
+		elem_offset = 2500;
 		break;
 	}
 	case 3: {
-		elem_offset = 7500;
+		elem_offset = 3750;
 		break;
 	}
 	}
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter < 2500; ++counter){
+	for(size_t counter = 0; counter < 1250; ++counter){
 		
 		P[counter].x = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
 		P[counter].y = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 		P[counter].mass = 1.0f;
 		P[counter].charge = (1.0f - (2.0f * static_cast<float>((((elem_offset + counter)) % 2))));
 	}
-	tmp_size_t = 2500 * sizeof(Particle);
+	tmp_size_t = 1250 * sizeof(Particle);
 	MPI_Allgather(P.data(), tmp_size_t, MPI_BYTE, oldP.data(), tmp_size_t, MPI_BYTE, MPI_COMM_WORLD);
 	std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 	for(int i = 0; ((i) < (steps)); ++i){
@@ -96,25 +96,25 @@ int main(int argc, char** argv) {
 			break;
 		}
 		case 1: {
-			elem_offset = 2500;
+			elem_offset = 1250;
 			break;
 		}
 		case 2: {
-			elem_offset = 5000;
+			elem_offset = 2500;
 			break;
 		}
 		case 3: {
-			elem_offset = 7500;
+			elem_offset = 3750;
 			break;
 		}
 		}
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 2500; ++counter){
+		for(size_t counter = 0; counter < 1250; ++counter){
 			
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 10000); j++){
+			for(int j = 0; ((j) < 5000); j++){
 				
 				if(((j) != ((elem_offset + counter)))){
 				float dx;
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
 			P[counter].y += ((((vy0) + (P[counter]).vy) * (DT)) * 0.5f);
 			P[counter].z += ((((vz0) + (P[counter]).vz) * (DT)) * 0.5f);
 		}
-		tmp_size_t = 2500 * sizeof(Particle);
+		tmp_size_t = 1250 * sizeof(Particle);
 		MPI_Allgather(P.data(), tmp_size_t, MPI_BYTE, oldP.data(), tmp_size_t, MPI_BYTE, MPI_COMM_WORLD);
 	}
 	std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
