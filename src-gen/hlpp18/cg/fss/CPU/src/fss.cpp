@@ -28,7 +28,7 @@ const double STEP_SIZE_FINAL = 1.0E-5;
 const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
 const int NUMBER_OF_FISH = 128;
-const int ITERATIONS = 20;
+const int ITERATIONS = 5;
 const int DIMENSIONS = 128;
 std::vector<Fish> population(32);
 std::vector<double> instinctive_movement_vector_copy(128);

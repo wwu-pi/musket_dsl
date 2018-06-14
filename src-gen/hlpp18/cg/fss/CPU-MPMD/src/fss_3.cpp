@@ -35,7 +35,7 @@ const double STEP_SIZE_FINAL = 1.0E-5;
 const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
 const int NUMBER_OF_FISH = 128;
-const int ITERATIONS = 20;
+const int ITERATIONS = 5;
 const int DIMENSIONS = 128;
 std::vector<Fish> population(32);
 std::vector<double> instinctive_movement_vector_copy(128);
@@ -45,11 +45,11 @@ std::vector<double> barycenter_copy(128);
 //Fish::Fish() : position(128, 0.0), fitness(), candidate_position(128, 0.0), candidate_fitness(), displacement(128, 0.0), fitness_variation(), weight(), best_position(128, 0.0), best_fitness() {}
 
 
-// FunctorGenerator::generate Function
+// generate Function
 inline auto sumWeight_function(double sum_weight, double fishWeight){
 	return ((sum_weight) + (fishWeight));
 }
-// FunctorGenerator::generate Function
+// generate Function
 inline auto maxFitnessVariation_function(double max_fitness_variation, double fitness_variation){
 	double result;
 	
@@ -61,25 +61,25 @@ inline auto maxFitnessVariation_function(double max_fitness_variation, double fi
 		}
 	return (result);
 }
-// FunctorGenerator::generate Function
+// generate Function
 inline auto sumFitnessVariation_function(double sum_fitness_variation, double fitness_variation){
 	return ((sum_fitness_variation) + (fitness_variation));
 }
-// FunctorGenerator::generate Function
+// generate Function
 inline auto calcDisplacementFold_function(std::array<double,128> arr, std::array<double,128> displacement){
 	for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 		arr[(i)] += (displacement)[(i)];
 	}
 	return (arr);
 }
-// FunctorGenerator::generate Function
+// generate Function
 inline auto calcBarycenterFold_function(std::array<double,128> arr, std::array<double,128> position){
 	for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 		arr[(i)] += (position)[(i)];
 	}
 	return (arr);
 }
-// FunctorGenerator::generate Function
+// generate Function
 inline auto getBestSolution_function(double best_solution, double best_fitness){
 	double result = (best_solution);
 	

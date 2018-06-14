@@ -24,8 +24,8 @@ size_t tmp_size_t = 0;
 const int steps = 2;
 const float EPSILON = 1.0E-10f;
 const float DT = 0.01f;
-std::vector<Particle> P(1250);
-std::vector<Particle> oldP(5000);
+std::vector<Particle> P(250);
+std::vector<Particle> oldP(1000);
 
 //Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 
@@ -49,7 +49,7 @@ struct Calc_force_functor{
 		float ax = 0.0f;
 		float ay = 0.0f;
 		float az = 0.0f;
-		for(int j = 0; ((j) < 5000); j++){
+		for(int j = 0; ((j) < 1000); j++){
 			
 			if(((j) != (curIndex))){
 			float dx;
@@ -130,19 +130,19 @@ int main(int argc, char** argv) {
 	
 	size_t elem_offset = 0;
 	
-	elem_offset = 3750;
+	elem_offset = 750;
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter < 1250; ++counter){
+	for(size_t counter = 0; counter < 250; ++counter){
 		P[counter] = init_particles_functor(elem_offset + counter, P[counter]);
 	}
-	MPI_Allgather(P.data(), 1250, Particle_mpi_type, oldP.data(), 1250, Particle_mpi_type, MPI_COMM_WORLD);
+	MPI_Allgather(P.data(), 250, Particle_mpi_type, oldP.data(), 250, Particle_mpi_type, MPI_COMM_WORLD);
 	for(int i = 0; ((i) < (steps)); ++i){
-		elem_offset = 3750;
+		elem_offset = 750;
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 1250; ++counter){
+		for(size_t counter = 0; counter < 250; ++counter){
 			P[counter] = calc_force_functor(elem_offset + counter, P[counter]);
 		}
-		MPI_Allgather(P.data(), 1250, Particle_mpi_type, oldP.data(), 1250, Particle_mpi_type, MPI_COMM_WORLD);
+		MPI_Allgather(P.data(), 250, Particle_mpi_type, oldP.data(), 250, Particle_mpi_type, MPI_COMM_WORLD);
 	}
 	
 	
