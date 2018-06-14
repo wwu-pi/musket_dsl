@@ -19,8 +19,8 @@ struct Particle{
 	float charge;
 };
 
-array<Particle,5000,dist> P;
-array<Particle,5000,copy> oldP;
+array<Particle,1000,dist> P;
+array<Particle,1000,copy> oldP;
 
 Particle init_particles(int i, Particle p){
 	p.x = mkt::rand(0.0f,1.0f);
