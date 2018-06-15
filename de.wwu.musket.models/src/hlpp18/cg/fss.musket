@@ -20,7 +20,7 @@ const double STEP_SIZE_VOLITIVE_FINAL = 0.00002;
 
 const int NUMBER_OF_FISH = 128;
 const int ITERATIONS = 5;
-const int DIMENSIONS = 128;
+const int DIMENSIONS = 512;
 
 // Fish
 struct Fish{
