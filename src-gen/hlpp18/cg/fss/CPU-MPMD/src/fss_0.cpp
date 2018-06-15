@@ -36,13 +36,13 @@ const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
 const int NUMBER_OF_FISH = 128;
 const int ITERATIONS = 5;
-const int DIMENSIONS = 128;
+const int DIMENSIONS = 512;
 std::vector<Fish> population(32);
-std::vector<double> instinctive_movement_vector_copy(128);
+std::vector<double> instinctive_movement_vector_copy(512);
 std::vector<Fish> weighted_fishes(32);
-std::vector<double> barycenter_copy(128);
+std::vector<double> barycenter_copy(512);
 
-//Fish::Fish() : position(128, 0.0), fitness(), candidate_position(128, 0.0), candidate_fitness(), displacement(128, 0.0), fitness_variation(), weight(), best_position(128, 0.0), best_fitness() {}
+//Fish::Fish() : position(512, 0.0), fitness(), candidate_position(512, 0.0), candidate_fitness(), displacement(512, 0.0), fitness_variation(), weight(), best_position(512, 0.0), best_fitness() {}
 
 
 // generate Function
@@ -66,14 +66,14 @@ inline auto sumFitnessVariation_function(double sum_fitness_variation, double fi
 	return ((sum_fitness_variation) + (fitness_variation));
 }
 // generate Function
-inline auto calcDisplacementFold_function(std::array<double,128> arr, std::array<double,128> displacement){
+inline auto calcDisplacementFold_function(std::array<double,512> arr, std::array<double,512> displacement){
 	for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 		arr[(i)] += (displacement)[(i)];
 	}
 	return (arr);
 }
 // generate Function
-inline auto calcBarycenterFold_function(std::array<double,128> arr, std::array<double,128> position){
+inline auto calcBarycenterFold_function(std::array<double,512> arr, std::array<double,512> position){
 	for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 		arr[(i)] += (position)[(i)];
 	}
@@ -213,7 +213,7 @@ struct CalcDisplacementMap_functor{
 	}
 };
 struct CalcDisplacementFold_functor{
-	auto operator()(std::array<double,128> arr, std::array<double,128> displacement) const{
+	auto operator()(std::array<double,512> arr, std::array<double,512> displacement) const{
 		for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 			arr[(i)] += (displacement)[(i)];
 		}
@@ -260,7 +260,7 @@ struct CalcWeightedFish_functor{
 	}
 };
 struct CalcBarycenterFold_functor{
-	auto operator()(std::array<double,128> arr, std::array<double,128> position) const{
+	auto operator()(std::array<double,512> arr, std::array<double,512> position) const{
 		for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 			arr[(i)] += (position)[(i)];
 		}
@@ -372,13 +372,13 @@ void sumFitnessVariation(void* in, void* inout, int *len, MPI_Datatype *dptr){
 	*inoutv = sumFitnessVariation_function(*inv, *inoutv);
 } 
 void calcDisplacementFold(void* in, void* inout, int *len, MPI_Datatype *dptr){
-	std::array<double,128>* inv = static_cast<std::array<double,128>*>(in);
-	std::array<double,128>* inoutv = static_cast<std::array<double,128>*>(inout);
+	std::array<double,512>* inv = static_cast<std::array<double,512>*>(in);
+	std::array<double,512>* inoutv = static_cast<std::array<double,512>*>(inout);
 	*inoutv = calcDisplacementFold_function(*inv, *inoutv);
 } 
 void calcBarycenterFold(void* in, void* inout, int *len, MPI_Datatype *dptr){
-	std::array<double,128>* inv = static_cast<std::array<double,128>*>(in);
-	std::array<double,128>* inoutv = static_cast<std::array<double,128>*>(inout);
+	std::array<double,512>* inv = static_cast<std::array<double,512>*>(in);
+	std::array<double,512>* inoutv = static_cast<std::array<double,512>*>(inout);
 	*inoutv = calcBarycenterFold_function(*inv, *inoutv);
 } 
 void getBestSolution(void* in, void* inout, int *len, MPI_Datatype *dptr){
@@ -445,8 +445,8 @@ int main(int argc, char** argv) {
 	#pragma omp declare reduction(sumWeight_reduction : double : omp_out = sumWeight_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	#pragma omp declare reduction(maxFitnessVariation_reduction : double : omp_out = maxFitnessVariation_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	#pragma omp declare reduction(sumFitnessVariation_reduction : double : omp_out = sumFitnessVariation_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
-	#pragma omp declare reduction(calcDisplacementFold_reduction : std::array<double,128> : omp_out = calcDisplacementFold_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
-	#pragma omp declare reduction(calcBarycenterFold_reduction : std::array<double,128> : omp_out = calcBarycenterFold_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
+	#pragma omp declare reduction(calcDisplacementFold_reduction : std::array<double,512> : omp_out = calcDisplacementFold_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
+	#pragma omp declare reduction(calcBarycenterFold_reduction : std::array<double,512> : omp_out = calcBarycenterFold_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	#pragma omp declare reduction(getBestSolution_reduction : double : omp_out = getBestSolution_function(omp_in, omp_out)) initializer(omp_priv = omp_orig)
 	
 	MPI_Datatype Fish_mpi_type_temp, Fish_mpi_type;
@@ -469,7 +469,7 @@ int main(int argc, char** argv) {
 	MPI_Op_create( calcBarycenterFold, 0, &calcBarycenterFold_reduction_mpi_op );
 	MPI_Op getBestSolution_reduction_mpi_op;
 	MPI_Op_create( getBestSolution, 0, &getBestSolution_reduction_mpi_op );
-	double fold_result_double;std::array<double,128> fold_result_std_array_double_128_;
+	double fold_result_double;std::array<double,512> fold_result_std_array_double_512_;
 	
 	
 	
@@ -540,20 +540,20 @@ int main(int argc, char** argv) {
 		for(size_t counter = 0; counter < 32; ++counter){
 			population[counter] = calcDisplacementMap_functor(population[counter]);
 		}
-		fold_result_std_array_double_128_.fill(0.0);
+		fold_result_std_array_double_512_.fill(0.0);
 		
 		
 		
-		#pragma omp parallel for simd reduction(calcDisplacementFold_reduction:fold_result_std_array_double_128_)
+		#pragma omp parallel for simd reduction(calcDisplacementFold_reduction:fold_result_std_array_double_512_)
 		for(size_t counter = 0; counter < 32; ++counter){
-			std::array<double,128> map_fold_tmp = lambda3_functor(population[counter]);
+			std::array<double,512> map_fold_tmp = lambda3_functor(population[counter]);
 		
-			fold_result_std_array_double_128_ = calcDisplacementFold_functor(fold_result_std_array_double_128_, map_fold_tmp);
+			fold_result_std_array_double_512_ = calcDisplacementFold_functor(fold_result_std_array_double_512_, map_fold_tmp);
 		}		
 		
-		MPI_Allreduce(fold_result_std_array_double_128_.data(), instinctive_movement_vector_copy.data(), 128, MPI_DOUBLE, calcDisplacementFold_reduction_mpi_op, MPI_COMM_WORLD); 
+		MPI_Allreduce(fold_result_std_array_double_512_.data(), instinctive_movement_vector_copy.data(), 512, MPI_DOUBLE, calcDisplacementFold_reduction_mpi_op, MPI_COMM_WORLD); 
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 128; ++counter){
+		for(size_t counter = 0; counter < 512; ++counter){
 			instinctive_movement_vector_copy[counter] = calcInstinctiveMovementVector_functor((sum_fitness_variation), instinctive_movement_vector_copy[counter]);
 		}
 		#pragma omp parallel for simd
@@ -577,20 +577,20 @@ int main(int argc, char** argv) {
 		for(size_t counter = 0; counter < 32; ++counter){
 			weighted_fishes[counter] = calcWeightedFish_functor(population[counter]);
 		}
-		fold_result_std_array_double_128_.fill(0.0);
+		fold_result_std_array_double_512_.fill(0.0);
 		
 		
 		
-		#pragma omp parallel for simd reduction(calcBarycenterFold_reduction:fold_result_std_array_double_128_)
+		#pragma omp parallel for simd reduction(calcBarycenterFold_reduction:fold_result_std_array_double_512_)
 		for(size_t counter = 0; counter < 32; ++counter){
-			std::array<double,128> map_fold_tmp = lambda5_functor(weighted_fishes[counter]);
+			std::array<double,512> map_fold_tmp = lambda5_functor(weighted_fishes[counter]);
 		
-			fold_result_std_array_double_128_ = calcBarycenterFold_functor(fold_result_std_array_double_128_, map_fold_tmp);
+			fold_result_std_array_double_512_ = calcBarycenterFold_functor(fold_result_std_array_double_512_, map_fold_tmp);
 		}		
 		
-		MPI_Allreduce(fold_result_std_array_double_128_.data(), barycenter_copy.data(), 128, MPI_DOUBLE, calcBarycenterFold_reduction_mpi_op, MPI_COMM_WORLD); 
+		MPI_Allreduce(fold_result_std_array_double_512_.data(), barycenter_copy.data(), 512, MPI_DOUBLE, calcBarycenterFold_reduction_mpi_op, MPI_COMM_WORLD); 
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 128; ++counter){
+		for(size_t counter = 0; counter < 512; ++counter){
 			barycenter_copy[counter] = calcBarycenterMap_functor((sum_weight), barycenter_copy[counter]);
 		}
 		#pragma omp parallel for simd

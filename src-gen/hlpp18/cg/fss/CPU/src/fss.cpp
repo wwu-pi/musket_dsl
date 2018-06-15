@@ -29,13 +29,13 @@ const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
 const int NUMBER_OF_FISH = 128;
 const int ITERATIONS = 5;
-const int DIMENSIONS = 128;
+const int DIMENSIONS = 512;
 std::vector<Fish> population(32);
-std::vector<double> instinctive_movement_vector_copy(128);
+std::vector<double> instinctive_movement_vector_copy(512);
 std::vector<Fish> weighted_fishes(32);
-std::vector<double> barycenter_copy(128);
+std::vector<double> barycenter_copy(512);
 
-Fish::Fish() : position(128, 0.0), fitness(), candidate_position(128, 0.0), candidate_fitness(), displacement(128, 0.0), fitness_variation(), weight(), best_position(128, 0.0), best_fitness() {}
+Fish::Fish() : position(512, 0.0), fitness(), candidate_position(512, 0.0), candidate_fitness(), displacement(512, 0.0), fitness_variation(), weight(), best_position(512, 0.0), best_fitness() {}
 
 void sumWeight(void *in, void *inout, int *len, MPI_Datatype *dptr){
 	double* inv = static_cast<double*>(in);
@@ -131,12 +131,12 @@ int main(int argc, char** argv) {
 	
 	
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter  < 128; ++counter){
+	for(size_t counter = 0; counter  < 512; ++counter){
 		instinctive_movement_vector_copy[counter] = 0;
 	}
 	
 	#pragma omp parallel for simd
-	for(size_t counter = 0; counter  < 128; ++counter){
+	for(size_t counter = 0; counter  < 512; ++counter){
 		barycenter_copy[counter] = 0;
 	}
 	#pragma omp declare reduction(sumWeight : double : omp_out = [&](){return ((omp_out) + (omp_in));}()) initializer(omp_priv = omp_orig)
@@ -324,7 +324,7 @@ int main(int argc, char** argv) {
 				population[counter].displacement[(i)] *= (population[counter]).fitness_variation;
 			}
 		}
-		fold_result_std_array_double_0_.assign(128, 0.0);
+		fold_result_std_array_double_0_.assign(512, 0.0);
 		
 		
 		
@@ -340,9 +340,9 @@ int main(int argc, char** argv) {
 			}
 		}		
 		
-		MPI_Allreduce(fold_result_std_array_double_0_.data(), instinctive_movement_vector_copy.data(), 128 * sizeof(double), MPI_BYTE, calcDisplacementFold_mpi_op, MPI_COMM_WORLD); 
+		MPI_Allreduce(fold_result_std_array_double_0_.data(), instinctive_movement_vector_copy.data(), 512 * sizeof(double), MPI_BYTE, calcDisplacementFold_mpi_op, MPI_COMM_WORLD); 
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 128; ++counter){
+		for(size_t counter = 0; counter < 512; ++counter){
 			
 			double result = (instinctive_movement_vector_copy[counter]);
 			
@@ -391,7 +391,7 @@ int main(int argc, char** argv) {
 					}
 					weighted_fishes[counter] = (map_input);
 				}
-		fold_result_std_array_double_0_.assign(128, 0.0);
+		fold_result_std_array_double_0_.assign(512, 0.0);
 		
 		
 		
@@ -407,9 +407,9 @@ int main(int argc, char** argv) {
 			}
 		}		
 		
-		MPI_Allreduce(fold_result_std_array_double_0_.data(), barycenter_copy.data(), 128 * sizeof(double), MPI_BYTE, calcBarycenterFold_mpi_op, MPI_COMM_WORLD); 
+		MPI_Allreduce(fold_result_std_array_double_0_.data(), barycenter_copy.data(), 512 * sizeof(double), MPI_BYTE, calcBarycenterFold_mpi_op, MPI_COMM_WORLD); 
 		#pragma omp parallel for simd
-		for(size_t counter = 0; counter < 128; ++counter){
+		for(size_t counter = 0; counter < 512; ++counter){
 			
 			double result = (barycenter_copy[counter]);
 			
