@@ -78,6 +78,9 @@ class MusketStandaloneGenerator {
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/mat.musket')
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/nbo.musket')
  
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fro-fused.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/frobenius-fused-n-4-c-24.musket')
+ 
 		for (String s : benchmark_models) {
 			logger.info("Generate: " + s + '.')
 			// load a resource by URI, in this case from the file system
