@@ -18,6 +18,7 @@ int mpi_world_size = 0;
 
 std::vector<std::mt19937> random_engines;
 std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
+
 size_t tmp_size_t = 0;
 
 

@@ -20,7 +20,7 @@ const float DT = 0.01f;
 std::vector<Particle> P(250);
 std::vector<Particle> oldP(1000);
 
-Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
+//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 
 int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);

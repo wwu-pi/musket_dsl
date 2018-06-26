@@ -35,7 +35,7 @@ std::vector<double> instinctive_movement_vector_copy(512);
 std::vector<Fish> weighted_fishes(32);
 std::vector<double> barycenter_copy(512);
 
-Fish::Fish() : position(512, 0.0), fitness(), candidate_position(512, 0.0), candidate_fitness(), displacement(512, 0.0), fitness_variation(), weight(), best_position(512, 0.0), best_fitness() {}
+//Fish::Fish() : position(512, 0.0), fitness(), candidate_position(512, 0.0), candidate_fitness(), displacement(512, 0.0), fitness_variation(), weight(), best_position(512, 0.0), best_fitness() {}
 
 void sumWeight(void *in, void *inout, int *len, MPI_Datatype *dptr){
 	double* inv = static_cast<double*>(in);

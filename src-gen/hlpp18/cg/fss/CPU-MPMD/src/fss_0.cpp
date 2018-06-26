@@ -18,6 +18,7 @@ int mpi_world_size = 0;
 
 std::vector<std::mt19937> random_engines;
 std::vector<std::uniform_real_distribution<double>> rand_dist_double_INIT_LOWER_BOUND_INIT_UPPER_BOUND;std::vector<std::uniform_real_distribution<double>> rand_dist_double_minus1_0_1_0;std::vector<std::uniform_real_distribution<double>> rand_dist_double_0_0_1_0;
+
 size_t tmp_size_t = 0;
 
 

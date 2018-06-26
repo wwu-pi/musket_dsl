@@ -16,6 +16,7 @@ const size_t process_id = 2;
 int mpi_rank = -1;
 int mpi_world_size = 0;
 
+
 size_t tmp_size_t = 0;
 
 
