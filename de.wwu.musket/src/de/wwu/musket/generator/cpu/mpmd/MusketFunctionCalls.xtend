@@ -5,6 +5,8 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import java.util.List
+import de.wwu.musket.musket.MusketFunctionName
 
 /**
  * Generates all musket function calls, that is all function that are specific for musket, such as print or rand.
@@ -35,6 +37,14 @@ class MusketFunctionCalls {
 				generateRoiStart(mfc, processId)
 			case ROI_END:
 				generateRoiEnd(mfc, processId)
+			case TIMER_START:
+				generateTimerStart(mfc, processId)
+			case TIMER_STOP:
+				generateTimerStop(mfc, processId)
+			case TIMER_RESUME:
+				generateTimerResume(mfc, processId)
+			case TIMER_SHOW:
+				generateTimerShow(mfc, processId)
 			default: ''''''
 		}
 	}
@@ -86,11 +96,64 @@ class MusketFunctionCalls {
 	 * @param mfc the musket function call
 	 * @return the generated code
 	 */
-	def static generateRoiEnd(MusketFunctionCall mfc, int processId) '''
+	 def static generateRoiEnd(MusketFunctionCall mfc, int processId) '''
 		«IF processId == 0»
 			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 		«ENDIF»
 	'''
+	
+	// Functions to generate Timer
+	
+	def static generateAllTimerGlobalVars(List<MusketFunctionCall> mfcs, int processId){
+		var result = '' 
+		var timers = newArrayList
+		for(mfc : mfcs.filter[it.value == MusketFunctionName::TIMER_START]){
+			val name = mfc.params.head.generateExpression(null, processId)
+			if(!timers.contains(name)){
+				result += generateTimerGlobalVars(mfc, processId)
+			}
+		}
+		return result
+	}
+	
+	def static generateTimerGlobalVars(MusketFunctionCall mfc, int processId)'''
+		«val name = mfc.params.head.generateExpression(null, processId)»
+		std::chrono::high_resolution_clock::time_point «name»_start;
+		std::chrono::high_resolution_clock::time_point «name»_end;
+		double «name»_elapsed;
+	'''
+	
+	def static generateTimerStart(MusketFunctionCall mfc, int processId) '''
+		«val name = mfc.params.head.generateExpression(null, processId)»
+		«IF processId == 0»
+			«name»_elapsed = 0.0;
+			«name»_start = std::chrono::high_resolution_clock::now();
+		«ENDIF»
+	'''
+	
+	def static generateTimerStop(MusketFunctionCall mfc, int processId) '''
+		«val name = mfc.params.head.generateExpression(null, processId)»
+		«IF processId == 0»
+			«name»_end = std::chrono::high_resolution_clock::now();
+			«name»_elapsed += std::chrono::duration<double>(«name»_end - «name»_start).count();
+		«ENDIF»
+	'''
+	
+	def static generateTimerResume(MusketFunctionCall mfc, int processId) '''
+		«val name = mfc.params.head.generateExpression(null, processId)»
+		«IF processId == 0»
+			«name»_start = std::chrono::high_resolution_clock::now();
+		«ENDIF»
+	'''
+	
+	def static generateTimerShow(MusketFunctionCall mfc, int processId) '''
+		«val name = mfc.params.head.generateExpression(null, processId)»
+		«IF processId == 0»
+			printf("Elapsed time for timer %s: %.5fs", "«name»", «name»_elapsed);
+		«ENDIF»
+	'''
+	
+	
 
 }

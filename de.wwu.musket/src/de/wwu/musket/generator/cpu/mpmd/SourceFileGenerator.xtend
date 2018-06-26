@@ -17,6 +17,7 @@ import static de.wwu.musket.generator.cpu.mpmd.RngGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.FunctorGenerator.*
 import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateMPIVectorType
 import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateShiftSkeletonVariables
+import static de.wwu.musket.generator.cpu.mpmd.MusketFunctionCalls.generateAllTimerGlobalVars
 import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
@@ -57,7 +58,7 @@ class SourceFileGenerator {
 		#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
 		
 		«generateGlobalConstants(processId)»
-		«generateGlobalVariables(resource)»
+		«generateGlobalVariables(resource, processId)»
 		«generateTmpVariables»
 		
 		
@@ -120,7 +121,7 @@ class SourceFileGenerator {
 	/**
 	 * Generates global variables, which are required but not in the model.
 	 */
-	def static generateGlobalVariables(Resource resource) '''
+	def static generateGlobalVariables(Resource resource, int processId) '''
 		«IF Config.processes > 1»
 			int «Config.var_mpi_rank» = -1;
 			int «Config.var_mpi_procs» = 0;
@@ -131,6 +132,8 @@ class SourceFileGenerator {
 		«ENDIF»
 		«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
 		«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
+		
+		«generateAllTimerGlobalVars(resource.MusketFunctionCalls, processId)»
 	'''
 
 	/**
