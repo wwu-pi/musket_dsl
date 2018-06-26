@@ -109,23 +109,24 @@ class MusketFunctionCalls {
 		var result = '' 
 		var timers = newArrayList
 		for(mfc : mfcs.filter[it.value == MusketFunctionName::TIMER_START]){
-			val name = mfc.params.head.generateExpression(null, processId)
+			val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier
 			if(!timers.contains(name)){
 				result += generateTimerGlobalVars(mfc, processId)
+				timers.add(name)
 			}
 		}
 		return result
 	}
 	
 	def static generateTimerGlobalVars(MusketFunctionCall mfc, int processId)'''
-		«val name = mfc.params.head.generateExpression(null, processId)»
+		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		std::chrono::high_resolution_clock::time_point «name»_start;
 		std::chrono::high_resolution_clock::time_point «name»_end;
 		double «name»_elapsed;
 	'''
 	
 	def static generateTimerStart(MusketFunctionCall mfc, int processId) '''
-		«val name = mfc.params.head.generateExpression(null, processId)»
+		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_elapsed = 0.0;
 			«name»_start = std::chrono::high_resolution_clock::now();
@@ -133,7 +134,7 @@ class MusketFunctionCalls {
 	'''
 	
 	def static generateTimerStop(MusketFunctionCall mfc, int processId) '''
-		«val name = mfc.params.head.generateExpression(null, processId)»
+		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_end = std::chrono::high_resolution_clock::now();
 			«name»_elapsed += std::chrono::duration<double>(«name»_end - «name»_start).count();
@@ -141,16 +142,16 @@ class MusketFunctionCalls {
 	'''
 	
 	def static generateTimerResume(MusketFunctionCall mfc, int processId) '''
-		«val name = mfc.params.head.generateExpression(null, processId)»
+		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_start = std::chrono::high_resolution_clock::now();
 		«ENDIF»
 	'''
 	
 	def static generateTimerShow(MusketFunctionCall mfc, int processId) '''
-		«val name = mfc.params.head.generateExpression(null, processId)»
+		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
-			printf("Elapsed time for timer %s: %.5fs", "«name»", «name»_elapsed);
+			printf("Elapsed time in seconds for timer %s: %.5f\n", "«name»", «name»_elapsed);
 		«ENDIF»
 	'''
 	
