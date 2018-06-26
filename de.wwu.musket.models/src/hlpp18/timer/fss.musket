@@ -347,10 +347,10 @@ main{
 		
 		population.mapInPlace(instinctiveMovement());
 		
-    mkt::timer_stop("instinctive");
+        mkt::timer_stop("instinctive");
 
 		// collective volitive movement
-    mkt::timer_resume("volitive");
+        mkt::timer_resume("volitive");
 		double sum_weight = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 		
 		weighted_fishes = population.map(calcWeightedFish());
@@ -376,13 +376,11 @@ main{
 	mkt::print('Best solution: %.5f\n', global_best_fitness);
 
   mkt::timer_show("init");
-mkt::timer_show("fitness");
-mkt::timer_show("individual");
-mkt::timer_show("feeding");
-mkt::timer_show("instinctive");
-mkt::timer_show("volitive");
-mkt::timer_show("solution");
-
-
+  mkt::timer_show("fitness");
+  mkt::timer_show("individual");
+  mkt::timer_show("feeding");
+  mkt::timer_show("instinctive");
+  mkt::timer_show("volitive");
+  mkt::timer_show("solution");
 }
 

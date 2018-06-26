@@ -22,18 +22,20 @@ main{
 
 	mkt::roi_start();
 	
-  mkt::timer_start("map");
+    mkt::timer_start("map");
 	as.mapInPlace(square());
-  mkt::timer_stop("map");
+    mkt::timer_stop("map");
 
-  mkt::timer_start("fold");
+    mkt::timer_start("fold");
 	double fn = as.fold(0.0, sum());
-  mkt::timer_stop("fold");
+    mkt::timer_stop("fold");
 
-	fn = std::sqrt(fn);
-  
+	fn = std::sqrt(fn);  
 	
 	mkt::roi_end();
 	
 	mkt::print("Frobenius norm is %.5f.\n", fn);
+	
+	mkt::timer_show("map");
+    mkt::timer_show("fold");
 }
