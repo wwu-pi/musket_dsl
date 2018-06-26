@@ -4,6 +4,7 @@
 #SBATCH --nodes 4
 #SBATCH --ntasks-per-node 1
 #SBATCH --partition haswell
+#SBATCH --exclusive
 #SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
 #SBATCH --output /home/fwrede/musket-build/hlpp18/cg/fro-fused/CPU-MPMD/out/fro-fused-nodes-4-cpu-24.out
 #SBATCH --cpus-per-task 24
