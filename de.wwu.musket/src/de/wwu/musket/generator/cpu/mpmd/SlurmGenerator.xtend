@@ -22,6 +22,10 @@ class SlurmGenerator {
 		fsa.generateFile(Config.base_path + "job.sh", JobScriptContent(resource))
 		logger.info("Generation of job.sh done.")
 		
+		logger.info("Generate job-socket.sh.")
+		fsa.generateFile(Config.base_path + "job-socket.sh", JobScriptSocketContent(resource))
+		logger.info("Generation of job-socket done.")
+		
 		logger.info("Generate job.conf.")
 		fsa.generateFile(Config.base_path + "job.conf", JobConfContent(resource))
 		logger.info("Generation of job.conf done.")
@@ -45,6 +49,7 @@ class SlurmGenerator {
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
 		#SBATCH --partition haswell
+		#SBATCH --exclusive
 		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
 		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
 		#SBATCH --cpus-per-task 24
@@ -54,6 +59,40 @@ class SlurmGenerator {
 		#SBATCH -A p_algcpugpu
 		
 		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
+		
+		RUNS=10
+		for ((i=1;i<=RUNS;i++)); do
+		    srun --multi-prog «Config.home_path_source»«Config.base_path»job.conf
+		done	
+	'''
+	
+		/**
+	 * Generates the content of the job file allocating jobs per socket.
+	 * 
+	 * @param resource the resource object
+	 * @return the content of the job file
+	 */
+	def static JobScriptSocketContent(Resource resource) '''
+		#!/bin/bash
+		#SBATCH --job-name «resource.ProjectName»-CPU-MPMD-socket-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
+		#SBATCH --ntasks «resource.ConfigBlock.processes»
+		#SBATCH --nodes «IF resource.ConfigBlock.processes == 1»«resource.ConfigBlock.processes»«ELSE»«resource.ConfigBlock.processes / 2»«ENDIF»
+		#SBATCH --ntasks-per-node «IF resource.ConfigBlock.processes == 1»1«ELSE»2«ENDIF»
+		#SBATCH --mincpus 24
+		#SBATCH --cpus-per-task 12
+		#SBATCH --cores-per-socket 12
+		#SBATCH --ntasks-per-socket 1
+		#SBATCH --threads-per-core 1
+		#SBATCH --partition haswell
+		#SBATCH --exclusive
+		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
+		#SBATCH --output «Config.out_path»«resource.ProjectName»-socket-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
+		#SBATCH --mail-type ALL
+		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
+		#SBATCH --time 05:00:00
+		#SBATCH -A p_algcpugpu
+		
+		export OMP_NUM_THREADS=«resource.ConfigBlock.cores / 2»
 		
 		RUNS=10
 		for ((i=1;i<=RUNS;i++)); do
@@ -86,6 +125,7 @@ class SlurmGenerator {
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
 		#SBATCH --partition haswell
+		#SBATCH --exclusive
 		#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
 		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
 		#SBATCH --cpus-per-task 24
