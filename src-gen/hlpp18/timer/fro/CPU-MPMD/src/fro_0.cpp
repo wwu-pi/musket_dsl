@@ -131,6 +131,8 @@ int main(int argc, char** argv) {
 	std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 	double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 	printf("Frobenius norm is %.5f.\n",(fn));
+	printf("Elapsed time in seconds for timer %s: %.5f\n", "map", map_elapsed);
+	printf("Elapsed time in seconds for timer %s: %.5f\n", "fold", fold_elapsed);
 	
 	printf("Execution time: %.5fs\n", seconds);
 	printf("Threads: %i\n", omp_get_max_threads());
