@@ -108,7 +108,7 @@ class MusketFunctionCalls {
 	def static generateAllTimerGlobalVars(List<MusketFunctionCall> mfcs, int processId){
 		var result = '' 
 		var timers = newArrayList
-		for(mfc : mfcs.filter[it.value == MusketFunctionName::TIMER_START]){
+		for(mfc : mfcs.filter[it.value == MusketFunctionName::TIMER_START || it.value == MusketFunctionName::TIMER_RESUME || it.value == MusketFunctionName::TIMER_STOP || it.value == MusketFunctionName::TIMER_SHOW]){
 			val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier
 			if(!timers.contains(name)){
 				result += generateTimerGlobalVars(mfc, processId)
@@ -122,7 +122,7 @@ class MusketFunctionCalls {
 		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		std::chrono::high_resolution_clock::time_point «name»_start;
 		std::chrono::high_resolution_clock::time_point «name»_end;
-		double «name»_elapsed;
+		double «name»_elapsed = 0.0;
 	'''
 	
 	def static generateTimerStart(MusketFunctionCall mfc, int processId) '''
