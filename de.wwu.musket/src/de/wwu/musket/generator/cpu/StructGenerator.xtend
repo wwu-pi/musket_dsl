@@ -35,6 +35,6 @@ class StructGenerator {
 	 * @return the generated declaration
 	 */
 	def static generateStructDefaultConstructor(Struct s) '''
-		«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»(«m.calculateType.collectionType.sizeLocal()», «m.calculateType.collectionType.CXXPrimitiveDefaultValue»)«ELSE»(«m.calculateType.primitiveType.CXXPrimitiveDefaultValue»)«ENDIF»«ENDFOR» {}
+		//«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»(«m.calculateType.collectionType.sizeLocal()», «m.calculateType.collectionType.CXXPrimitiveDefaultValue»)«ELSE»(«m.calculateType.primitiveType.CXXPrimitiveDefaultValue»)«ENDIF»«ENDFOR» {}
 	'''
 }
