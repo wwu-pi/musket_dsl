@@ -77,6 +77,11 @@ class MusketStandaloneGenerator {
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fss.musket')
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/mat.musket')
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/nbo.musket')
+ 		
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/fro.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/fss.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/mat.musket')
+ 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/nbo.musket')
  
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fro-fused.musket')
  		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/frobenius-fused-n-4-c-24.musket')
