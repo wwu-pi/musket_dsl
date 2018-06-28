@@ -23,6 +23,7 @@ import de.wwu.musket.musket.FloatMatrixType
 import de.wwu.musket.musket.PrimitiveType
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.Struct
 
 class MusketHelper {
 	// Resolve concrete values from references
@@ -48,6 +49,27 @@ class MusketHelper {
 			BoolMatrixType,
 			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''false'''
 			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: ''''''
+			default:
+				null
+		}
+	}
+	
+	static def getCXXDefaultValue(Type t) {
+		switch (t) {
+			IntArrayType,
+			IntMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.INT: '''0'''
+			DoubleArrayType,
+			DoubleMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
+			FloatArrayType,
+			FloatMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
+			BoolArrayType,
+			BoolMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''false'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: ''''''
+			Struct: '''«t.name»{}'''
 			default:
 				null
 		}

@@ -254,6 +254,37 @@ class MusketType {
 			return primtype
 		}
 	}
+	
+	def getCXXDefaultValue() {
+		if(primitiveType !== null){
+			switch (this.primitiveType) {
+				PrimitiveType case type == PrimitiveTypeLiteral.INT: '''0'''
+				PrimitiveType case type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
+				PrimitiveType case type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
+				PrimitiveType case type == PrimitiveTypeLiteral.BOOL: '''false'''
+				PrimitiveType case type == PrimitiveTypeLiteral.STRING: '''""'''
+				default:
+					'''/*getCXXDefaultValue: primitiveType*/'''
+			}
+		}else if (collectionType !== null){
+			switch (this.collectionType) {
+				IntArrayType,
+				IntMatrixType: '''0'''
+				DoubleArrayType,
+				DoubleMatrixType: '''0.0'''
+				FloatArrayType,
+				FloatMatrixType: '''0.0f'''
+				BoolArrayType,
+				BoolMatrixType: '''false'''
+				default:
+					'''/*getCXXDefaultValue: Collection*/'''
+			}
+		} else if(structName !== null) {
+			'''«structName»{}'''			
+		}else{
+			'''/*getCXXDefaultValue: else*/'''
+		}
+	}
 
 	def getMPIType() {
 		var mpi_type = ''

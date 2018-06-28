@@ -106,6 +106,8 @@ class SourceFileGenerator {
 		#include <limits>
 		#include <memory>
 		#include <cstddef>
+		
+		#include "../include/dmatrix.hpp"
 	'''
 
 	/**
