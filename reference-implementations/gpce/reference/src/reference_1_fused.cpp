@@ -141,7 +141,7 @@ struct Lambda6_functor{
 
 int main(int argc, char** argv) {
     
-    printf("Run Fss Call by reference on one node\n\n");
+    printf("Run Fss Call by reference fused on one node\n\n");
 
     InitFish_functor initFish_functor{};
     EvaluateFitness_functor evaluateFitness_functor{};

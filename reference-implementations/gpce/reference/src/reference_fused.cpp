@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     
     if(mpi_rank == 0){
-        printf("Run Fss Call by reference\n\n");
+        printf("Run Fss Call by reference fused\n\n");
     }    			
     
     InitFish_functor initFish_functor{};
