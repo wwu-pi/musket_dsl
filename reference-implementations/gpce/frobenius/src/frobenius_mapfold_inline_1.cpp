@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
 	printf("Execution time: %.5fs\n", seconds);
 	printf("Threads: %i\n", omp_get_max_threads());
-	printf("Processes: %i\n", mpi_world_size);
+	printf("Processes: %i\n", 1);
 
 	return EXIT_SUCCESS;
 }
