@@ -12,9 +12,8 @@ std::vector<double> as(4294967296);
 
 int main(int argc, char** argv) {
 	
-	if(process_id == 0){
 	printf("Run Frobenius inline on one node\n\n");			
-	}
+	
 	
 	#pragma omp parallel for simd
 	for(size_t counter = 0; counter < 4294967296; ++counter){
