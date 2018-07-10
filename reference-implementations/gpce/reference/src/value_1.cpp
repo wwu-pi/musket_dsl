@@ -208,14 +208,11 @@ int main(int argc, char** argv) {
 	std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 	double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 	
-	if(mpi_rank == 0){
 		printf("Best solution: %.5f\n",(global_best_fitness));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());
-		printf("Processes: %i\n", mpi_world_size);
-	}
-	
-	MPI_Finalize();
+		printf("Processes: %i\n", 1);
+
 	return EXIT_SUCCESS;
 }
