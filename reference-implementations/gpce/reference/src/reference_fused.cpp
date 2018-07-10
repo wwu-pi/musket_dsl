@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 
     for(int iteration = 0; ((iteration) < (ITERATIONS)); ++iteration){
 
-        #pragma omp parallel for simd
+        #pragma omp parallel 
         {
 
         #pragma omp for simd
