@@ -206,27 +206,16 @@ int main(int argc, char** argv) {
     double fold_result_double = 0.0;
 
     for(int iteration = 0; ((iteration) < (ITERATIONS)); ++iteration){
-
-        #pragma omp parallel 
-        {
-
-        #pragma omp for simd
-        for(size_t counter = 0; counter < POP; ++counter){
-            evaluateFitness_functor(population[counter]);
-        }
-
-        #pragma omp single
-        {
         if(((iteration) > 0)){
             step_size = ((step_size) - (((STEP_SIZE_INITIAL) - (STEP_SIZE_FINAL)) / static_cast<double>(((ITERATIONS) - 1))));
             step_size_vol = ((step_size_vol) - (((STEP_SIZE_VOLITIVE_INITIAL) - (STEP_SIZE_VOLITIVE_FINAL)) / static_cast<double>(((ITERATIONS) - 1))));
         }
-        }
 
-        #pragma omp for simd
+        
+        #pragma omp parallel for simd
         for(size_t counter = 0; counter < POP; ++counter){
+            evaluateFitness_functor(population[counter]);
             individualMovement_functor((step_size), population[counter]);
-        }
         }
     }
     double global_best_fitness = 0.0;
