@@ -51,8 +51,8 @@ class DMatrix {
 
   // SKELETONS / COMPUTATION / FOLD
 
-  template<typename Functor>
-  T fold(T identity, const Functor& f);
+  //template<typename Functor>
+  //T fold(T identity, const Functor& f);
 
   //
   // SKELETONS / COMMUNICATION
@@ -96,12 +96,22 @@ class DMatrix {
    */
   // void printLocal();
 
+// Getter and Setter
+
+  T get_global(int row, int col) const;
+  void set_global(int row, int col, const T& value);
 
   T get_local(int row, int col) const;
   void set_local(int row, int col, const T& value);
 
+  int get_size() const;
+  int get_size_local() const;
+
   int get_row_offset() const;
   int get_col_offset() const;
+
+  int get_number_of_rows_local() const;
+  int get_number_of_cols_local() const;
 
  private:
 
@@ -221,6 +231,26 @@ void mkt::DMatrix<T>::set_local(int row, int col, const T& v) {
 }
 
 template<typename T>
+T mkt::DMatrix<T>::get_global(int row, int col) const {
+  // TODO
+}
+
+template<typename T>
+void mkt::DMatrix<T>::set_global(int row, int col, const T& v) {
+  // TODO
+}
+
+template<typename T>
+int mkt::DMatrix<T>::get_size() const {
+  return _size;
+}
+
+template<typename T>
+int mkt::DMatrix<T>::get_size_local() const {
+  return _size_local;
+}
+
+template<typename T>
 int mkt::DMatrix<T>::get_row_offset() const {
   return _row_offset;
 }
@@ -230,6 +260,15 @@ int mkt::DMatrix<T>::get_col_offset() const {
   return _col_offset;
 }
 
+template<typename T>
+int mkt::DMatrix<T>::get_number_of_rows_local() const {
+  return _number_of_rows_local;
+}
+
+template<typename T>
+int mkt::DMatrix<T>::get_number_of_cols_local() const {
+  return _number_of_cols_local;
+}
 
 // template<typename T> 
 // template<typename Functor>
