@@ -1,6 +1,3 @@
-#define N 100
-#define M 2000
-
 #include <mpi.h>
 #include <omp.h>
 #include <array>
