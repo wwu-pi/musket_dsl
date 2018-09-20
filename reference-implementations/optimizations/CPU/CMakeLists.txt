@@ -4,7 +4,7 @@ project(optimizations VERSION 1.0.0 LANGUAGES CXX)
 SET( CMAKE_CXX_FLAGS_DEV "-O0 -g -march=native -m64 -Wall -Wextra -Wpedantic -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during DEV builds." FORCE )
 SET( CMAKE_CXX_FLAGS_TEST "-O3 -g -march=native -m64 -Wall -Wextra -Wpedantic -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during TEST builds." FORCE )
 SET( CMAKE_CXX_FLAGS_VTUNE "-O3 -g -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during VTUNE builds." FORCE )
-SET( CMAKE_CXX_FLAGS_BENCHMARK "-O3 -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
+SET( CMAKE_CXX_FLAGS_BENCHMARK "-O3 -DNDEBUG -march=haswell -DMPICH_IGNORE_CXX_SEEK" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
 
 # status messages
 message(STATUS "Host System: " ${CMAKE_HOST_SYSTEM})
