@@ -61,14 +61,6 @@ void print(const std::array<Data, M>& a){
 	printf("]");
 }
 
-void print(const std::vector<Data>& a){
-	printf("[\n");
-	for(int i = 0; i < a.size(); i++){
-		a[i].print();
-		printf("\n");
-	}
-	printf("]");
-}
 
 int main(int argc, char** argv) {
 
