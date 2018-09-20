@@ -1,4 +1,4 @@
 #pragma once
 
-#define N 10000
-#define M 20000
+#define N 25000
+#define M 50000
