@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 	}
 
 	if(process_id == 0){
-		printf("Run MPI reduce test\n\n");	
+		printf("Run data\n\n");	
 		printf("Initial: a = %.0f, b = %.0f\n", a[42].numbers[17], b[32].numbers[19]); 
 	}	
 	

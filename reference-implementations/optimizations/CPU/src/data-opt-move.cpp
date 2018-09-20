@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <omp.h>
+#include <vector>
 #include <array>
 #include <chrono>
 #include <cstdio>
@@ -53,23 +54,31 @@ int main(int argc, char** argv) {
 	
 	MPI_Comm_rank(MPI_COMM_WORLD, &process_id);
 
-	std::array<Data, M> a;
-	std::array<Data, M> b;
+	std::vector<Data> a;
+	std::vector<Data> b;
 
-	#pragma omp parallel for simd
+	a.reserve(M);
+	b.reserve(M);
+	
 	for(int i = 0; i < M; ++i){
-		set(2, a[i]);
-		set(3, b[i]);
+		Data da;
+		Data db;
+		for(int j = 0; j < N; ++j){
+			da.numbers[j] = 2;
+			db.numbers[j] = 3;
+		}
+		a.push_back(da);
+		b.push_back(db);
 	}
 
 	if(process_id == 0){
-		printf("Run MPI reduce test\n\n");	
+		printf("Run data-opt-move\n\n");	
 		printf("Initial: a = %.0f, b = %.0f\n", a[42].numbers[17], b[32].numbers[19]); 
 	}	
 
 	std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 
-	std::move(a.begin(), a.end(), b.begin());
+	b = std::move(a);
 
 	#pragma omp parallel for simd
 	for(int i = 0; i < M; ++i){

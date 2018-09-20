@@ -26,10 +26,26 @@ void set(int const value, Data& d){
 	}
 } 
 
-void square(Data& d){	
+//void square(const Data& a, Data& b){	
+//	for(int i = 0; i < N; ++i){
+//		b.numbers[i] = a.numbers[i] * a.numbers[i];
+//	}
+//}
+
+//Data square(const Data& a){	
+//	Data b;
+//	for(int i = 0; i < N; ++i){
+//		b.numbers[i] = a.numbers[i] * a.numbers[i];
+//	}
+//	return b;
+//}
+
+// musket dsl
+Data square(Data a){	
 	for(int i = 0; i < N; ++i){
-		d.numbers[i] = d.numbers[i] * d.numbers[i];
+		a.numbers[i] = a.numbers[i] * a.numbers[i];
 	}
+	return a;
 }
 
 void print(const std::array<Data, M>& a){
@@ -64,16 +80,15 @@ int main(int argc, char** argv) {
 	}
 
 	if(process_id == 0){
-		printf("Run MPI reduce test\n\n");	
+		printf("Run data-opt\n\n");	
 		printf("Initial: a = %.0f, b = %.0f\n", a[42].numbers[17], b[32].numbers[19]); 
 	}	
 
 	std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 
-	std::copy(a.begin(), a.end(), b.begin());
-
 	#pragma omp parallel for simd
 	for(int i = 0; i < M; ++i){
+		b[i] = a[i];
 		square(b[i]);
 	}
 

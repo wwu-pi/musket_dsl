@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 	std::array<Data, M> ds;
 
 	if(process_id == 0){
-		printf("Run MPI reduce test\n\n");	
+		printf("Run ref\n\n");	
 		printf("Initial: %.0f\n", ds[42].numbers[17]); 
 
 		//print(ds);
