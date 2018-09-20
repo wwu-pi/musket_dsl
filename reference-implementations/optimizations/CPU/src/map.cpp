@@ -4,6 +4,7 @@
 #include <chrono>
 #include <stddef.h> 
 #include <cstdio>
+#include <string>
 #include <algorithm>
 #include "../include/mpi.hpp"
 

@@ -3,6 +3,7 @@
 #include <array>
 #include <chrono>
 #include <cstdio>
+#include <string>
 #include <utility>
 #include "../include/mpi.hpp"
 

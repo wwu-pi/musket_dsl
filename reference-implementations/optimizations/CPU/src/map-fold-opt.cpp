@@ -1,9 +1,10 @@
 #include <mpi.h>
 #include <omp.h>
-#include <vector>
+#include <array>
 #include <chrono>
 #include <stddef.h> 
 #include <cstdio>
+#include <string>
 #include <algorithm>
 #include "../include/mpi.hpp"
 
