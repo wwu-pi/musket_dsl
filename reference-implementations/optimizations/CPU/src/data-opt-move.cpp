@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 	double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 
 	if(process_id == 0){
-		printf("\nResult Map: a = %.0f, b = %.0f", a[20].numbers[4], b[46].numbers[12]);
+		//printf("\nResult Map: a = %.0f, b = %.0f", a[20].numbers[4], b[46].numbers[12]);
 		std::string s;
 		if(b[32].numbers[19] == 4){
 			s = "correct";
