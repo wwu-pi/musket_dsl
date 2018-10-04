@@ -59,8 +59,7 @@ class SourceFileGenerator {
 		
 		«generateGlobalConstants(processId)»
 		«generateGlobalVariables(resource, processId)»
-		«generateTmpVariables»
-		
+	
 		
 		«FOR d : resource.Data»
 			«d.generateObjectDefinition(processId)»
@@ -137,13 +136,6 @@ class SourceFileGenerator {
 		«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
 		
 		«generateAllTimerGlobalVars(resource.MusketFunctionCalls, processId)»
-	'''
-
-	/**
-	 * Generates temporary variable, which are required but not in the model.
-	 */
-	def static generateTmpVariables() '''
-		size_t «Config.tmp_size_t» = 0;
 	'''
 
 	/** 
