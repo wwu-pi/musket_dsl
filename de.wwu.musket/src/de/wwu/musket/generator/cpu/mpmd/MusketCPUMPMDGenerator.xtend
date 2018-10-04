@@ -11,6 +11,8 @@ import static de.wwu.musket.generator.cpu.mpmd.HeaderFileGenerator.generateHeade
 import static de.wwu.musket.generator.cpu.mpmd.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.mpmd.SourceFileGenerator.generateSourceFile
 import static de.wwu.musket.generator.cpu.mpmd.SlurmGenerator.generateSlurmJob
+import static de.wwu.musket.generator.cpu.mpmd.lib.DArray.generateDArrayHeaderFile
+import static de.wwu.musket.generator.cpu.mpmd.lib.DMatrix.generateDMatrixHeaderFile
 
 /** 
  * This is the start of the CPU generator.
@@ -44,6 +46,10 @@ class MusketCPUMPMDGenerator {
 		// build files
 		generateCMake(resource, fsa, context)
 		
+		// lib header files
+		generateDArrayHeaderFile(resource, fsa, context)
+		generateDMatrixHeaderFile(resource, fsa, context)
+				
 		// source code
 		for(var i = 0; i < Config.processes; i++){
 			generateHeaderFile(resource, fsa, context, i)		

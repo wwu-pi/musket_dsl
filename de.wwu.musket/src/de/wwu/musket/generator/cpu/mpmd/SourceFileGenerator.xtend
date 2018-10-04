@@ -108,6 +108,7 @@ class SourceFileGenerator {
 		#include <cstddef>
 		
 		#include "../include/dmatrix.hpp"
+		#include "../include/darray.hpp"
 	'''
 
 	/**
