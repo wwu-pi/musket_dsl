@@ -248,7 +248,12 @@ class MusketType {
 			if(distributionMode == DistributionMode.LOC)
 				return 'std::array<' + primtype + ',' + size + '>'
 			else{
-				return 'std::vector<' + primtype + '>'
+				if(isArray){
+					return 'mkt::DArray<' + primtype + '>'
+				}else if(isMatrix){
+					return 'mkt::DMatrix<' + primtype + '>'
+				}					
+				return ''
 			}			
 		} else {
 			return primtype

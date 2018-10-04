@@ -188,6 +188,14 @@ class DataHelper {
 			default: 0
 		}
 	}
+	
+	def static blocks(ArrayType a) {
+		switch a.distributionMode {
+			case DIST: Math.sqrt(Config.processes).intValue
+			case COPY: 1
+			default: 0
+		}
+	}
 
 	// for matrices
 	def static dispatch size(MatrixType m) {

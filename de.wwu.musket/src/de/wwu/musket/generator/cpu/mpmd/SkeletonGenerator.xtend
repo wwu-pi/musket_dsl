@@ -85,10 +85,7 @@ class SkeletonGenerator {
 	def static generateMapSkeleton(SkeletonExpression s, String target, int processId) '''
 		«val a = s.obj»
 		«val skel = s.skeleton as MapSkeleton»
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, a, processId)»
-		}
+		//mkt::map<T, F>(const DArray<T>& in, DArray<R>& out, const Functor& f) {
 	'''
 	
 	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
@@ -167,10 +164,7 @@ class SkeletonGenerator {
  */
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«a.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«a.name»[«Config.var_loop_counter»]);
-		}
+		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.param.functionName.toFirstUpper»_functor>(«a.name», «s.skeleton.param.functionName.toFirstLower»_functor);
 	'''
 	
 // MapIndexInPlace

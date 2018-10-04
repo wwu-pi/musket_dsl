@@ -51,6 +51,9 @@ class DArray {
 		
 		  int get_offset() const;
 				
+		  T* get_data();
+		  const T* get_data() const;
+				
 		 private:
 		
 		  //
@@ -125,6 +128,109 @@ class DArray {
 		template<typename T>
 		int mkt::DArray<T>::get_offset() const {
 		  return _offset;
+		}
+		
+		template<typename T>
+		int mkt::DArray<T>::print() const {
+			return _offset;
+		}
+		
+		template<typename T>
+		const T* mkt::DArray<T>::get_data() const {
+		  return _data.data();
+		}
+		
+		template<typename T>
+		T* mkt::DArray<T>::get_data() {
+		  return _data.data();
+		}
+		
+		// Skeletons 
+		«generateSkeletonDefinitions(resource)»
+		«generateSkeletonImplementations(resource)»
+		}
+	'''
+	
+	def static generateSkeletonDefinitions(Resource resource) '''
+		template<typename T, typename R, typename Functor>
+		void map(const DArray<T>& in, DArray<R>& out, const Functor& f);
+		
+		template<typename T, typename R, typename Functor>
+		void map_index(const DArray<T>& in, DArray<R>& out, const Functor& f);
+		
+		template<typename T, typename R, typename Functor>
+		void map_local_index(const DArray<T>& in, DArray<R>& out, const Functor& f);
+		
+		template<typename T, typename Functor>
+		void map_in_place(DArray<T>& m, const Functor& f);
+		
+		template<typename T, typename Functor>
+		void map_index_in_place(DArray<T>& m, const Functor& f);
+		
+		template<typename T, typename Functor>
+		void map_local_index_in_place(DArray<T>& m, const Functor& f);
+		
+		template<typename T, typename Functor>
+		T fold(const DArray<T>& m, T identity, const Functor& f);
+		
+		template<typename T, typename Functor>
+		T map_fold(const DArray<T>& m, const Functor& f_map, const T identity, const Functor& f_fold);
+	'''
+	
+	def static generateSkeletonImplementations(Resource resource) '''
+		template<typename T, typename R, typename Functor>
+		void mkt::map(const DArray<T>& in, DArray<R>& out, const Functor& f) {
+		#pragma omp parallel for simd
+		  for (int i = 0; i < in.get_size_local(); ++i) {
+		      out.set_local(i, f(in.get_local(i)));
+		  }
+		}
+		
+		template<typename T, typename R, typename Functor>
+		void mkt::map_index(const DArray<T>& in, DArray<R>& out, const Functor& f) {
+		    int offset = in.get_offset();
+		#pragma omp parallel for simd
+		    for (int i = 0; i < in.get_size_local(); ++j) {
+		      out.set_local(i, f(i + offset, in.get_local(i)));
+		    }
+		  }
+		}
+		
+		template<typename T, typename R, typename Functor>
+		void mkt::map_local_index(const DArray<T>& in, DArray<R>& out, const Functor& f) {
+		#pragma omp parallel for simd
+		  for (int i = 0; i < in.get_size_local(); ++i) {
+		      out.set_local(i, f(i, in.get_local(i)));
+		    }
+		  }
+		}
+		
+		template<typename T, typename Functor>
+		void mkt::map_in_place(DArray<T>& a, const Functor& f){
+		#pragma omp parallel for simd
+		  for (int i = 0; i < a.get_size_local(); ++i) {
+		      a.set_local(i, f(a.get_local(i)));
+		    }
+		  }
+		}
+		
+		template<typename T, typename Functor>
+		void mkt::map_index_in_place(DArray<T>& a, const Functor& f){
+		    int offset = in.get_offset();
+		#pragma omp parallel for simd
+		  for (int i = 0; i < a.get_size_local(); ++i) {
+		      a.set_local(i, f(i + offset, a.get_local(i)));
+		    }
+		  }
+		}
+		
+		template<typename T, typename Functor>
+		void mkt::map_local_index_in_place(DArray<T>& a, const Functor& f){
+		#pragma omp parallel for simd
+		    for (int i = 0; i < a.get_size_local(); ++i) {
+		      a.set_local(i, f(i, j, a.get_local(i)));
+		    }
+		  }
 		}
 	'''
 }

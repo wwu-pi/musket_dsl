@@ -105,7 +105,9 @@ class SourceFileGenerator {
 		#include <limits>
 		#include <memory>
 		#include <cstddef>
+		#include <type_traits>
 		
+		#include "../include/musket.hpp"
 		#include "../include/dmatrix.hpp"
 		#include "../include/darray.hpp"
 	'''
