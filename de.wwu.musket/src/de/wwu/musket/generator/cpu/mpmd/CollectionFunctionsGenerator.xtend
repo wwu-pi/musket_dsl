@@ -89,32 +89,22 @@ class CollectionFunctionsGenerator {
 	 * @return generated code
 	 */
 	def static generateShowArray(CollectionObject a, int processId) '''
-		«IF a.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
-			«State.setArrayName(a.name)»
-		«ELSE»
+		«IF Config.processes == 1»
+			mkt::print("«a.name»", «a.name»);
+		«ELSEIF a.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
-				«State.setArrayName("temp" + State.counter)»
-				std::array<«a.calculateCollectionType.cppType», «a.type.size»> «State.arrayName»{};
-			«ENDIF»
-			«IF processId == 0»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, State.arrayName + '.data()')»
+				mkt::print("«a.name»", «a.name»);
 			«ELSE»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, "nullptr")»
-			«ENDIF»
-		«ENDIF»
-		
-		«IF processId == 0»
-			«val streamName = 's' + State.counter»
-			«State.incCounter»
-			std::ostringstream «streamName»;
-			«streamName» << "«a.name»: " << std::endl << "[";
-			for (int i = 0; i < «(a.type as ArrayType).size.concreteValue - 1»; i++) {
-			«streamName» << «generateShowElements(a, State.arrayName, "i")»;
-			«streamName» << "; ";
-			}
-			«streamName» << «generateShowElements(a, State.arrayName, ((a.type as ArrayType).size.concreteValue - 1).toString)» << "]" << std::endl;
-			«streamName» << std::endl;
-			printf("%s", «streamName».str().c_str());
+				// show array (copy) --> only in p0
+		  	«ENDIF»
+		«ELSEIF a.type.distributionMode == DistributionMode.DIST»
+			«IF processId == 0»
+				mkt::print_dist("«a.name»", «a.name»);
+		  	«ELSE»
+				«generateMPIGather(a.name + ".get_data()", (a.type as ArrayType).sizeLocal(processId), a.calculateType, "nullptr")»
+		  	«ENDIF»
+		«ELSE»
+		  // Collection Functions: generateShowArray default case --> something went wrong
 		«ENDIF»
 	'''
 

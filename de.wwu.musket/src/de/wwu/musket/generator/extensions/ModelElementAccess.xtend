@@ -14,6 +14,8 @@ import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.LambdaFunction
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.CollectionFunctionName
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -82,6 +84,10 @@ class ModelElementAccess {
 	
 	def static MusketFunctionCalls(Resource resource) {
 		resource.allContents.filter(MusketFunctionCall).toList
+	}
+	
+	def static ShowCalls(Resource resource) {
+		resource.allContents.filter(CollectionFunctionCall).filter[it.function == CollectionFunctionName.SHOW].toList
 	}
 
 	def static isPlatformCPU(Resource resource) {

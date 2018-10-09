@@ -108,8 +108,8 @@ class SourceFileGenerator {
 		#include <type_traits>
 		
 		#include "../include/musket.hpp"
-		#include "../include/dmatrix.hpp"
-		#include "../include/darray.hpp"
+		//#include "../include/dmatrix.hpp"
+		//#include "../include/darray.hpp"
 	'''
 
 	/**
@@ -243,39 +243,29 @@ class SourceFileGenerator {
 		var result = ""
 
 		// init distributed arrays with values
-		if (resource.Arrays.reject [
-			it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY ||
-				it.type.distributionMode == DistributionMode.LOC
-		].exists [
-			it.ValuesAsString.size > 1
-		] && Config.processes > 1) {
+		if (Config.processes > 1) {
 //		distributed
-				for (a : resource.Arrays.reject [
-					it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY
-				]) {
+				for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter[it.type.distributionMode == DistributionMode.DIST]) {
 					val values = a.ValuesAsString
 					if (values.size > 1) {
 						val sizeLocal = a.type.sizeLocal(processId)
 						result += a.generateArrayInitializationForProcess(values.drop((sizeLocal * processId) as int).take(sizeLocal as int))
 					}
 				}
-		} else {
 //		copy distributed
-			for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
+				for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter[it.type.distributionMode == DistributionMode.COPY]) {
+					val values = a.ValuesAsString
+					if (values.size > 1) {
+						result += a.generateArrayInitializationForProcess(values)
+					}
+				}
+		} else {
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType ||
+				it.type.distributionMode == DistributionMode.LOC]) {
 				val values = a.ValuesAsString
 				if (values.size > 1) {
 					result += a.generateArrayInitializationForProcess(values)
 				}
-			}
-		}
-
-		// init copy dist data structures with init list
-		for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
-			it.type.distributionMode == DistributionMode.COPY
-		]) {
-			val values = a.ValuesAsString
-			if (values.size > 1) {
-				result += a.generateArrayInitializationForProcess(values)
 			}
 		}
 

@@ -9,12 +9,22 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
+import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
+import static extension de.wwu.musket.util.MusketHelper.*
+import static extension de.wwu.musket.util.TypeHelper.*
+import static de.wwu.musket.generator.cpu.mpmd.lib.DArray.*
+import static de.wwu.musket.generator.cpu.mpmd.lib.DMatrix.*
 import de.wwu.musket.generator.cpu.mpmd.Config
+import java.util.List
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.ArrayType
 
 class Musket {
-	static final Logger logger = LogManager.getLogger(DMatrix)
+	static final Logger logger = LogManager.getLogger(Musket)
 	
-	def static void generateDArrayHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+	def static void generateMusketHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		logger.info("Generate Musket header file.")
 		fsa.generateFile(Config.base_path + Config.include_path + 'musket' + Config.header_extension,
 			headerFileContent(resource))
@@ -24,57 +34,111 @@ class Musket {
 	def static headerFileContent(Resource resource) '''
 		#pragma once
 		
-		template<typename T, bool D>
-		void mkt::print(string name, mkt::DArray<T> a);
+		#include <string>
+		
+		namespace mkt {
+		
+		«generateDistEnum»
+		
+		«generateDArrayDeclaration»
+		«generateDMatrixDeclaration»
+		«generateDArraySkeletonDeclarations»
+		
+		«val showCalls = resource.ShowCalls»
+		«IF showCalls.size() > 0»
+			template<typename T>
+			void print_dist(const std::string& name, const mkt::DArray<T>& a);
+		«ENDIF»
 		
 		template<typename T>
-		void mkt::print<true>(string name, mkt::DArray<T> a) {
-		  std::array<T, a.get_size()> temp;
-		  MPI_Gather(a.get_data(), a.get_size_local(), MPI_Datatype send_datatype, temp.data(), a.get_size_local(),
-		      MPI_Datatype recv_datatype,
-		      int 0, world)
-		  std::ostringstream stream;
-		  s1 << name << ": " << std::endl << "[";
-		  for (int i = 0; i < a.get_size() - 1; ++i) {
-		  	mkt::print(stream, a[i]);
-		  	s1 << "; ";
-		  }
-		  mkt::print(stream, a[a.get_size() - 1]);
-		  s1 << "]" << std::endl << std::endl;
-		  printf("%s", s1.str().c_str());
-		}
+		void print(const std::string& name, const mkt::DArray<T>& a);
 		
 		template<typename T>
-		void mkt::print<false>(string name, mkt::DArray<T> a) {
+		void print(std::ostringstream& stream, const T a);
+		} // namespace mkt
+		
+		«generateDArrayDefinition»
+		«generateDMatrixDefinition»
+		«generateDArraySkeletonDefinitions»
+		
+		«generatePrintDistFunctions(showCalls)»
+			
+		template<typename T>
+		void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
 		  std::ostringstream stream;
-		  s1 << name << ": " << std::endl << "[";
+		  stream << name << ": " << std::endl << "[";
 		  for (int i = 0; i < a.get_size() - 1; ++i) {
-		  	mkt::print(stream, a[i]);
-		  	s1 << "; ";
+		  	mkt::print(stream, a.get_local(i));
+		  	stream << "; ";
 		  }
-		  mkt::print(stream, a[a.get_size() - 1]);
-		  s1 << "]" << std::endl << std::endl;
-		  printf("%s", s1.str().c_str());
+		  mkt::print(stream, a.get_local(a.get_size() - 1));
+		  stream << "]" << std::endl << std::endl;
+		  printf("%s", stream.str().c_str());
 		}
 
 		//template<typename T>
-		//void mkt::print(string name, mkt::DMatrix<T> m) {
+		//void mkt::print(const std::string name, mkt::DMatrix<T> m) {
 		  //std::ostringstream stream;
-		  //s1 << name << ": " << std::endl << "[";
+		  //stream << name << ": " << std::endl << "[";
 		  //for (int i = 0; i < m.get_size() - 1; ++i) {
-		  //	s1 << m[i];
-		  //	s1 << "; ";
+		  //	stream << m[i];
+		  //	stream << "; ";
 		  //}
-		  //s1 << temp1[m.get_size() - 1] << "]" << std::endl;
-		  //s1 << std::endl;
-		  //printf("%s", s1.str().c_str());
+		  //stream << temp1[m.get_size() - 1] << "]" << std::endl;
+		  //stream << std::endl;
+		  //printf("%s", stream.str().c_str());
 		//}
 		
-		template<T>
-		void mkt::print(std::ostringstream& stream, T a) {
+		template<typename T>
+		void mkt::print(std::ostringstream& stream, const T a) {
 			if(std::is_fundamental<T>::value){
 				stream << a;
 			}
+		}		
+	'''
+	
+	def static generatePrintDistFunctions(List<CollectionFunctionCall> showCalls){
+		var result = ""
+		var types = newArrayList()
+		for (sc : showCalls){
+			if(sc.^var.type.distributionMode == DistributionMode.DIST && !types.contains(sc.^var.calculateCollectionType)){
+				types.add(sc.^var.calculateCollectionType)
+				result += generatePrintDistFunction(sc.^var)
+			}
 		}
+		return result
+	}
+	
+	def static generatePrintDistFunction(CollectionObject co)'''
+		«var type = co.calculateCollectionType.cppType»
+		«var mpiType = co.calculateCollectionType.MPIType»
+		«var size = co.collectionType.size»
+		«var sizeLocal = co.collectionType.sizeLocal(0)»
+		template<>
+		void mkt::print_dist<«type»>(const std::string& name, const mkt::DArray<«type»>& a) {
+		  std::array<«type», «size»> a_copy;
+		  MPI_Gather(a.get_data(), «sizeLocal», «mpiType», a_copy.data(), «sizeLocal», «mpiType», 0, MPI_COMM_WORLD);
+		  std::ostringstream stream;
+		  stream << name << ": " << std::endl << "[";
+		  for (int i = 0; i < «size - 1»; ++i) {
+		  	mkt::print(stream, a_copy[i]);
+		  	stream << "; ";
+		  }
+		  mkt::print(stream, a_copy[«size - 1»]);
+		  stream << "]" << std::endl << std::endl;
+		  printf("%s", stream.str().c_str());
+		}
+	'''
+	
+	def static generateForwardDeclarations() '''
+		template<typename T>
+		class DArray;
+		
+		template<typename T>
+		class DMatrix;
+	'''
+	
+	def static generateDistEnum() '''
+		enum Distribution {DIST, COPY};
 	'''
 }

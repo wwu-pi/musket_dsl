@@ -3,22 +3,25 @@
 #config CORES 8
 #config MODE debug
 
-array<int,4,dist> a = {1, 2, 3, 4};
+array<int,4,copy> a = {1, 2, 3, 4};
+array<int,4,dist> b = {1, 2, 3, 4};
 
-int double_values(int j, int i){
-	return i + i + j;
+int double_values(int i){
+	return i + i;
 }
 
 main{
 	a.show();
+	b.show();
 
-	mkt::roi_start();
+	//mkt::roi_start();
 
-	a.mapInPlace(double_values(42));
-	
-	mkt::roi_end();
+	a.mapInPlace(double_values());
+	b.mapInPlace(double_values());
+	//mkt::roi_end();
 	
 	a.show();
+	b.show();
 }
 
 
