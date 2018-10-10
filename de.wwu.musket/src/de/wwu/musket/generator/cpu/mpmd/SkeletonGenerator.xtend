@@ -39,6 +39,10 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ScatterSkeleton
+import org.eclipse.emf.common.util.BasicEList
+import de.wwu.musket.musket.Expression
+import org.eclipse.emf.common.util.EList
+import de.wwu.musket.musket.Function
 
 /**
  * Generates the skeleton calls.
@@ -58,7 +62,7 @@ class SkeletonGenerator {
 	def static generateSkeletonExpression(SkeletonExpression s, Object target, int processId) {
 		val skel = s.skeleton
 		switch skel {
-			MapSkeleton: generateMapSkeleton(s, (target as CollectionObject).name, processId)
+			MapSkeleton: generateMapSkeleton(s, (target as CollectionObject), processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
 			MapIndexSkeleton: generateMapIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)			
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
@@ -81,11 +85,24 @@ class SkeletonGenerator {
 		}
 	}
 
+	def static generateSetValuesInFunctor(SkeletonExpression s, Function f){
+		var result = ""
+		val numberOfFreeParams = getNumberOfFreeParameters(s, f)
+		val parameters = s.skeleton.param.functionParameters
+		val arguments = s.skeleton.param.functionArguments
+		for(var i = 0; i < numberOfFreeParams; i++){
+			result += '''«s.skeleton.functorObjectName».«parameters.get(i).name» = «arguments.get(i).generateExpression(null, 0)»;'''
+		}
+		return result
+	}
 
-	def static generateMapSkeleton(SkeletonExpression s, String target, int processId) '''
+	def static generateMapSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
 		«val a = s.obj»
+		«val aType = a.calculateCollectionType.cppType»
+		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapSkeleton»
-		//mkt::map<T, F>(const DArray<T>& in, DArray<R>& out, const Functor& f) {
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 	
 	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
@@ -164,7 +181,8 @@ class SkeletonGenerator {
  */
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
-		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.param.functionName.toFirstUpper»_functor>(«a.name», «s.skeleton.param.functionName.toFirstLower»_functor);
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«a.name», «s.skeleton.functorObjectName»);
 	'''
 	
 // MapIndexInPlace

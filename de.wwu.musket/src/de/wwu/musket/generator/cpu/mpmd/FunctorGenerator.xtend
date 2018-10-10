@@ -19,23 +19,29 @@ import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 
 class FunctorGenerator {
 	
-	def static generateFunctorInstantiation(Function f, int processId) '''
-		«f.name.toFirstUpper»_functor «f.name.toFirstLower»_functor{};
+	def static generateFunctorInstantiation(Function f, String skelName, int processId) '''
+		«f.name.toFirstUpper»_«skelName»_functor «f.name.toFirstLower»_«skelName»_functor{};
 	'''
 
-	def static generateFunctor(Function f, int processId) '''
-		struct «f.name.toFirstUpper»_functor{
-			auto operator()(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR») const{
+	def static generateFunctor(Function f, String skelName, int freeParameter, int processId) '''
+		struct «f.name.toFirstUpper»_«skelName»_functor{
+			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
 			}
+			
+			«FOR p : f.params.take(freeParameter)»
+				«p.generateParameter»;
+			«ENDFOR»
 		};
 	'''
-
+	
+	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
 
 	def static generateFunction(Function f, int processId) '''
 		// generate Function

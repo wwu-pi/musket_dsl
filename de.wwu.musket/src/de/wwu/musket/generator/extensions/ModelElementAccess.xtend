@@ -16,6 +16,8 @@ import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.CollectionFunctionName
+import java.util.List
+import de.wwu.musket.musket.Skeleton
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -49,6 +51,15 @@ class ModelElementAccess {
 	def static FunctionsAndLambdas(Resource resource) {
 		resource.allContents.filter(Function).toIterable
 	}
+	
+	//def static SkeletonParamInputPairs(Resource resource) {
+	//	val skeletonExpressions = resource.SkeletonExpressions
+	//	var List<Pair<Skeleton, Function>> result = newArrayList
+	//	for(skelExpr : skeletonExpressions){
+	//		result.add(skelExpr.skeleton -> skelExpr.skeleton.param.)	
+	//	}
+	//	return result
+	//}
 	
 	def static Data(Resource resource) {
 		resource.Model.data

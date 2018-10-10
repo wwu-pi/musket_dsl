@@ -28,6 +28,10 @@ import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.MatrixType
+import java.util.List
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.SkeletonParameterInput
 
 /** 
  * Generates the source file of the project.
@@ -75,9 +79,7 @@ class SourceFileGenerator {
 			«f.generateFunction(processId)»
 		«ENDFOR»
 		
-		«FOR f : resource.FunctionsAndLambdas»
-			«f.generateFunctor(processId)»
-		«ENDFOR»
+		«generateFunctors(resource, processId)»
 		
 		«IF Config.processes > 1»
 			«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
@@ -140,6 +142,34 @@ class SourceFileGenerator {
 		«generateAllTimerGlobalVars(resource.MusketFunctionCalls, processId)»
 	'''
 
+	def static generateFunctors(Resource resource, int processId){
+		var result = ""
+		var List<Pair<String, String>> generated = newArrayList
+		for(skeletonExpression : resource.SkeletonExpressions){
+			val skel = skeletonExpression.skeleton
+			val func = skeletonExpression.skeleton.param.toFunction
+			if(!generated.contains(skel.skeletonName.toString -> func.name)){
+				generated.add(skel.skeletonName.toString -> func.name)
+				result += FunctorGenerator.generateFunctor(skel.param.toFunction, skel.skeletonName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
+			}
+		}
+		return result
+	}
+	
+	def static generateFunctorInstantiations(Resource resource, int processId){
+		var result = ""
+		var List<Pair<String, String>> generated = newArrayList
+		for(skeletonExpression : resource.SkeletonExpressions){
+			val skel = skeletonExpression.skeleton
+			val func = skeletonExpression.skeleton.param.toFunction
+			if(!generated.contains(skel.skeletonName.toString -> func.name)){
+				generated.add(skel.skeletonName.toString -> func.name)
+				result += generateFunctorInstantiation(func, skel.skeletonName.toString, processId)
+			}
+		}
+		return result
+	}
+
 	/** 
 	 * Generate content of the main function in the cpp source file.
 	 * 
@@ -154,9 +184,7 @@ class SourceFileGenerator {
 			«ENDIF»
 			
 «««			functor instantiation
-			«FOR f : resource.FunctionsAndLambdas»
-				«f.generateFunctorInstantiation(processId)»
-			«ENDFOR»
+			«generateFunctorInstantiations(resource, processId)»
 			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 				«generateRandomEnginesArrayInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»

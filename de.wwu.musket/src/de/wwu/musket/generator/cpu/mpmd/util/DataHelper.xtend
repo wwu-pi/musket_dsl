@@ -31,6 +31,7 @@ import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.CollectionObjectOrParam
 import de.wwu.musket.musket.TailObjectRef
+import de.wwu.musket.musket.Skeleton
 
 class DataHelper {
 // Value

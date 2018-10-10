@@ -24,6 +24,30 @@ import de.wwu.musket.musket.PrimitiveType
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexSkeleton
+import de.wwu.musket.musket.MapLocalIndexSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.ZipSkeleton
+import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.GatherSkeleton
+import de.wwu.musket.musket.ScatterSkeleton
+import de.wwu.musket.musket.SkeletonExpression
+
+import static extension de.wwu.musket.util.MusketType.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class MusketHelper {
 	// Resolve concrete values from references
@@ -92,6 +116,68 @@ class MusketHelper {
 			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: '''MPI_CHAR'''
 			default: ''''''
 		}
+	}
+	
+	static def getFunctorName(Skeleton skel) {
+		skel.param.functionName.toFirstUpper + "_" + skel.skeletonName + '_functor'
+	}
+	
+	static def getFunctorObjectName(Skeleton skel) {
+		skel.param.functionName.toFirstLower + "_" + skel.skeletonName + '_functor'
+	}
+	
+	static def getSkeletonName(Skeleton skel) {
+		switch skel {
+			MapSkeleton: '''map'''
+			MapInPlaceSkeleton: '''map_in_place'''
+			MapIndexSkeleton: '''map_index'''
+			MapLocalIndexSkeleton: '''map_local_index'''
+			MapIndexInPlaceSkeleton: '''map_index_in_place'''
+			MapLocalIndexInPlaceSkeleton: '''map_local_index_in_place'''
+			FoldSkeleton: '''fold'''
+			FoldLocalSkeleton: '''fold_local'''
+			MapFoldSkeleton: '''map_fold'''
+			ZipSkeleton:  '''zip'''
+			ZipInPlaceSkeleton:  '''zip_in_place'''
+			ZipIndexSkeleton: '''zip_index'''	
+			ZipLocalIndexSkeleton: '''zip_local_index'''
+			ZipIndexInPlaceSkeleton: '''zip_index_in_place'''
+			ZipLocalIndexInPlaceSkeleton: '''zip_local_index_in_place'''
+			ShiftPartitionsHorizontallySkeleton: '''shift_partitions_horizontally'''
+			ShiftPartitionsVerticallySkeleton: '''shift_partitions_vertically'''
+			GatherSkeleton: '''gather'''
+			ScatterSkeleton: '''scatter'''
+			default: '''// error switch: default case skeleton name'''
+		}
+	}
+	
+	static def int getNumberOfFixedParameters(SkeletonExpression se, Function f) {
+		switch se.skeleton {
+			MapSkeleton: 1
+			MapInPlaceSkeleton: 1
+			MapIndexSkeleton: if (se.calculateType.isArray) 1 else 2
+			MapLocalIndexSkeleton: if (se.calculateType.isArray) 1 else 2
+			MapIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 2
+			MapLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 2
+			FoldSkeleton: 2
+			FoldLocalSkeleton: -1
+			MapFoldSkeleton: if((se.skeleton as MapFoldSkeleton).mapFunction.functionName == f.name) 1 else 2
+			ZipSkeleton:  2
+			ZipInPlaceSkeleton:  2
+			ZipIndexSkeleton: if (se.calculateType.isArray) 3 else 4
+			ZipLocalIndexSkeleton: if (se.calculateType.isArray) 3 else 4
+			ZipIndexInPlaceSkeleton: if (se.calculateType.isArray) 3 else 4
+			ZipLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 3 else 4
+			ShiftPartitionsHorizontallySkeleton: 0
+			ShiftPartitionsVerticallySkeleton: 0
+			GatherSkeleton: 0
+			ScatterSkeleton: 0
+			default: -1
+		}
+	}
+	
+	static def int getNumberOfFreeParameters(SkeletonExpression se, Function f) {
+		f.params.size - getNumberOfFixedParameters(se, f)
 	}
 	
 	static def toFunction(SkeletonParameterInput spi) {
