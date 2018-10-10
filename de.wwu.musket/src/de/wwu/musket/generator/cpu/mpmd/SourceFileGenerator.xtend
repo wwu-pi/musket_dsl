@@ -213,8 +213,7 @@ class SourceFileGenerator {
 				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
 					«generateShiftSkeletonVariables(processId)»
 				«ENDIF»
-				
-				«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
+
 			«ENDIF»
 			
 			«generateLogic(resource.Model.main, processId)»

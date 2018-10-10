@@ -21,6 +21,7 @@ import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.MatrixType
 
 class Musket {
 	static final Logger logger = LogManager.getLogger(Musket)
@@ -44,15 +45,21 @@ class Musket {
 		«generateDArrayDeclaration»
 		«generateDMatrixDeclaration»
 		«generateDArraySkeletonDeclarations»
+		«generateDMatrixSkeletonDeclarations»
 		
 		«val showCalls = resource.ShowCalls»
 		«IF showCalls.size() > 0»
 			template<typename T>
 			void print_dist(const std::string& name, const mkt::DArray<T>& a);
+			
+			«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
 		«ENDIF»
 		
 		template<typename T>
 		void print(const std::string& name, const mkt::DArray<T>& a);
+
+		template<typename T>
+		void print(const std::string& name, const mkt::DMatrix<T>& a);
 		
 		// for primitive values
 		
@@ -70,8 +77,10 @@ class Musket {
 		«generateDArrayDefinition»
 		«generateDMatrixDefinition»
 		«generateDArraySkeletonDefinitions»
+		«generateDMatrixSkeletonDefinitions»
 		
-		«generatePrintDistFunctions(showCalls)»
+		«generatePrintDistFunctionsArray(showCalls)»
+		«generatePrintDistFunctionsMatrix(showCalls)»
 			
 		template<typename T>
 		void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
@@ -86,18 +95,22 @@ class Musket {
 		  printf("%s", stream.str().c_str());
 		}
 
-		//template<typename T>
-		//void mkt::print(const std::string name, mkt::DMatrix<T> m) {
-		  //std::ostringstream stream;
-		  //stream << name << ": " << std::endl << "[";
-		  //for (int i = 0; i < m.get_size() - 1; ++i) {
-		  //	stream << m[i];
-		  //	stream << "; ";
-		  //}
-		  //stream << temp1[m.get_size() - 1] << "]" << std::endl;
-		  //stream << std::endl;
-		  //printf("%s", stream.str().c_str());
-		//}
+		template<typename T>
+		void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
+		  std::ostringstream stream;
+		  stream << name << ": " << std::endl;
+		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
+		  	stream << "[";
+		  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
+		  	  mkt::print(stream, m.get_local(i, j));
+		  	  stream << "; ";
+		  	}
+		  	mkt::print(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
+		  	stream << "]" << std::endl;
+		  }		  
+		  stream << std::endl;
+		  printf("%s", stream.str().c_str());
+		}
 		
 		template<typename T>
 		void mkt::print(std::ostringstream& stream, const T a) {
@@ -111,19 +124,19 @@ class Musket {
 		«ENDIF»
 	'''
 	
-	def static generatePrintDistFunctions(List<CollectionFunctionCall> showCalls){
+	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){
 		var result = ""
 		var types = newArrayList()
 		for (sc : showCalls){
-			if(sc.^var.type.distributionMode == DistributionMode.DIST && !types.contains(sc.^var.calculateCollectionType)){
+			if(sc.^var.type.distributionMode == DistributionMode.DIST && sc.^var.calculateType.isArray && !types.contains(sc.^var.calculateCollectionType)){
 				types.add(sc.^var.calculateCollectionType)
-				result += generatePrintDistFunction(sc.^var)
+				result += generatePrintDistFunctionArray(sc.^var)
 			}
 		}
 		return result
 	}
 	
-	def static generatePrintDistFunction(CollectionObject co)'''
+	def static generatePrintDistFunctionArray(CollectionObject co)'''
 		«var type = co.calculateCollectionType.cppType»
 		«var mpiType = co.calculateCollectionType.MPIType»
 		«var size = co.collectionType.size»
@@ -140,6 +153,60 @@ class Musket {
 		  }
 		  mkt::print(stream, a_copy[«size - 1»]);
 		  stream << "]" << std::endl << std::endl;
+		  printf("%s", stream.str().c_str());
+		}
+	'''
+	
+	def static generatePrintDistFunctionDeclarationsMatrix(List<CollectionFunctionCall> showCalls){
+		var result = ""
+		var matrices = newArrayList()
+		for (sc : showCalls){
+			if(sc.^var.type.distributionMode == DistributionMode.DIST && sc.^var.calculateType.isMatrix && !matrices.contains(sc.^var)){
+				matrices.add(sc.^var)
+				result += generatePrintDistFunctionDeclarationMatrix(sc.^var)
+			}
+		}
+		return result
+	}
+	
+	def static generatePrintDistFunctionDeclarationMatrix(CollectionObject co)'''
+		«var type = co.calculateCollectionType.cppType»
+		«var name = co.name»
+		void print_dist_«name»(const mkt::DMatrix<«type»>& m, const MPI_Datatype& dt);
+	'''
+	
+	def static generatePrintDistFunctionsMatrix(List<CollectionFunctionCall> showCalls){
+		var result = ""
+		var matrices = newArrayList()
+		for (sc : showCalls){
+			if(sc.^var.type.distributionMode == DistributionMode.DIST && sc.^var.calculateType.isMatrix && !matrices.contains(sc.^var)){
+				matrices.add(sc.^var)
+				result += generatePrintDistFunctionMatrix(sc.^var)
+			}
+		}
+		return result
+	}
+	
+	def static generatePrintDistFunctionMatrix(CollectionObject co)'''
+		«var type = co.calculateCollectionType.cppType»
+		«var mpiType = co.calculateCollectionType.MPIType»
+		«var size = co.collectionType.size»
+		«var sizeLocal = co.collectionType.sizeLocal(0)»
+		void mkt::print_dist_«co.name»(const mkt::DMatrix<«type»>& m, const MPI_Datatype& dt) {
+		  std::array<«type», «size»> m_copy;
+		  MPI_Gatherv(m.get_data(), «sizeLocal», «mpiType», m_copy.data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»1«ENDFOR»}).data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»«sizeLocal * (co.collectionType as MatrixType).partitionPosition(i).key + (co.collectionType as MatrixType).partitionPosition(i).value»«ENDFOR»}).data(), dt, 0, MPI_COMM_WORLD);
+		  std::ostringstream stream;
+		  stream << "«co.name»" << ": " << std::endl;
+		  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+		    stream << "[";
+		    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+		      mkt::print(stream, m_copy[i * m.get_number_of_columns() + j]);
+		      stream << "; ";
+		    }
+		    mkt::print(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+		    stream << "]" << std::endl;
+		  }		  
+		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
 	'''

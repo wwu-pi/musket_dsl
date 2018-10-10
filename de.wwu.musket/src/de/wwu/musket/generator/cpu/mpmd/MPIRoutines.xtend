@@ -18,6 +18,10 @@ class MPIRoutines {
 	def static generateMPIGather(String send_buffer, long count, MusketType type, String recv_buffer) '''
 		MPI_Gather(«send_buffer», «count», «type.MPIType», «recv_buffer», «count», «type.MPIType», 0, MPI_COMM_WORLD);
 	'''
+	
+	def static generateMPIGathervNonRoot(String send_buffer, long count, MusketType type) '''
+		MPI_Gatherv(«send_buffer», «count», «type.MPIType», nullptr, nullptr, nullptr, nullptr, 0, MPI_COMM_WORLD);
+	'''
 
 	def static generateMPIAllgather(String send_buffer, long count, MusketType type, String recv_buffer) '''
 		MPI_Allgather(«send_buffer», «count», «type.MPIType», «recv_buffer», «count», «type.MPIType», MPI_COMM_WORLD);

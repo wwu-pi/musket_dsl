@@ -115,46 +115,23 @@ class CollectionFunctionsGenerator {
 	 * @return generated code
 	 */
 	def static generateShowMatrix(CollectionObject m, int processId) '''
-		«val type = m.type as MatrixType»
-		«IF m.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
-			«State.setArrayName(m.name)»
-		«ELSE»
+		«IF Config.processes == 1»
+			mkt::print("«m.name»", «m.name»);
+		«ELSEIF m.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
-				«State.setArrayName("temp" + State.counter)»
-				std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
-			«ENDIF»
-			«IF processId == 0»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, State.arrayName + '.data()')»
+				mkt::print("«m.name»", «m.name»);
 			«ELSE»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, 'nullptr')»
-			«ENDIF»
-		«ENDIF»
-		
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		«IF processId == 0»
-			std::ostringstream «streamName»;
-			«streamName» << "«m.name»: " << std::endl << "[" << std::endl;
-			
-			for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rows.concreteValue»; ++«Config.var_loop_counter_rows»){
-				«streamName» << "[";
-				for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.cols.concreteValue»; ++«Config.var_loop_counter_cols»){
-					«IF type.blocksInRow == 1»
-						«streamName» << «generateShowElements(m, State.arrayName, Config.var_loop_counter_rows + " * " + type.rows.concreteValue + " + " + Config.var_loop_counter_cols)»;
-					«ELSE»
-						«val index = "(" + Config.var_loop_counter_rows + "%" + type.rowsLocal + ") * " + type.colsLocal + " + (" + Config.var_loop_counter_rows + " / " + type.rowsLocal + ") * " + type.sizeLocal(processId) + " * " + type.blocksInColumn + " + (" + Config.var_loop_counter_cols + "/ " + type.colsLocal + ") * " + type.sizeLocal(processId) + " + " + Config.var_loop_counter_cols + "%" + type.colsLocal»
-						«streamName» << «generateShowElements(m, State.arrayName, index)»;
-					«ENDIF»
-					if(«Config.var_loop_counter_cols» < «type.cols.concreteValue - 1»){
-						«streamName» << "; ";
-					}else{
-						«streamName» << "]" << std::endl;
-					}
-				}
-			}
-			
-			«streamName» << "]" << std::endl;
-			printf("%s", «streamName».str().c_str());
+				// show matrix (copy) --> only in p0
+		  	«ENDIF»
+		«ELSEIF m.type.distributionMode == DistributionMode.DIST»
+			«IF processId == 0»
+				mkt::print_dist_«m.name»(«m.name», «m.name»_partition_type_resized);
+		  	«ELSE»
+				// show matrix dist
+				«generateMPIGathervNonRoot(m.name + ".get_data()", (m.type as MatrixType).sizeLocal(processId), m.calculateCollectionType)»
+		  	«ENDIF»
+		«ELSE»
+		  // Collection Functions: generateShowArray default case --> something went wrong
 		«ENDIF»
 	'''
 

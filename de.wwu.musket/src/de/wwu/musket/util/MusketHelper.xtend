@@ -155,10 +155,10 @@ class MusketHelper {
 		switch se.skeleton {
 			MapSkeleton: 1
 			MapInPlaceSkeleton: 1
-			MapIndexSkeleton: if (se.calculateType.isArray) 1 else 2
-			MapLocalIndexSkeleton: if (se.calculateType.isArray) 1 else 2
-			MapIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 2
-			MapLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 2
+			MapIndexSkeleton: if (se.calculateType.isArray) 1 else 3
+			MapLocalIndexSkeleton: if (se.calculateType.isArray) 1 else 3
+			MapIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 3
+			MapLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 3
 			FoldSkeleton: 2
 			FoldLocalSkeleton: -1
 			MapFoldSkeleton: if((se.skeleton as MapFoldSkeleton).mapFunction.functionName == f.name) 1 else 2

@@ -11,8 +11,6 @@ import static de.wwu.musket.generator.cpu.mpmd.HeaderFileGenerator.generateHeade
 import static de.wwu.musket.generator.cpu.mpmd.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.mpmd.SourceFileGenerator.generateSourceFile
 import static de.wwu.musket.generator.cpu.mpmd.SlurmGenerator.generateSlurmJob
-import static de.wwu.musket.generator.cpu.mpmd.lib.DArray.generateDArrayHeaderFile
-import static de.wwu.musket.generator.cpu.mpmd.lib.DMatrix.generateDMatrixHeaderFile
 import static de.wwu.musket.generator.cpu.mpmd.lib.Musket.generateMusketHeaderFile
 
 /** 
