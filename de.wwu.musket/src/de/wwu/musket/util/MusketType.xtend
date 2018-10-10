@@ -281,6 +281,8 @@ class MusketType {
 				FloatMatrixType: '''0.0f'''
 				BoolArrayType,
 				BoolMatrixType: '''false'''
+				StructArrayType,
+				StructMatrixType: '''«this.collectionType.toFullType.structName»{}'''
 				default:
 					'''/*getCXXDefaultValue: Collection*/'''
 			}

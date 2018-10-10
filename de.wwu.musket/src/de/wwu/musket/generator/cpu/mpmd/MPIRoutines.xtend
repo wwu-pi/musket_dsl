@@ -61,7 +61,7 @@ class MPIRoutines {
 	'''
 
 	def static generateCreateDatatypeStruct(Struct s) '''
-		MPI_Datatype «s.name»_mpi_type_temp, «s.name»_mpi_type;
+		MPI_Datatype «s.name»_mpi_type_temp;
 		MPI_Type_create_struct(«s.attributes.size», (std::array<int,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»1«ENDFOR»}).data(), (std::array<MPI_Aint,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»static_cast<MPI_Aint>(offsetof(struct «s.name», «s.attributes.get(i).name»))«ENDFOR»}).data(), (std::array<MPI_Datatype,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»«s.attributes.get(i).calculateType.MPIType»«ENDFOR»}).data(), &«s.name»_mpi_type_temp);
 		MPI_Type_create_resized(«s.name»_mpi_type_temp, 0, sizeof(«s.name»), &«s.name»_mpi_type);
 		MPI_Type_free(&«s.name»_mpi_type_temp);

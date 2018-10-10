@@ -37,6 +37,7 @@ class Musket {
 		#pragma once
 		
 		#include <string>
+		#include "«resource.ProjectName»«Config.header_extension»"
 		
 		namespace mkt {
 		
@@ -63,8 +64,8 @@ class Musket {
 		
 		// for primitive values
 		
-		template<typename T>
-		void print(std::ostringstream& stream, const T a);
+		//template<typename T>
+		//void print(std::ostringstream& stream, const T a);
 		
 		«IF resource.Structs.size > 0»
 			// for structs
@@ -79,6 +80,17 @@ class Musket {
 		«generateDArraySkeletonDefinitions»
 		«generateDMatrixSkeletonDefinitions»
 		
+		«IF resource.Structs.size > 0»
+			«resource.generateStructPrintFunctions»
+		«ENDIF»
+		
+		template<typename T>
+		void mkt::print(std::ostringstream& stream, const T& a) {
+			if(std::is_fundamental<T>::value){
+				stream << a;
+			}
+		}
+		
 		«generatePrintDistFunctionsArray(showCalls)»
 		«generatePrintDistFunctionsMatrix(showCalls)»
 			
@@ -87,10 +99,10 @@ class Musket {
 		  std::ostringstream stream;
 		  stream << name << ": " << std::endl << "[";
 		  for (int i = 0; i < a.get_size() - 1; ++i) {
-		  	mkt::print(stream, a.get_local(i));
+		  	mkt::print<T>(stream, a.get_local(i));
 		  	stream << "; ";
 		  }
-		  mkt::print(stream, a.get_local(a.get_size() - 1));
+		  mkt::print<T>(stream, a.get_local(a.get_size() - 1));
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
@@ -102,26 +114,15 @@ class Musket {
 		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
 		  	stream << "[";
 		  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
-		  	  mkt::print(stream, m.get_local(i, j));
+		  	  mkt::print<T>(stream, m.get_local(i, j));
 		  	  stream << "; ";
 		  	}
-		  	mkt::print(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
+		  	mkt::print<T>(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
 		  	stream << "]" << std::endl;
 		  }		  
 		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
-		
-		template<typename T>
-		void mkt::print(std::ostringstream& stream, const T a) {
-			if(std::is_fundamental<T>::value){
-				stream << a;
-			}
-		}
-		
-		«IF resource.Structs.size > 0»
-			«resource.generateStructPrintFunctions»
-		«ENDIF»
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){
@@ -148,10 +149,10 @@ class Musket {
 		  std::ostringstream stream;
 		  stream << name << ": " << std::endl << "[";
 		  for (int i = 0; i < «size - 1»; ++i) {
-		  	mkt::print(stream, a_copy[i]);
+		  	mkt::print<«type»>(stream, a_copy[i]);
 		  	stream << "; ";
 		  }
-		  mkt::print(stream, a_copy[«size - 1»]);
+		  mkt::print<«type»>(stream, a_copy[«size - 1»]);
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
@@ -200,10 +201,10 @@ class Musket {
 		  for (int i = 0; i < m.get_number_of_rows(); ++i) {
 		    stream << "[";
 		    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
-		      mkt::print(stream, m_copy[i * m.get_number_of_columns() + j]);
+		      mkt::print<«type»>(stream, m_copy[i * m.get_number_of_columns() + j]);
 		      stream << "; ";
 		    }
-		    mkt::print(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+		    mkt::print<«type»>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
 		    stream << "]" << std::endl;
 		  }		  
 		  stream << std::endl;
@@ -224,18 +225,19 @@ class Musket {
 		template<>
 		void mkt::print<«type»>(std::ostringstream& stream, const «type»& a) {
 		  stream << "[";
-		  «FOR member : struct.attributes SEPARATOR '''stream << ";";'''»
+		  «FOR member : struct.attributes SEPARATOR '''stream << "; ";'''»
+		  	«val memberType = member.calculateType.cppType»
 		  	«IF member.calculateType.isCollection»
 		  		«val size = member.calculateType.size»
 		  		stream << "«member.name»: [";
 		  		for(int i = 0; i < «size -1»; ++i){
-		  		  mkt::print(stream, a.«member.name»[i]);
+		  		  mkt::print<«memberType»>(stream, a.«member.name»[i]);
 		  		}
-		  		mkt::print(stream, a.«member.name»[«size - 1»]);
+		  		mkt::print<«memberType»>(stream, a.«member.name»[«size - 1»]);
 		  		stream << "]";
 		  	«ELSE»
 		  		stream << "«member.name»: ";
-		  		mkt::print(stream, a.«member.name»);
+		  		mkt::print<«memberType»>(stream, a.«member.name»);
 		  	«ENDIF»
 		  «ENDFOR»
 		  stream << "]";

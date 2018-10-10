@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.wwu.musket.generator.cpu.mpmd.CMakeGenerator.generateCMake
 import static de.wwu.musket.generator.cpu.mpmd.HeaderFileGenerator.generateHeaderFile
+import static de.wwu.musket.generator.cpu.mpmd.HeaderFileGenerator.generateProcessHeaderFiles
 import static de.wwu.musket.generator.cpu.mpmd.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cpu.mpmd.SourceFileGenerator.generateSourceFile
 import static de.wwu.musket.generator.cpu.mpmd.SlurmGenerator.generateSlurmJob
@@ -47,13 +48,14 @@ class MusketCPUMPMDGenerator {
 		
 		// lib header files
 		generateMusketHeaderFile(resource, fsa, context)
+		generateHeaderFile(resource, fsa, context)
 		//generateDArrayHeaderFile(resource, fsa, context)
 		//generateDMatrixHeaderFile(resource, fsa, context)
 		
 				
 		// source code
 		for(var i = 0; i < Config.processes; i++){
-			generateHeaderFile(resource, fsa, context, i)		
+			generateProcessHeaderFiles(resource, fsa, context, i)		
 			generateSourceFile(resource, fsa, context, i)
 		}
 		logger.info("Generation for CPU platform wit MPMD done.")

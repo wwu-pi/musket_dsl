@@ -155,19 +155,19 @@ class MusketHelper {
 		switch se.skeleton {
 			MapSkeleton: 1
 			MapInPlaceSkeleton: 1
-			MapIndexSkeleton: if (se.calculateType.isArray) 1 else 3
-			MapLocalIndexSkeleton: if (se.calculateType.isArray) 1 else 3
-			MapIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 3
-			MapLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 1 else 3
+			MapIndexSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapLocalIndexSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapLocalIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 2 else 3
 			FoldSkeleton: 2
 			FoldLocalSkeleton: -1
 			MapFoldSkeleton: if((se.skeleton as MapFoldSkeleton).mapFunction.functionName == f.name) 1 else 2
-			ZipSkeleton:  2
+			ZipSkeleton: 2
 			ZipInPlaceSkeleton:  2
-			ZipIndexSkeleton: if (se.calculateType.isArray) 3 else 4
-			ZipLocalIndexSkeleton: if (se.calculateType.isArray) 3 else 4
-			ZipIndexInPlaceSkeleton: if (se.calculateType.isArray) 3 else 4
-			ZipLocalIndexInPlaceSkeleton: if (se.calculateType.isArray) 3 else 4
+			ZipIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipLocalIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipLocalIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
 			ShiftPartitionsHorizontallySkeleton: 0
 			ShiftPartitionsVerticallySkeleton: 0
 			GatherSkeleton: 0

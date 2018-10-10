@@ -24,15 +24,27 @@ class HeaderFileGenerator {
 	/**
 	 * Creates a new header file for the project.
 	 */
-	def static void generateHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, int processId) {
+	def static void generateHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+		logger.info("Generate Header file.")
+		fsa.generateFile(Config.base_path + Config.include_path + resource.ProjectName + Config.header_extension,
+			headerFileContent(resource))
+		logger.info("Generation of header file done.")
+	}
+	
+	/**
+	 * Creates a new header file for each executable.
+	 */
+	def static void generateProcessHeaderFiles(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, int processId) {
 		logger.info("Generate Header file.")
 		fsa.generateFile(Config.base_path + Config.include_path + resource.ProjectName + '_' + processId + Config.header_extension,
-			headerFileContent(resource))
+			processHeaderFileContent(resource))
 		logger.info("Generation of header file done.")
 	}
 
 	/**
 	 * Generates the content of the header file.
+	 * 
+	 * TODO: fix/add forward declarations
 	 * 
 	 * @param resource the resource object
 	 * @return the content of the header file
@@ -43,6 +55,18 @@ class HeaderFileGenerator {
 		«FOR s : resource.Structs»
 			«s.generateStructDeclaration»
 		«ENDFOR»
+		
+		MPI_Datatype Complex_mpi_type;
+	'''
+
+	/**
+	 * Generates the content of the header file.
+	 * 
+	 * @param resource the resource object
+	 * @return the content of the header file
+	 */
+	def static processHeaderFileContent(Resource resource) '''
+		#pragma once
 		
 		«FOR co : resource.CollectionObjects»
 			«co.generateObjectDeclaration»

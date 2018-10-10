@@ -139,7 +139,7 @@ class DMatrix {
 		      _dist(d),
 		      _data(size_local, init_value) {
 		}
-				
+		
 		template<typename T>
 		T mkt::DMatrix<T>::get_local(int row, int column) const {
 		  return _data[row * _number_of_columns_local + column];
