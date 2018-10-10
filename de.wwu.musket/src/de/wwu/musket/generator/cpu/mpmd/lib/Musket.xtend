@@ -20,6 +20,7 @@ import de.wwu.musket.musket.CollectionFunctionCall
 import de.wwu.musket.musket.DistributionMode
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.Struct
 
 class Musket {
 	static final Logger logger = LogManager.getLogger(Musket)
@@ -53,8 +54,17 @@ class Musket {
 		template<typename T>
 		void print(const std::string& name, const mkt::DArray<T>& a);
 		
+		// for primitive values
+		
 		template<typename T>
 		void print(std::ostringstream& stream, const T a);
+		
+		«IF resource.Structs.size > 0»
+			// for structs
+			template<typename T>
+			void print(std::ostringstream& stream, const T& a);
+		«ENDIF»
+		
 		} // namespace mkt
 		
 		«generateDArrayDefinition»
@@ -94,7 +104,11 @@ class Musket {
 			if(std::is_fundamental<T>::value){
 				stream << a;
 			}
-		}		
+		}
+		
+		«IF resource.Structs.size > 0»
+			«resource.generateStructPrintFunctions»
+		«ENDIF»
 	'''
 	
 	def static generatePrintDistFunctions(List<CollectionFunctionCall> showCalls){
@@ -130,6 +144,37 @@ class Musket {
 		}
 	'''
 	
+	def static generateStructPrintFunctions(Resource resource){
+		var result = ""
+		for(struct : resource.Structs){
+			result += struct.generateStructPrintFunction
+		}
+		return result
+	}
+	
+	def static generateStructPrintFunction(Struct struct)'''
+		«val type = struct.name.toFirstUpper»
+		template<>
+		void mkt::print<«type»>(std::ostringstream& stream, const «type»& a) {
+		  stream << "[";
+		  «FOR member : struct.attributes SEPARATOR '''stream << ";";'''»
+		  	«IF member.calculateType.isCollection»
+		  		«val size = member.calculateType.size»
+		  		stream << "«member.name»: [";
+		  		for(int i = 0; i < «size -1»; ++i){
+		  		  mkt::print(stream, a.«member.name»[i]);
+		  		}
+		  		mkt::print(stream, a.«member.name»[«size - 1»]);
+		  		stream << "]";
+		  	«ELSE»
+		  		stream << "«member.name»: ";
+		  		mkt::print(stream, a.«member.name»);
+		  	«ENDIF»
+		  «ENDFOR»
+		  stream << "]";
+		}
+	'''
+		
 	def static generateForwardDeclarations() '''
 		template<typename T>
 		class DArray;
