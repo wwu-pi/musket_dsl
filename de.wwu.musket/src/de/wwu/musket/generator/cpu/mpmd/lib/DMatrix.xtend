@@ -303,9 +303,12 @@ class DMatrix {
 		
 		template<typename T, typename Functor>
 		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, const Functor& f){
-		#pragma omp parallel for simd
-		  for (int i = 0; i < m.get_size_local(); ++i) {
-		    m.set_local(i, f(i, m.get_local(i)));
+		  #pragma omp parallel for
+		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
+		    #pragma omp simd
+		    for (int j = 0; j < m.get_number_of_columns_local(); ++j) {
+		      m.set_local(i, j, f(i, j, m.get_local(i, j)));
+		    }
 		  }
 		}
 	'''

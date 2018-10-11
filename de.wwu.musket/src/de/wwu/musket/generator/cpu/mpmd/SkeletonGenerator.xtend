@@ -67,7 +67,7 @@ class SkeletonGenerator {
 			MapIndexSkeleton: generateMapIndexSkeleton(s, (target as CollectionObject), processId)			
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
-			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
+			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj, processId)
 			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as Object).name, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
 			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as Object).name, processId)
@@ -195,12 +195,10 @@ class SkeletonGenerator {
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''		
-		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_loop_counter», «s.obj.name»[«Config.var_loop_counter»]);
-		}
-	'''
+	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.skeleton.functorName»>(«co.name», «s.skeleton.functorObjectName»);
+		'''
 	
 /**
  * Generates the mapLocalIndexInPlace skeleton for matrices.
