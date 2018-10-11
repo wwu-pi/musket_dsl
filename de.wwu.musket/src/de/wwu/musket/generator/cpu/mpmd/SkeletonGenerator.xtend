@@ -198,15 +198,9 @@ class SkeletonGenerator {
  * @return the generated skeleton code 
  */
 	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
-		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
-			«Config.var_elem_offset» = «a.globalOffset(processId)»;
-		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
-			«Config.var_elem_offset» = 0;
-		«ENDIF»
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_elem_offset» + «Config.var_loop_counter», «s.obj.name»[«Config.var_loop_counter»]);
-		}
+		«val o = s.obj»
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«o.name», «s.skeleton.functorObjectName»);
 	'''
 	
 /**
