@@ -64,7 +64,7 @@ class SkeletonGenerator {
 		switch skel {
 			MapSkeleton: generateMapSkeleton(s, (target as CollectionObject), processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
-			MapIndexSkeleton: generateMapIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)			
+			MapIndexSkeleton: generateMapIndexSkeleton(s, (target as CollectionObject), processId)			
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
@@ -105,46 +105,13 @@ class SkeletonGenerator {
 		mkt::map<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 	
-	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
-		// MapIndexSkeleton Array Start
+	def static generateMapIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
+		«val a = s.obj»
+		«val aType = a.calculateCollectionType.cppType»
+		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapIndexSkeleton»
-		
-		«IF a.distributionMode == DistributionMode.DIST && Config.processes > 1»
-			«Config.var_elem_offset» = «a.globalOffset(processId)»;
-		«ELSEIF a.distributionMode == DistributionMode.COPY && Config.processes > 1»
-			«Config.var_elem_offset» = 0;
-		«ENDIF»
-		
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, s.obj.type, processId)»
-		}
-		// MapIndexSkeleton Array End
-	'''
-	
-	def static dispatch generateMapIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
-		// MapIndexSkeleton Matrix Start
-		«val skel = s.skeleton as MapIndexSkeleton»
-		
-		«IF m.distributionMode == DistributionMode.DIST && Config.processes > 1»
-			«Config.var_row_offset» = «processId / m.blocksInColumn * m.rowsLocal»;
-			«Config.var_col_offset» = «processId % m.blocksInRow * m.colsLocal»;
-		«ELSEIF m.distributionMode == DistributionMode.COPY && Config.processes > 1»
-			«Config.var_row_offset» = 0;
-			«Config.var_col_offset» = 0;
-		«ENDIF»
-		
-		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
-		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			«IF Config.cores > 1»
-				#pragma omp simd
-			«ENDIF»
-			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
-				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, processId)»
-			}
-		}
-		// MapIndexSkeleton Matrix End
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 	
 	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
