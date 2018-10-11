@@ -17,6 +17,8 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.DistributionMode
 
 /**
  * Generate everything required for the fold skeleton, except for the actual fold skeleton call.
@@ -109,13 +111,37 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateMPIFoldFunction(FoldSkeletonVariants foldSkeleton, CollectionObject a, int processId) '''
-«««		«val type = if(foldSkeleton.identity.calculateType.collection) foldSkeleton.identity.calculateType.calculateCollectionType.cppType else foldSkeleton.identity.calculateType.cppType»
+		«««		«val type = if(foldSkeleton.identity.calculateType.collection) foldSkeleton.identity.calculateType.calculateCollectionType.cppType else foldSkeleton.identity.calculateType.cppType»
 		«val type = foldSkeleton.identity.calculateType.cppType.replace("0", foldSkeleton.identity.calculateType.collectionType?.size.toString)»
 		void «foldSkeleton.param.functionName»(void* in, void* inout, int *len, MPI_Datatype *dptr){
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
 			*inoutv = «foldSkeleton.param.functionName»_function(«FOR arg : foldSkeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»*inv, *inoutv);
 		} 
+	'''
+
+	def static generateMPIFoldOperatorDeclarations(Resource resource) {
+		var result = ""
+		var List<SkeletonExpression> processed = newArrayList
+		for (SkeletonExpression se : resource.SkeletonExpressions) {
+			if (se.skeleton instanceof FoldSkeleton || se.skeleton instanceof MapFoldSkeleton) {
+				val alreadyProcessed = processed.exists [
+					it.skeleton.param.functionName == se.skeleton.param.functionName
+				]
+
+				if (!alreadyProcessed) {
+					result += generateMPIFoldOperatorDeclaration(se.skeleton as FoldSkeletonVariants)
+					processed.add(se)
+				}
+			}
+		}
+
+		return result
+	}
+	
+	def static generateMPIFoldOperatorDeclaration(FoldSkeletonVariants s) '''
+		«val name = s.param.functionName»
+		MPI_Op «name»_reduction«Config.mpi_op_suffix»;
 	'''
 
 	/**
@@ -152,7 +178,6 @@ class FoldSkeletonGenerator {
 	 */
 	def static generateMPIFoldOperator(FoldSkeletonVariants s) '''
 		«val name = s.param.functionName»
-		MPI_Op «name»_reduction«Config.mpi_op_suffix»;
 		MPI_Op_create( «name», 0, &«name»_reduction«Config.mpi_op_suffix» );
 	'''
 
@@ -173,7 +198,8 @@ class FoldSkeletonGenerator {
 				]
 
 				if (!alreadyProcessed) {
-					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType.replace("0", (se.skeleton as FoldSkeletonVariants).identity.calculateType.collectionType?.size.toString)
+					val type = (se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType.replace("0",
+						(se.skeleton as FoldSkeletonVariants).identity.calculateType.collectionType?.size.toString)
 
 					result += '''«type» «Config.var_fold_result»_«type.toCXXIdentifier»;'''
 				}
@@ -183,4 +209,84 @@ class FoldSkeletonGenerator {
 
 		return result
 	}
+
+	def static generateFoldFunctionDefinitions(Resource resource, int processId) {
+		var result = ""
+		var List<SkeletonExpression> arrayProcessed = newArrayList
+		var List<SkeletonExpression> matrixProcessed = newArrayList
+		for (SkeletonExpression se : resource.SkeletonExpressions) {
+			if (se.skeleton instanceof FoldSkeleton) {
+				if (se.obj.calculateType.isArray) {
+					val alreadyProcessed = arrayProcessed.exists [
+						(it.skeleton as FoldSkeletonVariants).identity.calculateType.cppType ==
+							(se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
+					]
+					if (!alreadyProcessed) {
+						result += generateArrayFoldFunctionDefinition(se)
+					}
+					arrayProcessed.add(se)
+				} else if (se.obj.calculateType.isMatrix) {
+					val alreadyProcessed = matrixProcessed.exists [
+						(it.skeleton as FoldSkeletonVariants).identity.calculateType.cppType ==
+							(se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
+					]
+					if (!alreadyProcessed) {
+						result += generateMatrixFoldFunctionDefinition(se)
+					}
+					matrixProcessed.add(se)
+				}
+			}
+		}
+
+		return result
+	}
+
+	def static generateArrayFoldFunctionDefinition(SkeletonExpression se) '''
+		«val cpptype = se.obj.calculateCollectionType.cppType»
+		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
+		«val foldName = fs.param.functionName + "_reduction"»
+		«val co = se.obj»
+		«var local_result = ""»
+		template<>
+		void mkt::fold<«cpptype», «se.functorName»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
+		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»  		  	
+  		  	«cpptype» «local_result = "local_result"» = identity;
+  		  «ELSE»
+  		    «local_result = "out"» = identity;
+  		  «ENDIF»		  
+		  
+		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
+		  for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(0)»; ++«Config.var_loop_counter»){
+		    «local_result» = f(«local_result», in.get_local(«Config.var_loop_counter»));
+		  }
+		  
+		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+		  	//«cpptype» global_result = «fs.identity.generateExpression(null, 0)»;
+		  	MPI_Allreduce(&local_result, &out, 1, «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		  «ENDIF»
+		}
+	'''
+
+	def static generateMatrixFoldFunctionDefinition(SkeletonExpression se) '''
+		«val cpptype = se.obj.calculateCollectionType.cppType»
+		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
+		«val foldName = fs.param.functionName + "_reduction"»
+		«val co = se.obj»
+		template<>
+		«cpptype» mkt::fold<«cpptype», «se.functorName»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
+		  «cpptype» local_result = «fs.identity.generateExpression(null, 0)»;	    
+		  #pragma omp parallel for simd reduction(«foldName»:local_result)
+		  for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(0)»; ++«Config.var_loop_counter»){
+		    local_result = f(local_result, in.get_local(«Config.var_loop_counter»));
+		  }
+		  
+		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
+		  	«cpptype» global_result = «fs.identity.generateExpression(null, 0)»;
+		  	MPI_Allreduce(&local_result, &global_result, «Config.processes», «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+		  	return global_result;
+		  «ELSE»
+		  	return local_result;
+		  «ENDIF»
+		}
+	'''
 }

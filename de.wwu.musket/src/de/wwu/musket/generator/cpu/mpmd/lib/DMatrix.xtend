@@ -241,7 +241,7 @@ class DMatrix {
 		void map_local_index_in_place(mkt::DMatrix<T>& m, const Functor& f);
 		
 		template<typename T, typename Functor>
-		T fold(const mkt::DMatrix<T>& m, T identity, const Functor& f);
+		void fold(const mkt::DMatrix<T>& m, T& out, const T identity, const Functor& f);
 		
 		template<typename T, typename Functor>
 		T map_fold(const mkt::DMatrix<T>& m, const Functor& f_map, const T identity, const Functor& f_fold);

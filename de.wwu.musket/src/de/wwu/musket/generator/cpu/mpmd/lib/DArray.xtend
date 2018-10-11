@@ -277,7 +277,7 @@ class DArray {
 		void map_local_index_in_place(mkt::DArray<T>& a, const Functor& f);
 		
 		template<typename T, typename Functor>
-		T fold(const mkt::DArray<T>& a, T identity, const Functor& f);
+		void fold(const mkt::DArray<T>& a, T& out, const T identity, const Functor& f);
 		
 		template<typename T, typename Functor>
 		T map_fold(const mkt::DArray<T>& a, const Functor& f_map, const T identity, const Functor& f_fold);

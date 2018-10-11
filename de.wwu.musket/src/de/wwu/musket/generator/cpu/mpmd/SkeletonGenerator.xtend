@@ -68,7 +68,7 @@ class SkeletonGenerator {
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, (target as CollectionObject), processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj, processId)
-			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as Object).name, processId)
+			FoldSkeleton: generateFoldSkeleton(s, s.obj, target, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
 			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as Object).name, processId)
 			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
@@ -320,28 +320,10 @@ class SkeletonGenerator {
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static generateFoldSkeleton(FoldSkeleton s, CollectionObject co, String target, int processId) '''
-	«val foldResultType = s.identity.calculateType.cppType.toCXXIdentifier»
-
-	«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-		«Config.var_fold_result»_«foldResultType» = «s.identity.ValueAsString»;
-	«ELSE»
-		«target» = «s.identity.ValueAsString»;
-	«ENDIF»
-	«val foldName = s.param.functionName + "_reduction"»
-	
-	#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultType»«ELSE»«target»«ENDIF»)
-	for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-			«Config.var_fold_result»_«foldResultType» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«foldResultType», «co.name»[«Config.var_loop_counter»]);
-		«ELSE»
-			«target» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«target», «co.name»[«Config.var_loop_counter»]);
-		«ENDIF»
-	}
-	
-	«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-		MPI_Allreduce(&«Config.var_fold_result»_«foldResultType», &«target», «Config.processes», «s.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-	«ENDIF»
+	def static generateFoldSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
+		«val skel = s.skeleton as FoldSkeleton»
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::fold<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.functorObjectName»);
 	'''
 
 

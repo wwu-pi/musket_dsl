@@ -86,6 +86,10 @@ class SourceFileGenerator {
 			«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
 		«ENDIF»
 		
+		«generateReductionDeclarations(resource, processId)»
+		
+		«generateFoldFunctionDefinitions(resource, processId)»
+		
 		«generateMainFunction(resource, processId)»
 	'''
 
@@ -111,8 +115,6 @@ class SourceFileGenerator {
 		#include <type_traits>
 		
 		#include "../include/musket.hpp"
-		//#include "../include/dmatrix.hpp"
-		//#include "../include/darray.hpp"
 	'''
 
 	/**
@@ -197,8 +199,7 @@ class SourceFileGenerator {
 			«generateDistributionArraysInit(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource, processId)»
-			«generateReductionDeclarations(resource, processId)»
-			
+						
 			«IF Config.processes > 1»
 				«FOR s : resource.Structs»
 					«s.generateCreateDatatypeStruct»

@@ -64,13 +64,13 @@ class Musket {
 		
 		// for primitive values
 		
-		//template<typename T>
-		//void print(std::ostringstream& stream, const T a);
+		template<typename T>
+		void print(std::ostringstream& stream, const T& a);
 		
 		«IF resource.Structs.size > 0»
 			// for structs
-			template<typename T>
-			void print(std::ostringstream& stream, const T& a);
+			//template<typename T>
+			//void print(std::ostringstream& stream, const T& a);
 		«ENDIF»
 		
 		} // namespace mkt
@@ -89,10 +89,8 @@ class Musket {
 			if(std::is_fundamental<T>::value){
 				stream << a;
 			}
-		}
+		}	
 		
-		«generatePrintDistFunctionsArray(showCalls)»
-		«generatePrintDistFunctionsMatrix(showCalls)»
 			
 		template<typename T>
 		void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
@@ -123,6 +121,9 @@ class Musket {
 		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
+		
+		«generatePrintDistFunctionsArray(showCalls)»
+		«generatePrintDistFunctionsMatrix(showCalls)»
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){
