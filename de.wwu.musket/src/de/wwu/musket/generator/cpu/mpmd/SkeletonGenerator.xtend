@@ -66,7 +66,7 @@ class SkeletonGenerator {
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
 			MapIndexSkeleton: generateMapIndexSkeleton(s, (target as CollectionObject), processId)			
 			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, (target as CollectionObject), processId)
-			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
+			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj, processId)
 			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as Object).name, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
@@ -123,90 +123,21 @@ class SkeletonGenerator {
 		mkt::map_local_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 
-/**
- * Generates the MapInPlace skeleton.
- * <p>
- * The method does not need a target, since it is a mapInPlace call.
- * It is the same for matrices and arrays, because both are generated as std::arrays and therefore,
- * a single loop is sufficient.
- * 
- * @param s the skeleton expression
- * @return generated skeleton call
- */
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
 		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«a.name», «s.skeleton.functorObjectName»);
 	'''
-	
-// MapIndexInPlace
 
-/**
- * Generates the mapIndexInPlace skeleton for arrays.
- * <p>
- * First, the offset variable is set for each process.
- * Second, the loop iterates over the array.
- * 
- * @param s the skeleton expression
- * @param a the array on which the skeleton is used
- * @return the generated skeleton code 
- */
-	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, ArrayType a, int processId) '''
-		«val o = s.obj»
+	def static generateMapIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«o.name», «s.skeleton.functorObjectName»);
-	'''
-	
-/**
- * Generates the mapIndexInPlace skeleton for matrices.
- * <p>
- * First, the offset variables are set for each process.
- * Second, the loop iterates over the array.
- * 
- * @param s the skeleton expression
- * @param m the matrix on which the skeleton is used
- * @return the generated skeleton code 
- */
-	def static dispatch generateMapIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m, int processId) '''
-		«val a = s.obj»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«a.name», «s.skeleton.functorObjectName»);
+		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«co.name», «s.skeleton.functorObjectName»);
 	'''
 
-
-// map local index in place
-/**
- * Generates the mapLocalIndexInPlace skeleton for arrays.
- * 
- * @param s the skeleton expression
- * @param a the array on which the skeleton is used
- * @return the generated skeleton code 
- */
-	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
+	def static generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
 		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.skeleton.functorName»>(«co.name», «s.skeleton.functorObjectName»);
 		'''
-	
-/**
- * Generates the mapLocalIndexInPlace skeleton for matrices.
- * 
- * @param s the skeleton expression
- * @param m the matrix on which the skeleton is used
- * @return the generated skeleton code 
- */
-	def static dispatch generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, MatrixType m, int processId) '''
-		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
-		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			«IF Config.cores > 1»
-				#pragma omp simd
-			«ENDIF»
-			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
-				«s.obj.name»[«Config.var_loop_counter»] = «s.skeleton.param.functionName.toFirstLower»_functor(«FOR arg : s.skeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_loop_counter_rows», «Config.var_loop_counter_cols», «s.obj.name»[«Config.var_loop_counter»]);
-			}
-		}
-	'''
-
 
 // Zip
 	def static generateZipSkeleton(SkeletonExpression s, String target, int processId) '''
