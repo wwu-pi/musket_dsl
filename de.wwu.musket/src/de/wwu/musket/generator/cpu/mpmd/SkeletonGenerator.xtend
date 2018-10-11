@@ -65,7 +65,7 @@ class SkeletonGenerator {
 			MapSkeleton: generateMapSkeleton(s, (target as CollectionObject), processId)
 			MapInPlaceSkeleton: generateMapInPlaceSkeleton(s, processId)
 			MapIndexSkeleton: generateMapIndexSkeleton(s, (target as CollectionObject), processId)			
-			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
+			MapLocalIndexSkeleton: generateMapLocalIndexSkeleton(s, (target as CollectionObject), processId)
 			MapIndexInPlaceSkeleton: generateMapIndexInPlaceSkeleton(s, s.obj.type, processId)
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj, processId)
 			FoldSkeleton: generateFoldSkeleton(skel, s.obj, (target as Object).name, processId)
@@ -114,26 +114,13 @@ class SkeletonGenerator {
 		mkt::map_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 	
-	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, ArrayType a, String target, int processId) '''
+	def static generateMapLocalIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
+		«val a = s.obj»
+		«val aType = a.calculateCollectionType.cppType»
+		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapLocalIndexSkeleton»
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «a.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-			«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, a, processId)»
-		}
-	'''
-	
-	def static dispatch generateMapLocalIndexSkeleton(SkeletonExpression s, MatrixType m, String target, int processId) '''
-		«val skel = s.skeleton as MapLocalIndexSkeleton»
-		#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF» 
-		for(size_t «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «m.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			«IF Config.cores > 1»
-				#pragma omp simd
-			«ENDIF»
-			for(size_t «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «m.colsLocal»; ++«Config.var_loop_counter_cols»){
-				size_t «Config.var_loop_counter» = «Config.var_loop_counter_rows» * «m.colsLocal» + «Config.var_loop_counter_cols»;
-				«target»[«Config.var_loop_counter»] = «generateFunctionCall(skel, m, processId)»
-			}
-		}
+		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
+		mkt::map_local_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
 	'''
 
 /**
