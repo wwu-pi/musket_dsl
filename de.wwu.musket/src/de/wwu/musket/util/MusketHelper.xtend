@@ -46,6 +46,7 @@ import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.ScatterSkeleton
 import de.wwu.musket.musket.SkeletonExpression
 
+import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.MusketType.*
 import static extension de.wwu.musket.util.TypeHelper.*
 
@@ -118,12 +119,16 @@ class MusketHelper {
 		}
 	}
 	
-	static def getFunctorName(Skeleton skel) {
-		skel.param.functionName.toFirstUpper + "_" + skel.skeletonName + '_functor'
+	static def getFunctorName(SkeletonExpression se) {
+		val skel = se.skeleton
+		val container = se.obj.collectionContainerName
+		skel.param.functionName.toFirstUpper + "_" + skel.skeletonName + "_" + container + '_functor'
 	}
 	
-	static def getFunctorObjectName(Skeleton skel) {
-		skel.param.functionName.toFirstLower + "_" + skel.skeletonName + '_functor'
+	static def getFunctorObjectName(SkeletonExpression se) {
+		val skel = se.skeleton
+		val container = se.obj.collectionContainerName
+		skel.param.functionName.toFirstLower + "_" + skel.skeletonName + "_" + container + '_functor'
 	}
 	
 	static def getSkeletonName(Skeleton skel) {

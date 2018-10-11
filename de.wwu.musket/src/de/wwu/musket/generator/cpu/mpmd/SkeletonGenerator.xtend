@@ -91,7 +91,7 @@ class SkeletonGenerator {
 		val parameters = s.skeleton.param.functionParameters
 		val arguments = s.skeleton.param.functionArguments
 		for(var i = 0; i < numberOfFreeParams; i++){
-			result += '''«s.skeleton.functorObjectName».«parameters.get(i).name» = «arguments.get(i).generateExpression(null, 0)»;'''
+			result += '''«s.functorObjectName».«parameters.get(i).name» = «arguments.get(i).generateExpression(null, 0)»;'''
 		}
 		return result
 	}
@@ -102,7 +102,7 @@ class SkeletonGenerator {
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapSkeleton»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
+		mkt::map<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
 	'''
 	
 	def static generateMapIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
@@ -111,7 +111,7 @@ class SkeletonGenerator {
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapIndexSkeleton»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
+		mkt::map_index<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
 	'''
 	
 	def static generateMapLocalIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
@@ -120,23 +120,23 @@ class SkeletonGenerator {
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapLocalIndexSkeleton»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_local_index<«aType», «tType», «skel.functorName»>(«a.collectionName», «target.name», «skel.functorObjectName»);
+		mkt::map_local_index<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
 	'''
 
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«a.name», «s.skeleton.functorObjectName»);
+		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.functorName»>(«a.name», «s.functorObjectName»);
 	'''
 
 	def static generateMapIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.skeleton.functorName»>(«co.name», «s.skeleton.functorObjectName»);
+		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.functorName»>(«co.name», «s.functorObjectName»);
 	'''
 
 	def static generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.skeleton.functorName»>(«co.name», «s.skeleton.functorObjectName»);
+		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «s.functorObjectName»);
 		'''
 
 // Zip

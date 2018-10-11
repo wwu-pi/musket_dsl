@@ -1,0 +1,38 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dimA = 16;
+const int dimM = 4;
+
+struct Complex{
+	float real;
+	float imaginary;
+};
+
+array<Complex,dimA,dist> ad;
+matrix<Complex,dimM,dimM,dist> md;
+
+Complex initIndex(int r, int c, Complex x){
+	x.real = (float) r;
+	x.imaginary = (float) c;
+	return x;
+}
+
+
+// test: same function for matrix and array
+main{
+// initial 
+mkt::print("Inital:\n");
+ad.show();
+md.show();
+
+ad.mapIndexInPlace(initIndex(42));
+md.mapIndexInPlace(initIndex());
+
+mkt::print("After mapIndexInPlace:\n");
+ad.show();
+md.show();
+
+}

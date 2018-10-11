@@ -20,15 +20,16 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.generator.cpu.mpmd.lib.Musket
+import de.wwu.musket.musket.SkeletonExpression
 
 class FunctorGenerator {
 	
-	def static generateFunctorInstantiation(Function f, String skelName, int processId) '''
-		«f.name.toFirstUpper»_«skelName»_functor «f.name.toFirstLower»_«skelName»_functor{};
+	def static generateFunctorInstantiation(SkeletonExpression se, int processId) '''
+		«se.functorName» «se.functorObjectName»{};
 	'''
 
-	def static generateFunctor(Function f, String skelName, int freeParameter, int processId) '''
-		struct «f.name.toFirstUpper»_«skelName»_functor{
+	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
+		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»

@@ -23,6 +23,7 @@ import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
+import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
@@ -148,9 +149,10 @@ class SourceFileGenerator {
 		for(skeletonExpression : resource.SkeletonExpressions){
 			val skel = skeletonExpression.skeleton
 			val func = skeletonExpression.skeleton.param.toFunction
-			if(!generated.contains(skel.skeletonName.toString -> func.name)){
-				generated.add(skel.skeletonName.toString -> func.name)
-				result += FunctorGenerator.generateFunctor(skel.param.toFunction, skel.skeletonName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
+			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
+			if(!generated.contains(skelContainerName -> func.name)){
+				generated.add(skelContainerName -> func.name)
+				result += FunctorGenerator.generateFunctor(skel.param.toFunction, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
 			}
 		}
 		return result
@@ -162,9 +164,10 @@ class SourceFileGenerator {
 		for(skeletonExpression : resource.SkeletonExpressions){
 			val skel = skeletonExpression.skeleton
 			val func = skeletonExpression.skeleton.param.toFunction
-			if(!generated.contains(skel.skeletonName.toString -> func.name)){
-				generated.add(skel.skeletonName.toString -> func.name)
-				result += generateFunctorInstantiation(func, skel.skeletonName.toString, processId)
+			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
+			if(!generated.contains(skelContainerName -> func.name)){
+				generated.add(skelContainerName -> func.name)
+				result += generateFunctorInstantiation(skeletonExpression, processId)
 			}
 		}
 		return result
