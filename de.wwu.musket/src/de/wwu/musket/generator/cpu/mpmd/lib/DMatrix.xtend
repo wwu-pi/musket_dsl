@@ -25,8 +25,7 @@ class DMatrix {
 //	}
 	
 	
-	def static generateDMatrixDeclaration() '''
-		
+	def static generateDMatrixDeclaration() '''		
 		template<typename T>
 		class DMatrix {
 		 public:
@@ -43,6 +42,7 @@ class DMatrix {
 		  void set_global(int row, int column, const T& value);
 		
 		  T get_local(int row, int column) const;
+		  T get_local(int index) const;
 		  void set_local(int row, int column, const T& value);
 		  void set_local(int index, const T& value);
 		
@@ -143,6 +143,11 @@ class DMatrix {
 		template<typename T>
 		T mkt::DMatrix<T>::get_local(int row, int column) const {
 		  return _data[row * _number_of_columns_local + column];
+		}
+		
+		template<typename T>
+		T mkt::DMatrix<T>::get_local(int index) const {
+		  return _data[index];
 		}
 		
 		template<typename T>
