@@ -212,7 +212,6 @@ class SourceFileGenerator {
 				«ENDFOR»
 
 				«generateMPIFoldOperators(resource)»
-				«generateTmpFoldResults(resource)»
 				
 				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
 					«generateShiftSkeletonVariables(processId)»

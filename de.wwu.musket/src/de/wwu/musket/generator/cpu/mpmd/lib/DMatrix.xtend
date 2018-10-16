@@ -14,16 +14,6 @@ import de.wwu.musket.generator.cpu.mpmd.Config
 class DMatrix {
 	private static final Logger logger = LogManager.getLogger(DMatrix)
 
-	/**
-	 * Creates the DMatrix header file
-	 */
-//	def static void generateDMatrixHeaderFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		logger.info("Generate DMatrix file.")
-//		fsa.generateFile(Config.base_path + Config.include_path + 'dmatrix' + Config.header_extension,
-//			headerFileContent(resource))
-//		logger.info("Generation of DMatrix file done.")
-//	}
-	
 	
 	def static generateDMatrixDeclaration() '''		
 		template<typename T>
@@ -57,6 +47,8 @@ class DMatrix {
 		
 		  int get_number_of_rows_local() const;
 		  int get_number_of_columns_local() const;
+		  
+		  Distribution get_distribution() const;
 
 		  T* get_data();
 		  const T* get_data() const;
@@ -211,6 +203,11 @@ class DMatrix {
 		}
 		
 		template<typename T>
+		mkt::Distribution mkt::DMatrix<T>::get_distribution() const {
+		  return _dist;
+		}
+		
+		template<typename T>
 		const T* mkt::DMatrix<T>::get_data() const {
 		  return _data.data();
 		}
@@ -242,6 +239,9 @@ class DMatrix {
 		
 		template<typename T, typename Functor>
 		void fold(const mkt::DMatrix<T>& m, T& out, const T identity, const Functor& f);
+		
+		template<typename T, typename Functor>
+		void fold_copy(const mkt::DMatrix<T>& m, T& out, const T identity, const Functor& f);
 		
 		template<typename T, typename Functor>
 		T map_fold(const mkt::DMatrix<T>& m, const Functor& f_map, const T identity, const Functor& f_fold);

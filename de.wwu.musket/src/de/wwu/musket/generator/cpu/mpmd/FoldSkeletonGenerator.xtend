@@ -223,6 +223,7 @@ class FoldSkeletonGenerator {
 					]
 					if (!alreadyProcessed) {
 						result += generateArrayFoldFunctionDefinition(se)
+						result += generateArrayFoldCopyFunctionDefinition(se)
 					}
 					arrayProcessed.add(se)
 				} else if (se.obj.calculateType.isMatrix) {
@@ -232,6 +233,7 @@ class FoldSkeletonGenerator {
 					]
 					if (!alreadyProcessed) {
 						result += generateMatrixFoldFunctionDefinition(se)
+						result += generateMatrixFoldCopyFunctionDefinition(se)
 					}
 					matrixProcessed.add(se)
 				}
@@ -245,25 +247,42 @@ class FoldSkeletonGenerator {
 		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
 		«val foldName = fs.param.functionName + "_reduction"»
-		«val co = se.obj»
 		«var local_result = ""»
 		template<>
 		void mkt::fold<«cpptype», «se.functorName»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
-		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»  		  	
+		  «IF Config.processes > 1»  		  	
   		  	«cpptype» «local_result = "local_result"» = identity;
   		  «ELSE»
   		    «local_result = "out"» = identity;
   		  «ENDIF»		  
 		  
+		  const int size_local = in.get_size_local();
+		  
 		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
-		  for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(0)»; ++«Config.var_loop_counter»){
+		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
 		    «local_result» = f(«local_result», in.get_local(«Config.var_loop_counter»));
 		  }
 		  
-		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-		  	//«cpptype» global_result = «fs.identity.generateExpression(null, 0)»;
+		  «IF Config.processes > 1»
 		  	MPI_Allreduce(&local_result, &out, 1, «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 		  «ENDIF»
+		}
+	'''
+	
+	def static generateArrayFoldCopyFunctionDefinition(SkeletonExpression se) '''
+		«val cpptype = se.obj.calculateCollectionType.cppType»
+		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
+		«val foldName = fs.param.functionName + "_reduction"»
+		template<>
+		void mkt::fold_copy<«cpptype», «se.functorName»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
+		  out = identity;
+		  
+		  const int size = in.get_size();
+		  
+		  #pragma omp parallel for simd reduction(«foldName»:out)
+		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
+		    out = f(out, in.get_local(«Config.var_loop_counter»));
+		  }
 		}
 	'''
 
@@ -271,22 +290,42 @@ class FoldSkeletonGenerator {
 		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
 		«val foldName = fs.param.functionName + "_reduction"»
-		«val co = se.obj»
+		«var local_result = ""»
 		template<>
-		«cpptype» mkt::fold<«cpptype», «se.functorName»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
-		  «cpptype» local_result = «fs.identity.generateExpression(null, 0)»;	    
-		  #pragma omp parallel for simd reduction(«foldName»:local_result)
-		  for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(0)»; ++«Config.var_loop_counter»){
-		    local_result = f(local_result, in.get_local(«Config.var_loop_counter»));
+		void mkt::fold<«cpptype», «se.functorName»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
+		  «IF Config.processes > 1»  		  	
+  		  	«cpptype» «local_result = "local_result"» = identity;
+  		  «ELSE»
+  		    «local_result = "out"» = identity;
+  		  «ENDIF»		  
+		  
+		  const int size_local = in.get_size_local();
+		  
+		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
+		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
+		    «local_result» = f(«local_result», in.get_local(«Config.var_loop_counter»));
 		  }
 		  
-		  «IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»
-		  	«cpptype» global_result = «fs.identity.generateExpression(null, 0)»;
-		  	MPI_Allreduce(&local_result, &global_result, «Config.processes», «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-		  	return global_result;
-		  «ELSE»
-		  	return local_result;
+		  «IF Config.processes > 1»
+		  	MPI_Allreduce(&local_result, &out, 1, «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
 		  «ENDIF»
+		}
+	'''
+	
+	def static generateMatrixFoldCopyFunctionDefinition(SkeletonExpression se) '''
+		«val cpptype = se.obj.calculateCollectionType.cppType»
+		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
+		«val foldName = fs.param.functionName + "_reduction"»
+		template<>
+		void mkt::fold_copy<«cpptype», «se.functorName»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.functorName»& f){
+		  out = identity;
+		  
+		  const int size = in.get_size();
+		  
+		  #pragma omp parallel for simd reduction(«foldName»:out)
+		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
+		    out = f(out, in.get_local(«Config.var_loop_counter»));
+		  }
 		}
 	'''
 }

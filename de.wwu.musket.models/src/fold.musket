@@ -7,6 +7,10 @@ array<int,16,dist> as = {7};
 array<int,16,dist> bs;
 array<int,16,dist> cs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
+array<int,16,copy> asc = {7};
+array<int,16,copy> bsc;
+array<int,16,copy> csc = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
 int sum(int a, int b){
 	return a + b;
 }
@@ -22,14 +26,22 @@ main{
 	int a = 0;
 	int b = 0;
 	int c = 0;
+	int ac = 0;
+	int bc = 0;
+	int cc = 0;
 	
-	//for(int i = 0; i < 3; i++){	
-		a = as.fold(0,sum());
-		b = bs.fold(0,sum());	
-		c = cs.fold(0,sum());
-	//}
+	a = as.fold(0,sum());
+	b = bs.fold(0,sum());	
+	c = cs.fold(0,sum());
+	
+	ac = asc.fold(0,sum());
+	bc = bsc.fold(0,sum());	
+	cc = csc.fold(0,sum());
+	
+	//d = 
 	
 	mkt::roi_end();
 	
 	mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
+	mkt::print("ac = %i; bc = %i; cc = %i\n", ac,bc,cc);
 }

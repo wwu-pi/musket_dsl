@@ -323,7 +323,7 @@ class SkeletonGenerator {
 	def static generateFoldSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
 		«val skel = s.skeleton as FoldSkeleton»
 		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::fold<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.functorObjectName»);
+		mkt::fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.functorObjectName»);
 	'''
 
 
