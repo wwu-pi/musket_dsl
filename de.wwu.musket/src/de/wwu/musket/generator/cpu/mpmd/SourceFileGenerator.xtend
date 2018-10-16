@@ -33,6 +33,7 @@ import java.util.List
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /** 
  * Generates the source file of the project.
@@ -89,6 +90,7 @@ class SourceFileGenerator {
 		«generateReductionDeclarations(resource, processId)»
 		
 		«generateFoldFunctionDefinitions(resource, processId)»
+		«generateMapFoldFunctionDefinitions(resource, processId)»
 		
 		«generateMainFunction(resource, processId)»
 	'''
@@ -152,10 +154,19 @@ class SourceFileGenerator {
 			val skel = skeletonExpression.skeleton
 			val func = skeletonExpression.skeleton.param.toFunction
 			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
+						
 			if(!generated.contains(skelContainerName -> func.name)){
 				generated.add(skelContainerName -> func.name)
-				result += FunctorGenerator.generateFunctor(skel.param.toFunction, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
+				result += FunctorGenerator.generateFunctor(func, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
 			}
+			
+			if(skel instanceof MapFoldSkeleton){
+				val mapFunction = (skel as MapFoldSkeleton).mapFunction.toFunction
+				if(!generated.contains(skelContainerName -> mapFunction.name)){
+				generated.add(skelContainerName -> mapFunction.name)
+					result += FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+				}
+			}			
 		}
 		return result
 	}

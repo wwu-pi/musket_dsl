@@ -243,8 +243,11 @@ class DMatrix {
 		template<typename T, typename Functor>
 		void fold_copy(const mkt::DMatrix<T>& m, T& out, const T identity, const Functor& f);
 		
-		template<typename T, typename Functor>
-		T map_fold(const mkt::DMatrix<T>& m, const Functor& f_map, const T identity, const Functor& f_fold);
+		template<typename T, typename MapFunctor, typename FoldFunctor>
+		void map_fold(const mkt::DMatrix<T>& m, T& out, const MapFunctor& f_map, const T identity, const FoldFunctor& f_fold);
+		
+		template<typename T, typename MapFunctor, typename FoldFunctor>
+		void map_fold_copy(const mkt::DMatrix<T>& m, T& out, const MapFunctor& f_map, const T identity, const FoldFunctor& f_fold);
 	'''
 	
 	def static generateDMatrixSkeletonDefinitions() '''

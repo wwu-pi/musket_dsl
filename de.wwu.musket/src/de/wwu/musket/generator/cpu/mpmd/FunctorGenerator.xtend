@@ -21,11 +21,17 @@ import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.MapFoldSkeleton
 
 class FunctorGenerator {
 	
 	def static generateFunctorInstantiation(SkeletonExpression se, int processId) '''
-		«se.functorName» «se.functorObjectName»{};
+		«IF se.skeleton instanceof MapFoldSkeleton»
+			«se.getFunctorName((se.skeleton as MapFoldSkeleton).mapFunction)» «se.getFunctorObjectName((se.skeleton as MapFoldSkeleton).mapFunction)»{};
+			«se.getFunctorName(se.skeleton.param)» «se.getFunctorObjectName(se.skeleton.param)»{};
+		«ELSE»
+			«se.getFunctorName(se.skeleton.param)» «se.getFunctorObjectName(se.skeleton.param)»{};
+		«ENDIF»
 	'''
 
 	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''

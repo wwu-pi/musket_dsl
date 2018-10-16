@@ -119,16 +119,16 @@ class MusketHelper {
 		}
 	}
 	
-	static def getFunctorName(SkeletonExpression se) {
+	static def getFunctorName(SkeletonExpression se, SkeletonParameterInput spi) {
 		val skel = se.skeleton
 		val container = se.obj.collectionContainerName
-		skel.param.functionName.toFirstUpper + "_" + skel.skeletonName + "_" + container + '_functor'
+		spi.functionName.toFirstUpper + "_" + skel.skeletonName + "_" + container + '_functor'
 	}
 	
-	static def getFunctorObjectName(SkeletonExpression se) {
+	static def getFunctorObjectName(SkeletonExpression se, SkeletonParameterInput spi) {
 		val skel = se.skeleton
 		val container = se.obj.collectionContainerName
-		skel.param.functionName.toFirstLower + "_" + skel.skeletonName + "_" + container + '_functor'
+		spi.functionName.toFirstLower + "_" + skel.skeletonName + "_" + container + '_functor'
 	}
 	
 	static def getSkeletonName(Skeleton skel) {

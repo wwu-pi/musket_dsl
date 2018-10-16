@@ -43,6 +43,7 @@ import org.eclipse.emf.common.util.BasicEList
 import de.wwu.musket.musket.Expression
 import org.eclipse.emf.common.util.EList
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.SkeletonParameterInput
 
 /**
  * Generates the skeleton calls.
@@ -70,7 +71,7 @@ class SkeletonGenerator {
 			MapLocalIndexInPlaceSkeleton: generateMapLocalIndexInPlaceSkeleton(s, s.obj, processId)
 			FoldSkeleton: generateFoldSkeleton(s, s.obj, target, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
-			MapFoldSkeleton: generateMapFoldSkeleton(skel, s.obj, (target as Object).name, processId)
+			MapFoldSkeleton: generateMapFoldSkeleton(s, s.obj, target, processId)
 			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
 			ZipInPlaceSkeleton:  generateZipInPlaceSkeleton(s, processId)
 			ZipIndexSkeleton: generateZipIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)		
@@ -85,13 +86,13 @@ class SkeletonGenerator {
 		}
 	}
 
-	def static generateSetValuesInFunctor(SkeletonExpression s, Function f){
+	def static generateSetValuesInFunctor(SkeletonExpression s, SkeletonParameterInput spi){
 		var result = ""
-		val numberOfFreeParams = getNumberOfFreeParameters(s, f)
-		val parameters = s.skeleton.param.functionParameters
-		val arguments = s.skeleton.param.functionArguments
+		val numberOfFreeParams = getNumberOfFreeParameters(s, spi.toFunction)
+		val parameters = spi.functionParameters
+		val arguments = spi.functionArguments
 		for(var i = 0; i < numberOfFreeParams; i++){
-			result += '''«s.functorObjectName».«parameters.get(i).name» = «arguments.get(i).generateExpression(null, 0)»;'''
+			result += '''«s.getFunctorObjectName(spi)».«parameters.get(i).name» = «arguments.get(i).generateExpression(null, 0)»;'''
 		}
 		return result
 	}
@@ -101,8 +102,8 @@ class SkeletonGenerator {
 		«val aType = a.calculateCollectionType.cppType»
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapSkeleton»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
+		«generateSetValuesInFunctor(s, skel.param)»
+		mkt::map<«aType», «tType», «s.getFunctorName(skel.param)»>(«a.collectionName», «target.name», «s.getFunctorObjectName(skel.param)»);
 	'''
 	
 	def static generateMapIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
@@ -110,8 +111,8 @@ class SkeletonGenerator {
 		«val aType = a.calculateCollectionType.cppType»
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapIndexSkeleton»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
+		«generateSetValuesInFunctor(s, skel.param)»
+		mkt::map_index<«aType», «tType», «s.getFunctorName(skel.param)»>(«a.collectionName», «target.name», «s.getFunctorObjectName(skel.param)»);
 	'''
 	
 	def static generateMapLocalIndexSkeleton(SkeletonExpression s, CollectionObject target, int processId) '''
@@ -119,25 +120,28 @@ class SkeletonGenerator {
 		«val aType = a.calculateCollectionType.cppType»
 		«val tType = target.calculateCollectionType.cppType»
 		«val skel = s.skeleton as MapLocalIndexSkeleton»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_local_index<«aType», «tType», «s.functorName»>(«a.collectionName», «target.name», «s.functorObjectName»);
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::map_local_index<«aType», «tType», «s.getFunctorName(skel.param)»>(«a.collectionName», «target.name», «s.getFunctorObjectName(skel.param)»);
 	'''
 
 	def static generateMapInPlaceSkeleton(SkeletonExpression s, int processId) '''
 		«val a = s.obj»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.functorName»>(«a.name», «s.functorObjectName»);
+		«val skel = s.skeleton as MapInPlaceSkeleton»
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::map_in_place<«s.obj.calculateCollectionType.cppType», «s.getFunctorName(skel.param)»>(«a.name», «s.getFunctorObjectName(skel.param)»);
 	'''
 
 	def static generateMapIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.functorName»>(«co.name», «s.functorObjectName»);
+		«val skel = s.skeleton as MapIndexInPlaceSkeleton»
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::map_index_in_place<«s.obj.calculateCollectionType.cppType», «s.getFunctorName(skel.param)»>(«co.name», «s.getFunctorObjectName(skel.param)»);
 	'''
 
 	def static generateMapLocalIndexInPlaceSkeleton(SkeletonExpression s, CollectionObject co, int processId) '''
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «s.functorObjectName»);
-		'''
+		«val skel = s.skeleton as MapLocalIndexInPlaceSkeleton»
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::map_local_index_in_place<«co.calculateCollectionType.cppType», «s.getFunctorName(skel.param)»>(«co.name», «s.getFunctorObjectName(skel.param)»);
+	'''
 
 // Zip
 	def static generateZipSkeleton(SkeletonExpression s, String target, int processId) '''
@@ -322,8 +326,8 @@ class SkeletonGenerator {
  */
 	def static generateFoldSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
 		«val skel = s.skeleton as FoldSkeleton»
-		«generateSetValuesInFunctor(s, s.skeleton.param.toFunction)»
-		mkt::fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.functorName»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.functorObjectName»);
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.getFunctorObjectName(skel.param)»);
 	'''
 
 
@@ -339,45 +343,11 @@ class SkeletonGenerator {
  * @param a the array on which the skeleton is used
  * @return the generated skeleton code 
  */
-	def static generateMapFoldSkeleton(MapFoldSkeleton s, CollectionObject co, String target, int processId) '''
-		«val foldResultTypeIdentifier = s.identity.calculateType.cppType.replace("0", s.mapFunction.calculateType.collectionType?.size.toString).toCXXIdentifier»
-		«val foldResultType = s.identity.calculateType»
-		«val name = if (Config.processes > 1 && co.distributionMode != DistributionMode.COPY) {Config.var_fold_result + "_" + foldResultTypeIdentifier } else {target}»
-		«IF foldResultType.collection»
-			«val ci = ((s.identity as CompareExpression).eqLeft as CollectionInstantiation)»
-			«IF ci.values.size == 1»
-				«name».fill(«ci.values.head.ValueAsString»);
-			«ELSEIF ci.values.size == foldResultType.collectionType.sizeLocal(processId)»
-				«FOR i : 0 ..< ci.values.size»
-					«name»[«i»] = «ci.values.get(i)»;
-				«ENDFOR»
-			«ELSE»
-				«name».fill(«foldResultType.collectionType.CXXPrimitiveDefaultValue»);
-			«ENDIF»
-		«ELSE»
-			«name» = «s.identity.ValueAsString»;
-		«ENDIF»
-		
-		«val foldName = s.param.functionName»
-		
-		
-		#pragma omp«IF Config.cores > 1» parallel for«ENDIF» simd reduction(«foldName»_reduction:«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY»«Config.var_fold_result»_«foldResultTypeIdentifier»«ELSE»«target»«ENDIF»)
-		for(size_t «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «co.type.sizeLocal(processId)»; ++«Config.var_loop_counter»){
-«««			map part
-			«s.mapFunction.calculateType.cppType.replace("0", s.mapFunction.calculateType.collectionType?.size.toString)» «Config.var_map_fold_tmp» = «s.mapFunction.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«co.name»[«Config.var_loop_counter»]);
-
-«««			fold part
-			«Config.var_fold_result»_«s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString).toCXXIdentifier» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«Config.var_fold_result»_«s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString).toCXXIdentifier», «Config.var_map_fold_tmp»);
-		}		
-		
-		«IF Config.processes > 1 && co.distributionMode != DistributionMode.COPY && co.distributionMode != DistributionMode.LOC»
-«««			array as result
-			«IF s.identity.calculateType.collection»
-				MPI_Allreduce(«Config.var_fold_result»_«foldResultTypeIdentifier».data(), «target».data(), «s.identity.calculateType.collectionType.sizeLocal(processId)», «s.identity.calculateType.calculateCollectionType.MPIType», «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-			«ELSE »
-				MPI_Allreduce(&«Config.var_fold_result»_«foldResultTypeIdentifier», &«target», «Config.processes», «foldResultType.MPIType», «foldName»_reduction«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-			«ENDIF»			
-		«ENDIF»
+	def static generateMapFoldSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
+		«val skel = s.skeleton as MapFoldSkeleton»
+		«generateSetValuesInFunctor(s, (s.skeleton as MapFoldSkeleton).mapFunction)»
+		«generateSetValuesInFunctor(s, s.skeleton.param)»
+		mkt::map_fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.getFunctorName(skel.mapFunction)», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «s.getFunctorObjectName(skel.mapFunction)», «skel.identity.generateExpression(null, processId)», «s.getFunctorObjectName(skel.param)»);
 	'''
 		
 	// Shift partitions

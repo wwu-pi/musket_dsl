@@ -3,6 +3,8 @@
 #config CORES 8
 #config MODE debug
 
+const int mdim = 4;
+
 array<int,16,dist> as = {7};
 array<int,16,dist> bs;
 array<int,16,dist> cs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
@@ -11,8 +13,23 @@ array<int,16,copy> asc = {7};
 array<int,16,copy> bsc;
 array<int,16,copy> csc = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
+matrix<int,mdim,mdim,dist> asma = {7};
+matrix<int,mdim,mdim,dist> bsma;
+
+matrix<int,mdim,mdim,copy> ascm = {7};
+matrix<int,mdim,mdim,copy> bscm;
+
+
+int initMatrix(int x, int r, int c, int v){
+	return r * mdim + c + x;
+}
+
 int sum(int a, int b){
 	return a + b;
+}
+
+int timesX(int x, int e){
+	return x * e ;
 }
 
 main{
@@ -23,13 +40,15 @@ main{
 	
 	mkt::roi_start();
 	
+	// Array
+	
 	int a = 0;
 	int b = 0;
 	int c = 0;
 	int ac = 0;
 	int bc = 0;
 	int cc = 0;
-	
+		
 	a = as.fold(0,sum());
 	b = bs.fold(0,sum());	
 	c = cs.fold(0,sum());
@@ -38,10 +57,50 @@ main{
 	bc = bsc.fold(0,sum());	
 	cc = csc.fold(0,sum());
 	
-	//d = 
+	int dd = 0;
+	int dc = 0;
+	
+	dd = as.mapFold(timesX(2), 0, sum());
+	dc = asc.mapFold(timesX(2), 0, sum());
+	
+	
+	//Matrix
+	
+	int am = 0;
+	int bm = 0;
+	int acm = 0;
+	int bcm = 0;
+		
+	
+		
+	bsma.mapIndexInPlace(initMatrix(1));
+	bscm.mapIndexInPlace(initMatrix(1));
+		
+	asma.show();
+	ascm.show();
+		
+	bsma.show();
+	bscm.show();
+		
+	am = asma.fold(0,sum());
+	bm = bsma.fold(0,sum());	
+	
+	acm = ascm.fold(0,sum());
+	bcm = bscm.fold(0,sum());	
+	
+	int ddm = 0;
+	int dcm = 0;
+	
+	ddm = asma.mapFold(timesX(2), 0, sum());
+	dcm = ascm.mapFold(timesX(2), 0, sum());
 	
 	mkt::roi_end();
 	
 	mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
 	mkt::print("ac = %i; bc = %i; cc = %i\n", ac,bc,cc);
+	mkt::print("dc = %i; dd = %i\n\n", dc,dd);
+	
+	mkt::print("am = %i; bm = %i\n", am,bm);
+	mkt::print("acm = %i; bcm = %i\n", acm,bcm);
+	mkt::print("dcm = %i; ddm = %i\n", dcm,ddm);
 }
