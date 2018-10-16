@@ -59,6 +59,10 @@ class MPIRoutines {
 	def static generateMPIWaitall(int count, String requests, String statuses) '''
 		MPI_Waitall(«count», «requests», «statuses»);
 	'''
+	
+	def static generateMPIBarrier() '''
+		MPI_Barrier(MPI_COMM_WORLD);
+	'''
 
 	def static generateCreateDatatypeStruct(Struct s) '''
 		MPI_Datatype «s.name»_mpi_type_temp;

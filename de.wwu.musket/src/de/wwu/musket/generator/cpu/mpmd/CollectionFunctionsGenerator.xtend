@@ -44,12 +44,7 @@ class CollectionFunctionsGenerator {
 				}
 			}
 			
-			case SHOW_LOCAL: {
-				switch (cfc.^var.type) {
-					ArrayType: generateShowLocalArray(cfc.^var, processId)
-					MatrixType: generateShowLocalMatrix(cfc.^var, processId)
-				}
-			}
+			case SHOW_LOCAL: generateShowLocal(cfc.^var, processId)
 			
 			case COLUMNS:
 				(cfc.^var.type as MatrixType).cols
@@ -94,14 +89,18 @@ class CollectionFunctionsGenerator {
 		«ELSEIF a.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
 				mkt::print("«a.name»", «a.name»);
+				«generateMPIBarrier»
 			«ELSE»
 				// show array (copy) --> only in p0
+				«generateMPIBarrier»
 		  	«ENDIF»
 		«ELSEIF a.type.distributionMode == DistributionMode.DIST»
 			«IF processId == 0»
 				mkt::print_dist("«a.name»", «a.name»);
+				«generateMPIBarrier»
 		  	«ELSE»
 				«generateMPIGather(a.name + ".get_data()", (a.type as ArrayType).sizeLocal(processId), a.calculateType, "nullptr")»
+				«generateMPIBarrier»
 		  	«ENDIF»
 		«ELSE»
 		  // Collection Functions: generateShowArray default case --> something went wrong
@@ -120,66 +119,33 @@ class CollectionFunctionsGenerator {
 		«ELSEIF m.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
 				mkt::print("«m.name»", «m.name»);
+				«generateMPIBarrier»
 			«ELSE»
 				// show matrix (copy) --> only in p0
+				«generateMPIBarrier»
 		  	«ENDIF»
 		«ELSEIF m.type.distributionMode == DistributionMode.DIST»
 			«IF processId == 0»
 				mkt::print_dist_«m.name»(«m.name», «m.name»_partition_type_resized);
+				«generateMPIBarrier»
 		  	«ELSE»
 				// show matrix dist
 				«generateMPIGathervNonRoot(m.name + ".get_data()", (m.type as MatrixType).sizeLocal(processId), m.calculateCollectionType)»
+				«generateMPIBarrier»
 		  	«ENDIF»
 		«ELSE»
 		  // Collection Functions: generateShowArray default case --> something went wrong
 		«ENDIF»
 	'''
 
-	/**
-	 * Generates the showLocal() method for arrays.
-	 * 
-	 * @param a the array
-	 * @return generated code
-	 */
-	def static generateShowLocalArray(CollectionObject a, int processId) '''
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		std::ostringstream «streamName»;
-		«streamName» << "«a.name» on «processId»: " << std::endl << "[";
-		for (int i = 0; i < «(a.type as ArrayType).sizeLocal(processId) - 1»; i++) {
-		«streamName» << «generateShowElements(a, a.name, "i")»;
-		«streamName» << "; ";
-		}
-		«streamName» << «generateShowElements(a, a.name, ((a.type as ArrayType).sizeLocal(processId) - 1).toString)» << "]" << std::endl;
-		«streamName» << std::endl;
-		printf("%s", «streamName».str().c_str());
-	'''
-
-	/**
-	 * Generates the showLocal() method for matrices.
-	 * 
-	 * @param a the array
-	 * @return generated code
-	 */
-	def static generateShowLocalMatrix(CollectionObject m, int processId) '''
-		«val type = m.type as MatrixType»
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		std::ostringstream «streamName»;
-		«streamName» << "«m.name» on «processId»: " << std::endl << "[";
-		
-		for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			«streamName» << "[";
-			for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«streamName» << «generateShowElements(m, m.name, Config.var_loop_counter_rows + " * " + type.rowsLocal + " + " + Config.var_loop_counter_cols)»;
-				if(«Config.var_loop_counter_cols» < «type.colsLocal - 1»){
-					«streamName» << "; ";
-				}else{
-					«streamName» << "]" << std::endl;
-				}
+	def static generateShowLocal(CollectionObject co, int processId) '''
+		«val type = co.calculateCollectionType.cppType»
+		for(int i = 0; i < «Config.processes»; ++ i){
+			if(i == «processId»){
+				mkt::print_local_partition<«type»>("«co.name»", «processId», «co.name»);
 			}
+			«generateMPIBarrier»
 		}
-		printf("%s", «streamName».str().c_str());
 	'''
 
 	// helper

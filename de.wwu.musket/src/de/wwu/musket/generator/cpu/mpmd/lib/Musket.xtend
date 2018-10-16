@@ -62,6 +62,12 @@ class Musket {
 		template<typename T>
 		void print(const std::string& name, const mkt::DMatrix<T>& a);
 		
+		template<typename T>
+		void print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a);
+		
+		template<typename T>
+		void print_local_partition(const std::string& name, const int pid, const mkt::DMatrix<T>& a);
+		
 		// for primitive values
 		
 		template<typename T>
@@ -124,6 +130,36 @@ class Musket {
 		
 		«generatePrintDistFunctionsArray(showCalls)»
 		«generatePrintDistFunctionsMatrix(showCalls)»
+		
+		template<typename T>
+		void mkt::print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a) {
+		  std::ostringstream stream;
+		  stream << name << " on process " << pid <<": " << std::endl << "[";
+		  for (int i = 0; i < a.get_size() - 1; ++i) {
+		  	mkt::print<T>(stream, a.get_local(i));
+		  	stream << "; ";
+		  }
+		  mkt::print<T>(stream, a.get_local(a.get_size() - 1));
+		  stream << "]" << std::endl << std::endl;
+		  printf("%s", stream.str().c_str());
+		}
+				
+		template<typename T>
+		void mkt::print_local_partition(const std::string& name, const int pid, const mkt::DMatrix<T>& m) {
+		  std::ostringstream stream;
+		  stream << name << " on process " << pid << ": " << std::endl;
+		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
+		  	stream << "[";
+		  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
+		  	  mkt::print<T>(stream, m.get_local(i, j));
+		  	  stream << "; ";
+		  	}
+		  	mkt::print<T>(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
+		  	stream << "]" << std::endl;
+		  }		  
+		  stream << std::endl;
+		  printf("%s", stream.str().c_str());
+		}
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){
@@ -194,9 +230,10 @@ class Musket {
 		«var mpiType = co.calculateCollectionType.MPIType»
 		«var size = co.collectionType.size»
 		«var sizeLocal = co.collectionType.sizeLocal(0)»
+		«var displacement = (co.collectionType as MatrixType).rowsLocal * (co.collectionType as MatrixType).blocksInRow»
 		void mkt::print_dist_«co.name»(const mkt::DMatrix<«type»>& m, const MPI_Datatype& dt) {
 		  std::array<«type», «size»> m_copy;
-		  MPI_Gatherv(m.get_data(), «sizeLocal», «mpiType», m_copy.data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»1«ENDFOR»}).data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»«sizeLocal * (co.collectionType as MatrixType).partitionPosition(i).key + (co.collectionType as MatrixType).partitionPosition(i).value»«ENDFOR»}).data(), dt, 0, MPI_COMM_WORLD);
+		  MPI_Gatherv(m.get_data(), «sizeLocal», «mpiType», m_copy.data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»1«ENDFOR»}).data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»«displacement * (co.collectionType as MatrixType).partitionPosition(i).key + (co.collectionType as MatrixType).partitionPosition(i).value»«ENDFOR»}).data(), dt, 0, MPI_COMM_WORLD);
 		  std::ostringstream stream;
 		  stream << "«co.name»" << ": " << std::endl;
 		  for (int i = 0; i < m.get_number_of_rows(); ++i) {
