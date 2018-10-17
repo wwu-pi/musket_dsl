@@ -11,6 +11,10 @@ import static extension de.wwu.musket.generator.cpu.mpmd.FoldSkeletonGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
+import de.wwu.musket.musket.MatrixType
+import de.wwu.musket.musket.DistributionMode
+
 /** 
  * Generates the header file.
  * <p>
@@ -57,8 +61,13 @@ class HeaderFileGenerator {
 			«s.generateStructDeclaration»
 		«ENDFOR»
 		
-		MPI_Datatype Complex_mpi_type;
+		«generateMPIStructTypeDeclarations(resource)»
 		«generateMPIFoldOperatorDeclarations(resource)»
+		
+		«val dist_matrices = resource.Matrices.filter[it.type.distributionMode == DistributionMode.DIST]»
+		«FOR m : dist_matrices»
+			«generateMPIVectorTypeVariable(m.type as MatrixType)»
+		«ENDFOR»
 	'''
 
 	/**

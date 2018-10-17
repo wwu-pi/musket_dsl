@@ -22,6 +22,7 @@ import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.MatrixType
+import static de.wwu.musket.generator.cpu.mpmd.GatherScatterGenerator.*
 
 class Musket {
 	static final Logger logger = LogManager.getLogger(Musket)
@@ -79,6 +80,9 @@ class Musket {
 			//void print(std::ostringstream& stream, const T& a);
 		«ENDIF»
 		
+		«generateGatherDeclarations»
+		«generateScatterDeclarations»
+		
 		} // namespace mkt
 		
 		«generateDArrayDefinition»
@@ -135,11 +139,11 @@ class Musket {
 		void mkt::print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a) {
 		  std::ostringstream stream;
 		  stream << name << " on process " << pid <<": " << std::endl << "[";
-		  for (int i = 0; i < a.get_size() - 1; ++i) {
+		  for (int i = 0; i < a.get_size_local() - 1; ++i) {
 		  	mkt::print<T>(stream, a.get_local(i));
 		  	stream << "; ";
 		  }
-		  mkt::print<T>(stream, a.get_local(a.get_size() - 1));
+		  mkt::print<T>(stream, a.get_local(a.get_size_local() - 1));
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
@@ -160,6 +164,9 @@ class Musket {
 		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
+		
+		«generateGatherDefinitions(resource)»
+		«generateScatterDefinitions»
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){

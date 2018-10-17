@@ -15,11 +15,16 @@ class ShiftSkeletonGenerator {
 			
 	def static generateMPIVectorType(MatrixType m, int processId) '''
 		«val type_name = (m.eContainer as CollectionObject).name + "_partition_type"»
-		MPI_Datatype «type_name», «type_name»_resized;
+		MPI_Datatype «type_name»;
 		MPI_Type_vector(«m.rowsLocal», «m.colsLocal», «m.cols.concreteValue», «m.calculateCollectionType.MPIType», &«type_name»);
 		MPI_Type_create_resized(«type_name», 0, sizeof(«m.calculateCollectionType.cppType») * «m.colsLocal», &«type_name»_resized);
 		MPI_Type_free(&«type_name»);
 		MPI_Type_commit(&«type_name»_resized);
+	'''
+
+	def static generateMPIVectorTypeVariable(MatrixType m) '''
+		«val type_name = (m.eContainer as CollectionObject).name + "_partition_type"»
+		MPI_Datatype «type_name»_resized;
 	'''
 
 }

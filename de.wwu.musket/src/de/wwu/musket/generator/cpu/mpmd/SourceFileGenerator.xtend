@@ -150,7 +150,8 @@ class SourceFileGenerator {
 	def static generateFunctors(Resource resource, int processId){
 		var result = ""
 		var List<Pair<String, String>> generated = newArrayList
-		for(skeletonExpression : resource.SkeletonExpressions){
+		// all skeleton expressions but those without function such as gather and scatter
+		for(skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]){
 			val skel = skeletonExpression.skeleton
 			val func = skeletonExpression.skeleton.param.toFunction
 			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
@@ -174,7 +175,8 @@ class SourceFileGenerator {
 	def static generateFunctorInstantiations(Resource resource, int processId){
 		var result = ""
 		var List<Pair<String, String>> generated = newArrayList
-		for(skeletonExpression : resource.SkeletonExpressions){
+		// all skeleton expressions but those without function such as gather and scatter
+		for(skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]){
 			val skel = skeletonExpression.skeleton
 			val func = skeletonExpression.skeleton.param.toFunction
 			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
@@ -196,7 +198,7 @@ class SourceFileGenerator {
 			«generateInitialization»
 			
 			«IF Config.processes > 1 && processId == 0»
-				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
+				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
 «««			functor instantiation

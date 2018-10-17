@@ -112,12 +112,15 @@ class ExpressionGenerator {
 		«IF or.value.calculateType.isArray»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 1»
-				(«orName»)[«or.localCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
+				(«orName»).get_local(«or.localCollectionIndex.head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSE»
 «««				COPY or LOC
-				«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
+				«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
 					(«orName»)[«or.globalCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
+«««             COPY or LOC
+				«ELSEIF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY »
+					(«orName»).get_local(«or.globalCollectionIndex.head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
 					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed

@@ -182,6 +182,10 @@ class MusketHelper {
 	}
 	
 	static def int getNumberOfFreeParameters(SkeletonExpression se, Function f) {
+		if(f === null){
+			return 0
+		}
+		
 		f.params.size - getNumberOfFixedParameters(se, f)
 	}
 	
