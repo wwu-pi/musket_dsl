@@ -23,6 +23,7 @@ import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.MatrixType
 import static de.wwu.musket.generator.cpu.mpmd.GatherScatterGenerator.*
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
 
 class Musket {
 	static final Logger logger = LogManager.getLogger(Musket)
@@ -82,6 +83,7 @@ class Musket {
 		
 		«generateGatherDeclarations»
 		«generateScatterDeclarations»
+		«generateShiftSkeletonsFunctionDeclarations»
 		
 		} // namespace mkt
 		
@@ -167,6 +169,7 @@ class Musket {
 		
 		«generateGatherDefinitions(resource)»
 		«generateScatterDefinitions»
+		
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){

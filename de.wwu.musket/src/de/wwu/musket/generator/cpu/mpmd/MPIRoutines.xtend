@@ -55,6 +55,12 @@ class MPIRoutines {
 		int tag_«counter» = ((«source» + «target») * («source» + «target» + 1)) / 2 + «target»;
 		MPI_Irecv(«recv_buffer», «Config.tmp_size_t», «type.MPIType», «source», tag_«counter++», MPI_COMM_WORLD, «request»);
 	'''
+	
+	def static generateMPIIsend2(int source, String send_buffer, long count, MusketType type, String target,
+		String request) '''
+		int tag_«counter» = ((«source» + «target») * («source» + «target» + 1)) / 2 + «target»;
+		MPI_Isend(«send_buffer», «count», «type.MPIType», «target», tag_«counter++», MPI_COMM_WORLD, «request»);
+	'''
 
 	def static generateMPIWaitall(int count, String requests, String statuses) '''
 		MPI_Waitall(«count», «requests», «statuses»);

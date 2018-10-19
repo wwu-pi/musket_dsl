@@ -173,8 +173,8 @@ class MusketHelper {
 			ZipLocalIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
 			ZipIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
 			ZipLocalIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
-			ShiftPartitionsHorizontallySkeleton: 0
-			ShiftPartitionsVerticallySkeleton: 0
+			ShiftPartitionsHorizontallySkeleton: 1
+			ShiftPartitionsVerticallySkeleton: 1
 			GatherSkeleton: 0
 			ScatterSkeleton: 0
 			default: -1

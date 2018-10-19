@@ -20,6 +20,8 @@ import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateSh
 import static de.wwu.musket.generator.cpu.mpmd.MusketFunctionCalls.generateAllTimerGlobalVars
 import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
+
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
@@ -91,6 +93,9 @@ class SourceFileGenerator {
 		
 		«generateFoldFunctionDefinitions(resource, processId)»
 		«generateMapFoldFunctionDefinitions(resource, processId)»
+		
+		«generateShiftHorizontallyFunctionDefinitions(resource)»
+		«generateShiftVerticallyFunctionDefinitions(resource)»
 		
 		«generateMainFunction(resource, processId)»
 	'''
@@ -226,9 +231,9 @@ class SourceFileGenerator {
 
 				«generateMPIFoldOperators(resource)»
 				
-				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
-					«generateShiftSkeletonVariables(processId)»
-				«ENDIF»
+«««				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
+«««					«generateShiftSkeletonVariables(processId)»
+«««				«ENDIF»
 
 			«ENDIF»
 			

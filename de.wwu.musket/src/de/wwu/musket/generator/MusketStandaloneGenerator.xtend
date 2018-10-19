@@ -44,8 +44,9 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/plus-row.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map-function-array-matrix.musket',
-			'../de.wwu.musket.models/src/de/wwu/musket/models/test/scatter.musket',
-			'../de.wwu.musket.models/src/de/wwu/musket/models/test/gather.musket'
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/scatter.musket',
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/gather.musket'
+			'../de.wwu.musket.models/src/de/wwu/musket/models/test/shift-partitions.musket'
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/zip.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/array.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/matrix.musket',

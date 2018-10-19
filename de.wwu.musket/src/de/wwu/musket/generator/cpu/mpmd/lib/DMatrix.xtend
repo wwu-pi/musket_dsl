@@ -48,10 +48,22 @@ class DMatrix {
 		  int get_number_of_rows_local() const;
 		  int get_number_of_columns_local() const;
 		  
+		  int get_partitions_in_row() const;
+		  int get_partitions_in_column() const;
+		  
+		  int get_partition_x_pos() const;
+		  int get_partition_y_pos() const;
+		  
 		  Distribution get_distribution() const;
 
 		  T* get_data();
 		  const T* get_data() const;
+		  
+		  auto begin() noexcept;
+		  auto end() noexcept;
+		  
+		  auto begin() const noexcept;
+		  auto end() const noexcept;
 		
 		 private:
 		
@@ -201,6 +213,26 @@ class DMatrix {
 		int mkt::DMatrix<T>::get_number_of_columns_local() const {
 		  return _number_of_columns_local;
 		}
+
+		template<typename T>
+		int mkt::DMatrix<T>::get_partitions_in_row() const {
+		  return _partitions_in_row;
+		}
+
+		template<typename T>
+		int mkt::DMatrix<T>::get_partitions_in_column() const {
+		  return _partitions_in_column;
+		}
+
+		template<typename T>
+		int mkt::DMatrix<T>::get_partition_x_pos() const {
+		  return _partition_x_pos;
+		}
+		
+		template<typename T>
+		int mkt::DMatrix<T>::get_partition_y_pos() const {
+		  return _partition_y_pos;
+		}
 		
 		template<typename T>
 		mkt::Distribution mkt::DMatrix<T>::get_distribution() const {
@@ -216,6 +248,26 @@ class DMatrix {
 		T* mkt::DMatrix<T>::get_data() {
 		  return _data.data();
 		}
+
+		template<typename T>
+		auto mkt::DMatrix<T>::begin() noexcept{
+		  return _data.begin();
+		}
+		
+		template<typename T>
+		auto mkt::DMatrix<T>::end() noexcept{
+		  return _data.end();
+		}
+		
+		template<typename T>
+		auto mkt::DMatrix<T>::begin() const noexcept{
+		  return _data.begin();
+		}
+		
+		template<typename T>
+		auto mkt::DMatrix<T>::end() const noexcept{
+		  return _data.end();
+		}		
 	'''
 	
 	def static generateDMatrixSkeletonDeclarations() '''

@@ -78,8 +78,8 @@ class SkeletonGenerator {
 			ZipLocalIndexSkeleton: generateZipLocalIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)
 			ZipIndexInPlaceSkeleton:  generateZipIndexInPlaceSkeleton(s, s.obj.type, processId)
 			ZipLocalIndexInPlaceSkeleton: generateZipLocalIndexInPlaceSkeleton(s, s.obj.type, processId)
-			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(skel, s.obj.type as MatrixType, processId)}
-			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(skel, s.obj.type as MatrixType, processId)}
+			ShiftPartitionsHorizontallySkeleton: if(Config.processes > 1){generateShiftPartitionsHorizontallySkeleton(s, processId)}
+			ShiftPartitionsVerticallySkeleton: if(Config.processes > 1){generateShiftPartitionsVerticallySkeleton(s, processId)}
 			GatherSkeleton: generateGatherSkeleton(s, target, processId)
 			ScatterSkeleton: generateScatterSkeleton(s, target, processId)
 			default: '''// TODO: SkeletonGenerator.generateSkeletonExpression: default case'''
@@ -368,26 +368,10 @@ class SkeletonGenerator {
 	 * @param inputs the parameter inputs
 	 * @return the param map
 	 */
-	def static generateShiftPartitionsHorizontallySkeleton(ShiftPartitionsHorizontallySkeleton s, MatrixType m, int processId) '''		
-				«val pos = m.partitionPosition(processId)»
-«««				generate Function Call
-				«Config.var_shift_steps» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.key»);
-				
-				«Config.var_shift_target» = ((((«pos.value» + «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
-				«Config.var_shift_source» = ((((«pos.value» - «Config.var_shift_steps») % «m.blocksInRow») + «m.blocksInRow» ) % «m.blocksInRow») + «pos.key * m.blocksInRow»;
-				
-«««				shifting is happening
-				if(«Config.var_shift_target» != «processId»){
-					MPI_Request requests[2];
-					MPI_Status statuses[2];
-					«val buffer_name = Config.tmp_shift_buffer»
-					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal(processId)»);
-					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_target, "&requests[0]")»
-					«generateMPIWaitall(2, "requests", "statuses")»
-					
-					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());
-				}
+	def static generateShiftPartitionsHorizontallySkeleton(SkeletonExpression se, int processId) '''		
+		«val skel = se.skeleton as ShiftPartitionsHorizontallySkeleton»
+		«generateSetValuesInFunctor(se, skel.param)»
+		mkt::shift_partitions_horizontally<«se.obj.calculateCollectionType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
 	'''
 	
 	/**
@@ -406,25 +390,10 @@ class SkeletonGenerator {
 	 * @param inputs the parameter inputs
 	 * @return the param map
 	 */
-	def static generateShiftPartitionsVerticallySkeleton(ShiftPartitionsVerticallySkeleton s, MatrixType m, int processId) '''		
-				«val pos = m.partitionPosition(processId)»
-«««				generate Function Call
-				«Config.var_shift_steps» = «s.param.functionName.toFirstLower»_functor(«FOR arg : s.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»«pos.value»);
-				«Config.var_shift_target» = ((((«pos.key» + «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
-				«Config.var_shift_source» = ((((«pos.key» - «Config.var_shift_steps») % «m.blocksInColumn») + «m.blocksInColumn» ) % «m.blocksInColumn») * «m.blocksInRow» + «pos.value»;
-
-«««				shifting is happening
-				if(«Config.var_shift_target» != «processId»){
-					MPI_Request requests[2];
-					MPI_Status statuses[2];
-					«val buffer_name = Config.tmp_shift_buffer»
-					auto «buffer_name» = std::make_unique<std::vector<«m.calculateCollectionType.cppType»>>(«m.sizeLocal(processId)»);
-					«generateMPIIrecv(processId, buffer_name + '->data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_source, "&requests[1]")»
-					«generateMPIIsend(processId, (m.eContainer as CollectionObject).name + '.data()', m.sizeLocal(processId), m.calculateCollectionType, Config.var_shift_target, "&requests[0]")»
-					«generateMPIWaitall(2, "requests", "statuses")»
-					
-					std::move(«buffer_name»->begin(), «buffer_name»->end(), «(m.eContainer as CollectionObject).name».begin());		
-				}
+	def static generateShiftPartitionsVerticallySkeleton(SkeletonExpression se, int processId) '''		
+		«val skel = se.skeleton as ShiftPartitionsVerticallySkeleton»
+		«generateSetValuesInFunctor(se, skel.param)»
+		mkt::shift_partitions_vertically<«se.obj.calculateCollectionType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
 	'''
 		
 	/**
