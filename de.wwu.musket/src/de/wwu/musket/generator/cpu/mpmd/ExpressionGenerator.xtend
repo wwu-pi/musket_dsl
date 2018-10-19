@@ -130,12 +130,12 @@ class ExpressionGenerator {
 		«ELSEIF or.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 2»
-				(«orName»)[«or.localCollectionIndex.head.generateExpression(param_map, processId)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
+				(«orName»).get_local(«or.localCollectionIndex.head.generateExpression(param_map, processId)», «or.localCollectionIndex.drop(1).head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSEIF or.globalCollectionIndex.size == 2»
 «««					COPY
 					«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
-						(«orName»)[«or.globalCollectionIndex.head.generateExpression(param_map, processId)» * «((or.value as CollectionObject).type as MatrixType).colsLocal» + «or.globalCollectionIndex.drop(1).head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
+						(«orName»).get_local(«or.globalCollectionIndex.head.generateExpression(param_map, processId)», «or.globalCollectionIndex.drop(1).head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
 «««					DIST
 					«ELSE»
 						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed

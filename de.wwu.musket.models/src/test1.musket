@@ -1,4 +1,4 @@
-#config PLATFORM CPU
+#config PLATFORM CPU_MPMD
 #config PROCESSES 4
 
 #include test.h
