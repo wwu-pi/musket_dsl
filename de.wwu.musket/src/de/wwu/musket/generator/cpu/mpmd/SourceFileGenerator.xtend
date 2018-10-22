@@ -94,8 +94,13 @@ class SourceFileGenerator {
 		«generateFoldFunctionDefinitions(resource, processId)»
 		«generateMapFoldFunctionDefinitions(resource, processId)»
 		
-		«generateShiftHorizontallyFunctionDefinitions(resource)»
-		«generateShiftVerticallyFunctionDefinitions(resource)»
+		«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0»
+			«generateShiftHorizontallyFunctionDefinitions(resource)»
+		«ENDIF»
+		
+		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0»
+			«generateShiftVerticallyFunctionDefinitions(resource)»
+		«ENDIF»
 		
 		«generateMainFunction(resource, processId)»
 	'''

@@ -37,60 +37,71 @@ class Musket {
 	
 	def static headerFileContent(Resource resource) '''
 		#pragma once
-		
 		#include <string>
 		#include "«resource.ProjectName»«Config.header_extension»"
 		
 		namespace mkt {
-		
 		«generateDistEnum»
-		
-		«generateDArrayDeclaration»
-		«generateDMatrixDeclaration»
-		«generateDArraySkeletonDeclarations»
-		«generateDMatrixSkeletonDeclarations»
-		
-		«val showCalls = resource.ShowCalls»
-		«IF showCalls.size() > 0»
-			template<typename T>
-			void print_dist(const std::string& name, const mkt::DArray<T>& a);
-			
-			«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
+		«IF resource.Arrays.size() > 0»
+			«generateDArrayDeclaration»
+			«generateDArraySkeletonDeclarations»
 		«ENDIF»
 		
-		template<typename T>
-		void print(const std::string& name, const mkt::DArray<T>& a);
-
-		template<typename T>
-		void print(const std::string& name, const mkt::DMatrix<T>& a);
+		«IF resource.Matrices.size() > 0»
+			«generateDMatrixDeclaration»
+			«generateDMatrixSkeletonDeclarations»
+		«ENDIF»
 		
-		template<typename T>
-		void print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a);
-		
-		template<typename T>
-		void print_local_partition(const std::string& name, const int pid, const mkt::DMatrix<T>& a);
-		
-		// for primitive values
+		«val showCalls = resource.ShowCalls»
+		«IF showCalls.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				template<typename T>
+				void print_dist(const std::string& name, const mkt::DArray<T>& a);
+				template<typename T>
+				void print(const std::string& name, const mkt::DArray<T>& a);
+				template<typename T>
+				void print(const std::string& name, const mkt::DMatrix<T>& a);
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
+			«ENDIF»			
+		«ENDIF»
 		
 		template<typename T>
 		void print(std::ostringstream& stream, const T& a);
 		
-		«IF resource.Structs.size > 0»
-			// for structs
-			//template<typename T>
-			//void print(std::ostringstream& stream, const T& a);
+		«IF resource.ShowLocalCalls.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				template<typename T>
+				void print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a);
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				template<typename T>
+				void print_local_partition(const std::string& name, const int pid, const mkt::DMatrix<T>& a);
+			«ENDIF»
 		«ENDIF»
 		
-		«generateGatherDeclarations»
-		«generateScatterDeclarations»
-		«generateShiftSkeletonsFunctionDeclarations»
+		«generateGatherDeclarations(resource)»
+		«generateScatterDeclarations(resource)»
+		«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0»
+			«generateShiftHorizontallySkeletonsFunctionDeclarations»
+		«ENDIF»
+		
+		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0»
+			«generateShiftVerticallySkeletonsFunctionDeclarations»
+		«ENDIF»
 		
 		} // namespace mkt
 		
-		«generateDArrayDefinition»
-		«generateDMatrixDefinition»
-		«generateDArraySkeletonDefinitions»
-		«generateDMatrixSkeletonDefinitions»
+		«IF resource.Arrays.size() > 0»
+			«generateDArrayDefinition»
+			«generateDArraySkeletonDefinitions»
+		«ENDIF»
+		
+		«IF resource.Matrices.size() > 0»
+			«generateDMatrixDefinition»	
+			«generateDMatrixSkeletonDefinitions»
+		«ENDIF»
 		
 		«IF resource.Structs.size > 0»
 			«resource.generateStructPrintFunctions»
@@ -101,9 +112,33 @@ class Musket {
 			if(std::is_fundamental<T>::value){
 				stream << a;
 			}
-		}	
+		}
 		
-			
+		«IF showCalls.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				«generatePrintCopyArray»
+				«generatePrintDistFunctionsArray(showCalls)»
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				«generatePrintCopyMatrix»
+				«generatePrintDistFunctionsMatrix(showCalls)»
+			«ENDIF»
+		«ENDIF»
+		
+		«IF resource.ShowLocalCalls.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				«generatePrintLocalPartitionArrayDefinition»
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				«generatePrintLocalPartitionMatrixDefinition»
+			«ENDIF»
+		«ENDIF»
+		
+		«generateGatherDefinitions(resource)»
+		«generateScatterDefinitions(resource)»
+	'''
+		
+	def static generatePrintCopyArray()'''
 		template<typename T>
 		void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
 		  std::ostringstream stream;
@@ -116,7 +151,9 @@ class Musket {
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
-
+	'''
+	
+	def static generatePrintCopyMatrix()'''
 		template<typename T>
 		void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
 		  std::ostringstream stream;
@@ -133,10 +170,9 @@ class Musket {
 		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
-		
-		«generatePrintDistFunctionsArray(showCalls)»
-		«generatePrintDistFunctionsMatrix(showCalls)»
-		
+	'''
+	
+	def static generatePrintLocalPartitionArrayDefinition()'''
 		template<typename T>
 		void mkt::print_local_partition(const std::string& name, const int pid, const mkt::DArray<T>& a) {
 		  std::ostringstream stream;
@@ -149,7 +185,9 @@ class Musket {
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
-				
+	'''
+	
+	def static generatePrintLocalPartitionMatrixDefinition()'''
 		template<typename T>
 		void mkt::print_local_partition(const std::string& name, const int pid, const mkt::DMatrix<T>& m) {
 		  std::ostringstream stream;
@@ -166,10 +204,6 @@ class Musket {
 		  stream << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
-		
-		«generateGatherDefinitions(resource)»
-		«generateScatterDefinitions»
-		
 	'''
 	
 	def static generatePrintDistFunctionsArray(List<CollectionFunctionCall> showCalls){
@@ -274,18 +308,20 @@ class Musket {
 		void mkt::print<«type»>(std::ostringstream& stream, const «type»& a) {
 		  stream << "[";
 		  «FOR member : struct.attributes SEPARATOR '''stream << "; ";'''»
-		  	«val memberType = member.calculateType.cppType»
-		  	«IF member.calculateType.isCollection»
-		  		«val size = member.calculateType.size»
+		  	«val memberType = member.calculateType»
+		  	«IF memberType.isCollection»
+		  		«val collectionType = memberType.calculateCollectionType»
+		  		«val size = (member.collectionType as ArrayType).size.concreteValue»
 		  		stream << "«member.name»: [";
 		  		for(int i = 0; i < «size -1»; ++i){
-		  		  mkt::print<«memberType»>(stream, a.«member.name»[i]);
+		  		  mkt::print<«collectionType»>(stream, a.«member.name»[i]);
+		  		  stream << ", ";
 		  		}
-		  		mkt::print<«memberType»>(stream, a.«member.name»[«size - 1»]);
+		  		mkt::print<«collectionType»>(stream, a.«member.name»[«size - 1»]);
 		  		stream << "]";
 		  	«ELSE»
 		  		stream << "«member.name»: ";
-		  		mkt::print<«memberType»>(stream, a.«member.name»);
+		  		mkt::print<«memberType.cppType»>(stream, a.«member.name»);
 		  	«ENDIF»
 		  «ENDFOR»
 		  stream << "]";

@@ -11,12 +11,16 @@ import org.eclipse.emf.ecore.resource.Resource
 import de.wwu.musket.musket.SkeletonExpression
 
 class GatherScatterGenerator {
-	def static generateGatherDeclarations() '''
-		template<typename T>
-		void gather(const mkt::DArray<T>& in, mkt::DArray<T>& out);
-		
-		template<typename T>
-		void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
+	def static generateGatherDeclarations(Resource resource) '''
+		«IF resource.Arrays.size() > 0»
+			template<typename T>
+			void gather(const mkt::DArray<T>& in, mkt::DArray<T>& out);
+		«ENDIF»
+			
+		«IF resource.Matrices.size() > 0»
+			template<typename T>
+			void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
+		«ENDIF»		
 	'''
 	
 	def static generateGatherDefinitions(Resource resource) {
@@ -56,50 +60,58 @@ class GatherScatterGenerator {
 		}
 	'''
 			
-	def static generateScatterDeclarations() '''
-		template<typename T>
-		void scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out);
-		
-		template<typename T>
-		void scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+	def static generateScatterDeclarations(Resource resource) '''
+		«IF resource.Arrays.size() > 0»
+			template<typename T>
+			void scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out);
+		«ENDIF»
+			
+		«IF resource.Matrices.size() > 0»
+			template<typename T>
+			void scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+		«ENDIF»	
 	'''
 
-	def static generateScatterDefinitions() '''
-		template<typename T>
-		void mkt::scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out){
-			«IF Config.processes > 1»
-				int offset = out.get_offset();
-				#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
-				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
-				  out.set_local(«Config.var_loop_counter», in.get_local(offset + «Config.var_loop_counter»));
-				}
-			«ELSE»
-				#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
-				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
-				  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
-				}
-			«ENDIF»
-		}
-		
-		template<typename T>
-		void mkt::scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
-			«IF Config.processes > 1»
-				int row_offset = out.get_row_offset();
-				int column_offset = out.get_column_offset();
-				#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF»
-				for(int i = 0; i < out.get_number_of_rows_local(); ++i){
-				  «IF Config.cores > 1»#pragma omp simd«ENDIF»
-				  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
-				    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
-				  }
-				}
-			«ELSE»
-				#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
-				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
-				  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
-				}
-			«ENDIF»
-		}
+	def static generateScatterDefinitions(Resource resource) '''
+		«IF resource.Arrays.size() > 0»
+			template<typename T>
+			void mkt::scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out){
+				«IF Config.processes > 1»
+					int offset = out.get_offset();
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
+					  out.set_local(«Config.var_loop_counter», in.get_local(offset + «Config.var_loop_counter»));
+					}
+				«ELSE»
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
+					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
+					}
+				«ENDIF»
+			}
+		«ENDIF»
+			
+		«IF resource.Matrices.size() > 0»
+			template<typename T>
+			void mkt::scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
+				«IF Config.processes > 1»
+					int row_offset = out.get_row_offset();
+					int column_offset = out.get_column_offset();
+					#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF»
+					for(int i = 0; i < out.get_number_of_rows_local(); ++i){
+					  «IF Config.cores > 1»#pragma omp simd«ENDIF»
+					  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
+					    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
+					  }
+					}
+				«ELSE»
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
+					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
+					}
+				«ENDIF»
+			}
+		«ENDIF»
 	'''
 
 }

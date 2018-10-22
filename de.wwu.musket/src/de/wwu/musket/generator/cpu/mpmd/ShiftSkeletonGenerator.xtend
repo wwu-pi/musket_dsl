@@ -33,11 +33,12 @@ class ShiftSkeletonGenerator {
 		MPI_Datatype «type_name»_resized;
 	'''
 
-
-	def static generateShiftSkeletonsFunctionDeclarations() '''
+	def static generateShiftHorizontallySkeletonsFunctionDeclarations() '''
 		template<typename T, typename Functor>
 		void shift_partitions_horizontally(mkt::DMatrix<T>& m, const Functor& f);
-		
+	'''
+
+	def static generateShiftVerticallySkeletonsFunctionDeclarations() '''		
 		template<typename T, typename Functor>
 		void shift_partitions_vertically(mkt::DMatrix<T>& m, const Functor& f);
 	'''
