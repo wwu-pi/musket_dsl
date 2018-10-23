@@ -58,11 +58,11 @@ class Musket {
 				template<typename T>
 				void print_dist(const std::string& name, const mkt::DArray<T>& a);
 				template<typename T>
-				void print(const std::string& name, const mkt::DArray<T>& a);
-				template<typename T>
-				void print(const std::string& name, const mkt::DMatrix<T>& a);
+				void print(const std::string& name, const mkt::DArray<T>& a);				
 			«ENDIF»
 			«IF resource.Matrices.size() > 0»
+				template<typename T>
+				void print(const std::string& name, const mkt::DMatrix<T>& a);
 				«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
 			«ENDIF»			
 		«ENDIF»
