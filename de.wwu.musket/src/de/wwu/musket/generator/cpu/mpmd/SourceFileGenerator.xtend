@@ -192,7 +192,15 @@ class SourceFileGenerator {
 			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
 			if(!generated.contains(skelContainerName -> func.name)){
 				generated.add(skelContainerName -> func.name)
-				result += generateFunctorInstantiation(skeletonExpression, processId)
+				result += generateFunctorInstantiation(skeletonExpression, skel.param, processId)
+			}
+				
+			if(skel instanceof MapFoldSkeleton){
+				val mfunc = (skel as MapFoldSkeleton).mapFunction.toFunction
+				if(!generated.contains(skelContainerName -> mfunc)){
+					generated.add(skelContainerName -> mfunc.name)
+					result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
+				}
 			}
 		}
 		return result

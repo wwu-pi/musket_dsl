@@ -19,6 +19,9 @@ import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.util.CollectionHelper.*
 import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 
 /**
  * Generate everything required for the fold skeleton, except for the actual fold skeleton call.
@@ -138,7 +141,7 @@ class FoldSkeletonGenerator {
 
 		return result
 	}
-	
+
 	def static generateMPIFoldOperatorDeclaration(FoldSkeletonVariants s) '''
 		«val name = s.param.functionName»
 		MPI_Op «name»_reduction«Config.mpi_op_suffix»;
@@ -251,10 +254,10 @@ class FoldSkeletonGenerator {
 		template<>
 		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
 		  «IF Config.processes > 1»  		  	
-  		  	«cpptype» «local_result = "local_result"» = identity;
-  		  «ELSE»
-  		    «local_result = "out"» = identity;
-  		  «ENDIF»		  
+		  	«cpptype» «local_result = "local_result"» = identity;
+		  «ELSE»
+		  	«local_result = "out"» = identity;
+		  «ENDIF»		  
 		  
 		  const int size_local = in.get_size_local();
 		  
@@ -268,7 +271,7 @@ class FoldSkeletonGenerator {
 		  «ENDIF»
 		}
 	'''
-	
+
 	def static generateArrayFoldCopyFunctionDefinition(SkeletonExpression se) '''
 		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
@@ -294,10 +297,10 @@ class FoldSkeletonGenerator {
 		template<>
 		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
 		  «IF Config.processes > 1»  		  	
-  		  	«cpptype» «local_result = "local_result"» = identity;
-  		  «ELSE»
-  		    «local_result = "out"» = identity;
-  		  «ENDIF»		  
+		  	«cpptype» «local_result = "local_result"» = identity;
+		  «ELSE»
+		  	«local_result = "out"» = identity;
+		  «ENDIF»		  
 		  
 		  const int size_local = in.get_size_local();
 		  
@@ -311,7 +314,7 @@ class FoldSkeletonGenerator {
 		  «ENDIF»
 		}
 	'''
-	
+
 	def static generateMatrixFoldCopyFunctionDefinition(SkeletonExpression se) '''
 		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
@@ -328,7 +331,7 @@ class FoldSkeletonGenerator {
 		  }
 		}
 	'''
-	
+
 	def static generateMapFoldFunctionDefinitions(Resource resource, int processId) {
 		var result = ""
 		var List<SkeletonExpression> arrayProcessed = newArrayList
@@ -336,15 +339,39 @@ class FoldSkeletonGenerator {
 		for (SkeletonExpression se : resource.SkeletonExpressions) {
 			if (se.skeleton instanceof MapFoldSkeleton) {
 				if (se.obj.calculateType.isArray) {
-					val alreadyProcessed = arrayProcessed.exists [
-						(it.skeleton as FoldSkeletonVariants).identity.calculateType.cppType ==
-							(se.skeleton as FoldSkeletonVariants).identity.calculateType.cppType
-					]
-					if (!alreadyProcessed) {
-						result += generateArrayMapFoldFunctionDefinition(se)
-						result += generateArrayMapFoldCopyFunctionDefinition(se)
+					if (se.eContainer instanceof MusketAssignment &&
+						(se.eContainer as MusketAssignment).^var.calculateType.isArray) {
+						val alreadyProcessed = arrayProcessed.exists [
+							(it.skeleton as MapFoldSkeleton).identity.calculateType.cppType ==
+								(se.skeleton as MapFoldSkeleton).identity.calculateType.cppType &&
+								it.obj.calculateCollectionType.cppType == se.obj.calculateCollectionType.cppType &&
+								it.skeleton.param.functionName == se.skeleton.param.functionName &&
+								(it.skeleton as MapFoldSkeleton).mapFunction.functionName ==
+									(se.skeleton as MapFoldSkeleton).mapFunction.functionName &&
+								(it.eContainer as MusketAssignment).^var.calculateCollectionType.cppType ==
+									(se.eContainer as MusketAssignment).^var.calculateCollectionType.cppType
+						]
+						if (!alreadyProcessed) {
+							result += generateArrayMapFoldFunctionDefinition(se)
+							result += generateArrayMapFoldCopyFunctionDefinition(se)
+						}
+						arrayProcessed.add(se)
+					} else {
+						val alreadyProcessed = arrayProcessed.exists [
+							(it.skeleton as MapFoldSkeleton).identity.calculateType.cppType ==
+								(se.skeleton as MapFoldSkeleton).identity.calculateType.cppType &&
+								it.obj.calculateCollectionType.cppType == se.obj.calculateCollectionType.cppType &&
+								it.skeleton.param.functionName == se.skeleton.param.functionName &&
+								(it.skeleton as MapFoldSkeleton).mapFunction.functionName ==
+									(se.skeleton as MapFoldSkeleton).mapFunction.functionName
+						]
+						if (!alreadyProcessed) {
+							result += generateArrayMapFoldFunctionDefinition(se)
+							result += generateArrayMapFoldCopyFunctionDefinition(se)
+						}
+						arrayProcessed.add(se)
 					}
-					arrayProcessed.add(se)
+
 				} else if (se.obj.calculateType.isMatrix) {
 					val alreadyProcessed = matrixProcessed.exists [
 						(it.skeleton as FoldSkeletonVariants).identity.calculateType.cppType ==
@@ -361,71 +388,87 @@ class FoldSkeletonGenerator {
 
 		return result
 	}
-	
-	def static generateArrayMapFoldFunctionDefinition(SkeletonExpression se) '''
-		«val cpptype = se.obj.calculateCollectionType.cppType»
+
+	def static generateArrayMapFoldFunctionDefinition(SkeletonExpression se) '''		
 		«val fs = se.skeleton as MapFoldSkeleton»
+		«val mapcpptype = se.obj.calculateCollectionType.cppType»
+		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		«var local_result = ""»
+		«val resultIsArray = se.eContainer instanceof MusketAssignment && (se.eContainer as MusketAssignment).^var.calculateType.isArray»
+		«val resultcpptype = try{ (se.eContainer as MusketAssignment).^var.calculateCollectionType.cppType } catch(ClassCastException e) {""}»
 		template<>
-		void mkt::map_fold<«cpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «cpptype» identity, const «se.getFunctorName(fs.param)»& ff){
-		  «IF Config.processes > 1»  		  	
-  		  	«cpptype» «local_result = "local_result"» = identity;
-  		  «ELSE»
-  		    «local_result = "out"» = identity;
-  		  «ENDIF»		  
-		  
-		  const int size_local = in.get_size_local();
-		  
-		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
-		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
-		  	«cpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		    «local_result» = ff(«local_result», mapped_value);
-		  }
-		  
-		  «IF Config.processes > 1»
-		  	MPI_Allreduce(&local_result, &out, 1, «fs.identity.calculateType.MPIType», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
-		  «ENDIF»
-		}
+		void mkt::map_fold<«mapcpptype», «IF resultIsArray»«resultcpptype», «ENDIF»«foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «IF resultIsArray»mkt::DArray<«resultcpptype»>&«ELSE»«foldcpptype»&«ENDIF» out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
+		«IF Config.processes > 1»  		  	
+			«foldcpptype» «local_result = "local_result"» = identity;
+			«ELSE»
+			«IF resultIsArray»
+				«foldcpptype» «local_result = "local_result"» = identity;
+			«ELSE»
+				«local_result = "out"» = identity;
+			«ENDIF»
+			«ENDIF»		  
+			
+			const int size_local = in.get_size_local();
+			
+			#pragma omp parallel for simd reduction(«foldName»:«local_result»)
+			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
+			«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
+		 «local_result» = ff(«local_result», mapped_value);
+		 }
+		 
+			«IF Config.processes > 1»
+				MPI_Allreduce(&local_result, «IF se.eContainer instanceof MusketAssignment && (se.eContainer as MusketAssignment).^var.calculateType.isArray»out.get_data(), out.get_size(), «(se.eContainer as MusketAssignment).^var.calculateCollectionType.MPIType»«ELSE»&out, 1, «fs.identity.calculateType.MPIType»«ENDIF», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
+			«ELSE»
+				«IF resultIsArray»
+					#pragma omp parallel for simd
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
+						out.set_local(«Config.var_loop_counter», «local_result»[«Config.var_loop_counter»]);
+					}
+				«ENDIF»
+			«ENDIF»
+			}
 	'''
-	
+
 	def static generateArrayMapFoldCopyFunctionDefinition(SkeletonExpression se) '''
-		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val fs = se.skeleton as MapFoldSkeleton»
+		«val mapcpptype = se.obj.calculateCollectionType.cppType»
+		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::map_fold_copy<«cpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «cpptype» identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
 		  out = identity;
 		  
 		  const int size = in.get_size();
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
-		  	«cpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		    out = ff(out, mapped_value);
+		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
+		  	 out = ff(out, mapped_value);
 		  }
 		}
 	'''
 
 	def static generateMatrixMapFoldFunctionDefinition(SkeletonExpression se) '''
-		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val fs = se.skeleton as MapFoldSkeleton»
+		«val mapcpptype = se.obj.calculateCollectionType.cppType»
+		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		«var local_result = ""»
 		template<>
-		void mkt::map_fold<«cpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «cpptype» identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
 		  «IF Config.processes > 1»  		  	
-  		  	«cpptype» «local_result = "local_result"» = identity;
-  		  «ELSE»
-  		    «local_result = "out"» = identity;
-  		  «ENDIF»		  
+		  	«foldcpptype» «local_result = "local_result"» = identity;
+		  «ELSE»
+		  	«local_result = "out"» = identity;
+		  «ENDIF»		  
 		  
 		  const int size_local = in.get_size_local();
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
-		  	«cpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		    «local_result» = ff(«local_result», mapped_value);
+		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
+		  	 «local_result» = ff(«local_result», mapped_value);
 		  }
 		  
 		  «IF Config.processes > 1»
@@ -433,21 +476,22 @@ class FoldSkeletonGenerator {
 		  «ENDIF»
 		}
 	'''
-	
+
 	def static generateMatrixMapFoldCopyFunctionDefinition(SkeletonExpression se) '''
-		«val cpptype = se.obj.calculateCollectionType.cppType»
 		«val fs = se.skeleton as MapFoldSkeleton»
+		«val mapcpptype = se.obj.calculateCollectionType.cppType»
+		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::map_fold_copy<«cpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «cpptype» identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
 		  out = identity;
 		  
 		  const int size = in.get_size();
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
-		  	«cpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		    out = ff(out, mapped_value);
+		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
+		  	 out = ff(out, mapped_value);
 		  }
 		}
 	'''

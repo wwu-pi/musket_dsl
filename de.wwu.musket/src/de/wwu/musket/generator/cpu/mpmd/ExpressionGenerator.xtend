@@ -42,6 +42,7 @@ import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import de.wwu.musket.musket.FloatVal
 import de.wwu.musket.musket.CollectionObjectOrParam
+import de.wwu.musket.musket.CollectionInstantiation
 
 /**
  * Generates expressions, such as 1+1.
@@ -78,6 +79,7 @@ class ExpressionGenerator {
 			Or: '''(«expression.leftExpression.generateExpression(param_map, processId)» || «expression.rightExpression.generateExpression(param_map, processId)»)'''
 			ObjectRef case expression.isCollectionElementRef: '''«expression.generateCollectionElementRef(param_map, processId).toString.removeLineBreak»'''
 			ObjectRef: '''(«expression.value.generateObjectRef(param_map)»)«expression?.tail.generateTail»'''
+			CollectionInstantiation: '''«expression.generateCollectionInstantiation»'''
 			IntVal: '''«expression.value»'''
 			DoubleVal: '''«expression.value»'''
 			FloatVal: '''«expression.value»f'''
@@ -154,4 +156,6 @@ class ExpressionGenerator {
 	def static dispatch generateObjectRef(IndividualObject i, Map<String, String> param_map) '''«i.name»'''
 
 	def static dispatch generateObjectRef(de.wwu.musket.musket.Parameter p, Map<String, String> param_map) '''«IF param_map !== null && param_map.containsKey(p.name)»«param_map.get(p.name)»«ELSE»«p.name»«ENDIF»'''
+
+	def static generateCollectionInstantiation(CollectionInstantiation ci)'''«val type = ci.calculateType»«IF type.isArray && type.distributionMode == DistributionMode.LOC»«type.cppType»{}«ENDIF»'''
 }

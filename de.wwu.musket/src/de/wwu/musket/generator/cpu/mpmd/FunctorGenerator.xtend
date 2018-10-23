@@ -22,16 +22,12 @@ import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.SkeletonParameterInput
 
 class FunctorGenerator {
 	
-	def static generateFunctorInstantiation(SkeletonExpression se, int processId) '''
-		«IF se.skeleton instanceof MapFoldSkeleton»
-			«se.getFunctorName((se.skeleton as MapFoldSkeleton).mapFunction)» «se.getFunctorObjectName((se.skeleton as MapFoldSkeleton).mapFunction)»{};
-			«se.getFunctorName(se.skeleton.param)» «se.getFunctorObjectName(se.skeleton.param)»{};
-		«ELSE»
-			«se.getFunctorName(se.skeleton.param)» «se.getFunctorObjectName(se.skeleton.param)»{};
-		«ENDIF»
+	def static generateFunctorInstantiation(SkeletonExpression se, SkeletonParameterInput spi, int processId) '''
+		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{};
 	'''
 
 	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''

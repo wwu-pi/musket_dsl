@@ -347,7 +347,11 @@ class SkeletonGenerator {
 		«val skel = s.skeleton as MapFoldSkeleton»
 		«generateSetValuesInFunctor(s, (s.skeleton as MapFoldSkeleton).mapFunction)»
 		«generateSetValuesInFunctor(s, s.skeleton.param)»
-		mkt::map_fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.getFunctorName(skel.mapFunction)», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «s.getFunctorObjectName(skel.mapFunction)», «skel.identity.generateExpression(null, processId)», «s.getFunctorObjectName(skel.param)»);
+		«IF target.calculateType.isArray»
+			mkt::map_fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «target.calculateCollectionType.cppType», «skel.identity.calculateType.cppType», «s.getFunctorName(skel.mapFunction)», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «s.getFunctorObjectName(skel.mapFunction)», «skel.identity.generateExpression(null, processId)», «s.getFunctorObjectName(skel.param)»);
+		«ELSE»
+			mkt::map_fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «skel.identity.calculateType.cppType», «s.getFunctorName(skel.mapFunction)», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «s.getFunctorObjectName(skel.mapFunction)», «skel.identity.generateExpression(null, processId)», «s.getFunctorObjectName(skel.param)»);
+		«ENDIF»
 	'''
 		
 	// Shift partitions

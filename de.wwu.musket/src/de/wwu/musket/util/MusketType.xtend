@@ -20,6 +20,9 @@ import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
 import org.eclipse.xtend.lib.annotations.Accessors
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.MatrixType
+import static extension de.wwu.musket.util.MusketHelper.*
 
 class MusketType {
 
@@ -60,60 +63,70 @@ class MusketType {
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			DoubleArrayType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			FloatArrayType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			BoolArrayType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			StructArrayType: {
 				structName = t.type.name;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			IntMatrixType: {
 				type = PrimitiveTypeLiteral.INT;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			DoubleMatrixType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			FloatMatrixType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			BoolMatrixType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			StructMatrixType: {
 				structName = t.type.name;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			PrimitiveType: {
 				type = t.type

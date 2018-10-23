@@ -158,11 +158,17 @@ class DArray {
 		template<typename T, typename Functor>
 		void fold_copy(const mkt::DArray<T>& a, T& out, const T identity, const Functor& f);
 		
-		template<typename T, typename MapFunctor, typename FoldFunctor>
-		void map_fold(const mkt::DArray<T>& a, T& out, const MapFunctor& f_map, const T identity, const FoldFunctor& f_fold);
+		template<typename T, typename R, typename MapFunctor, typename FoldFunctor>
+		void map_fold(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R& identity, const FoldFunctor& f_fold);
 		
-		template<typename T, typename MapFunctor, typename FoldFunctor>
-		void map_fold_copy(const mkt::DArray<T>& a, T& out, const MapFunctor& f_map, const T identity, const FoldFunctor& f_fold);
+		template<typename T, typename R, typename MapFunctor, typename FoldFunctor>
+		void map_fold_copy(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R& identity, const FoldFunctor& f_fold);
+
+		template<typename T, typename R, typename I, typename MapFunctor, typename FoldFunctor>
+		void map_fold(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I& identity, const FoldFunctor& f_fold);
+				
+		template<typename T, typename R, typename I, typename MapFunctor, typename FoldFunctor>
+		void map_fold_copy(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I& identity, const FoldFunctor& f_fold);
 	'''
 	
 	def static generateDArraySkeletonDefinitions() '''
