@@ -83,11 +83,11 @@ class Musket {
 		
 		«generateGatherDeclarations(resource)»
 		«generateScatterDeclarations(resource)»
-		«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0»
+		«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0 && Config.processes > 1»
 			«generateShiftHorizontallySkeletonsFunctionDeclarations»
 		«ENDIF»
 		
-		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0»
+		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0 && Config.processes > 1»
 			«generateShiftVerticallySkeletonsFunctionDeclarations»
 		«ENDIF»
 		

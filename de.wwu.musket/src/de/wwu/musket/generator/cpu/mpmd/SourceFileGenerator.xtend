@@ -49,10 +49,11 @@ class SourceFileGenerator {
 	/**
 	 * Creates the source file in the source folder of the project.
 	 */
-	def static void generateSourceFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, int processId) {
+	def static void generateSourceFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context,
+		int processId) {
 		logger.info("Generate source file.")
-		fsa.generateFile(Config.base_path + Config.source_path + resource.ProjectName +  '_' + processId + Config.source_extension,
-			sourceFileContent(resource, processId))
+		fsa.generateFile(Config.base_path + Config.source_path + resource.ProjectName + '_' + processId +
+			Config.source_extension, sourceFileContent(resource, processId))
 		logger.info("Generation of source file done.")
 	}
 
@@ -62,47 +63,47 @@ class SourceFileGenerator {
 	 * @return content of the source file
 	 */
 	def static sourceFileContent(Resource resource, int processId) '''
-		«generateIncludes»
-		#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
+			«generateIncludes»
+			#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
+			
+			«generateGlobalConstants(processId)»
+			«generateGlobalVariables(resource, processId)»
 		
-		«generateGlobalConstants(processId)»
-		«generateGlobalVariables(resource, processId)»
-	
+			
+			«FOR d : resource.Data»
+				«d.generateObjectDefinition(processId)»
+			«ENDFOR»
+			
+			«FOR s : resource.Structs»
+				«s.generateStructDefaultConstructor»
+			«ENDFOR»
+			
+			«val fold_functions = (resource.FoldSkeletons.map[it.param.toFunction] + resource.MapFoldSkeletons.map[it.param.toFunction]).toSet»
 		
-		«FOR d : resource.Data»
-			«d.generateObjectDefinition(processId)»
-		«ENDFOR»
-		
-		«FOR s : resource.Structs»
-			«s.generateStructDefaultConstructor»
-		«ENDFOR»
-		
-		«val fold_functions = (resource.FoldSkeletons.map[it.param.toFunction] + resource.MapFoldSkeletons.map[it.param.toFunction]).toSet»
-
-		«FOR f : fold_functions»
-			«f.generateFunction(processId)»
-		«ENDFOR»
-		
-		«generateFunctors(resource, processId)»
-		
-		«IF Config.processes > 1»
-			«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
-		«ENDIF»
-		
-		«generateReductionDeclarations(resource, processId)»
-		
-		«generateFoldFunctionDefinitions(resource, processId)»
-		«generateMapFoldFunctionDefinitions(resource, processId)»
-		
-		«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0»
-			«generateShiftHorizontallyFunctionDefinitions(resource)»
-		«ENDIF»
-		
-		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0»
-			«generateShiftVerticallyFunctionDefinitions(resource)»
-		«ENDIF»
-		
-		«generateMainFunction(resource, processId)»
+			«FOR f : fold_functions»
+				«f.generateFunction(processId)»
+			«ENDFOR»
+			
+			«generateFunctors(resource, processId)»
+			
+			«IF Config.processes > 1»
+				«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
+			«ENDIF»
+			
+			«generateReductionDeclarations(resource, processId)»
+			
+			«generateFoldFunctionDefinitions(resource, processId)»
+			«generateMapFoldFunctionDefinitions(resource, processId)»
+			
+			«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0  && Config.processes > 1»
+				«generateShiftHorizontallyFunctionDefinitions(resource)»
+			«ENDIF»
+			
+			«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0  && Config.processes > 1»
+				«generateShiftVerticallyFunctionDefinitions(resource)»
+			«ENDIF»
+			
+			«generateMainFunction(resource, processId)»
 	'''
 
 	/** 
@@ -157,49 +158,67 @@ class SourceFileGenerator {
 		«generateAllTimerGlobalVars(resource.MusketFunctionCalls, processId)»
 	'''
 
-	def static generateFunctors(Resource resource, int processId){
+	def static generateFunctors(Resource resource, int processId) {
 		var result = ""
 		var List<Pair<String, String>> generated = newArrayList
 		// all skeleton expressions but those without function such as gather and scatter
-		for(skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]){
+		for (skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]) {
 			val skel = skeletonExpression.skeleton
-			val func = skeletonExpression.skeleton.param.toFunction
-			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
-						
-			if(!generated.contains(skelContainerName -> func.name)){
-				generated.add(skelContainerName -> func.name)
-				result += FunctorGenerator.generateFunctor(func, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(func), processId)
-			}
-			
-			if(skel instanceof MapFoldSkeleton){
-				val mapFunction = (skel as MapFoldSkeleton).mapFunction.toFunction
-				if(!generated.contains(skelContainerName -> mapFunction.name)){
-				generated.add(skelContainerName -> mapFunction.name)
-					result += FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString, skeletonExpression.obj.collectionContainerName.toString, skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+
+			if (!(Config.processes < 2 &&
+				(skel instanceof ShiftPartitionsHorizontallySkeleton ||
+					skel instanceof ShiftPartitionsVerticallySkeleton))) {
+
+				val func = skeletonExpression.skeleton.param.toFunction
+				val skelContainerName = skel.skeletonName.toString + "_" +
+					skeletonExpression.obj.collectionContainerName.toString
+
+				if (!generated.contains(skelContainerName -> func.name)) {
+					generated.add(skelContainerName -> func.name)
+					result +=
+						FunctorGenerator.generateFunctor(func, skel.skeletonName.toString,
+							skeletonExpression.obj.collectionContainerName.toString,
+							skeletonExpression.getNumberOfFreeParameters(func), processId)
 				}
-			}			
+
+				if (skel instanceof MapFoldSkeleton) {
+					val mapFunction = (skel as MapFoldSkeleton).mapFunction.toFunction
+					if (!generated.contains(skelContainerName -> mapFunction.name)) {
+						generated.add(skelContainerName -> mapFunction.name)
+						result +=
+							FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
+								skeletonExpression.obj.collectionContainerName.toString,
+								skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+					}
+				}
+			}
 		}
 		return result
 	}
-	
-	def static generateFunctorInstantiations(Resource resource, int processId){
+
+	def static generateFunctorInstantiations(Resource resource, int processId) {
 		var result = ""
 		var List<Pair<String, String>> generated = newArrayList
 		// all skeleton expressions but those without function such as gather and scatter
-		for(skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]){
+		for (skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]) {
 			val skel = skeletonExpression.skeleton
-			val func = skeletonExpression.skeleton.param.toFunction
-			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
-			if(!generated.contains(skelContainerName -> func.name)){
-				generated.add(skelContainerName -> func.name)
-				result += generateFunctorInstantiation(skeletonExpression, skel.param, processId)
-			}
-				
-			if(skel instanceof MapFoldSkeleton){
-				val mfunc = (skel as MapFoldSkeleton).mapFunction.toFunction
-				if(!generated.contains(skelContainerName -> mfunc)){
-					generated.add(skelContainerName -> mfunc.name)
-					result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
+			if (!(Config.processes < 2 &&
+				(skel instanceof ShiftPartitionsHorizontallySkeleton ||
+					skel instanceof ShiftPartitionsVerticallySkeleton))) {
+				val func = skeletonExpression.skeleton.param.toFunction
+				val skelContainerName = skel.skeletonName.toString + "_" +
+					skeletonExpression.obj.collectionContainerName.toString
+				if (!generated.contains(skelContainerName -> func.name)) {
+					generated.add(skelContainerName -> func.name)
+					result += generateFunctorInstantiation(skeletonExpression, skel.param, processId)
+				}
+
+				if (skel instanceof MapFoldSkeleton) {
+					val mfunc = (skel as MapFoldSkeleton).mapFunction.toFunction
+					if (!generated.contains(skelContainerName -> mfunc)) {
+						generated.add(skelContainerName -> mfunc.name)
+						result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
+					}
 				}
 			}
 		}
@@ -219,7 +238,7 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
-«««			functor instantiation
+		«««			functor instantiation
 			«generateFunctorInstantiations(resource, processId)»
 			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
@@ -230,7 +249,7 @@ class SourceFileGenerator {
 			«generateDistributionArraysInit(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource, processId)»
-						
+					
 			«IF Config.processes > 1»
 				«FOR s : resource.Structs»
 					«s.generateCreateDatatypeStruct»
@@ -241,12 +260,12 @@ class SourceFileGenerator {
 				«FOR m : dist_matrices»
 					«generateMPIVectorType(m.type as MatrixType, processId)»
 				«ENDFOR»
-
+			
 				«generateMPIFoldOperators(resource)»
 				
-«««				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
+			«««				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
 «««					«generateShiftSkeletonVariables(processId)»
-«««				«ENDIF»
+«««					ENDIF»
 
 			«ENDIF»
 			
@@ -261,7 +280,7 @@ class SourceFileGenerator {
 			«ENDIF»
 			
 			«generateFinalization»
-		}
+			}
 	'''
 
 	/**
@@ -306,23 +325,30 @@ class SourceFileGenerator {
 		// init distributed arrays with values
 		if (Config.processes > 1) {
 //		distributed
-				for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter[it.type.distributionMode == DistributionMode.DIST]) {
-					val values = a.ValuesAsString
-					if (values.size > 1) {
-						val sizeLocal = a.type.sizeLocal(processId)
-						result += a.generateArrayInitializationForProcess(values.drop((sizeLocal * processId) as int).take(sizeLocal as int))
-					}
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
+				it.type.distributionMode == DistributionMode.DIST
+			]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
+					val sizeLocal = a.type.sizeLocal(processId)
+					result +=
+						a.generateArrayInitializationForProcess(
+							values.drop((sizeLocal * processId) as int).take(sizeLocal as int))
 				}
+			}
 //		copy distributed
-				for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter[it.type.distributionMode == DistributionMode.COPY]) {
-					val values = a.ValuesAsString
-					if (values.size > 1) {
-						result += a.generateArrayInitializationForProcess(values)
-					}
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
+				it.type.distributionMode == DistributionMode.COPY
+			]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
+					result += a.generateArrayInitializationForProcess(values)
 				}
+			}
 		} else {
-			for (a : resource.Arrays.reject[it.type instanceof StructArrayType ||
-				it.type.distributionMode == DistributionMode.LOC]) {
+			for (a : resource.Arrays.reject [
+				it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.LOC
+			]) {
 				val values = a.ValuesAsString
 				if (values.size > 1) {
 					result += a.generateArrayInitializationForProcess(values)
