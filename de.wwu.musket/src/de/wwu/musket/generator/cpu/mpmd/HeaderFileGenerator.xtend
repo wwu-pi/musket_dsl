@@ -60,9 +60,9 @@ class HeaderFileGenerator {
 		«FOR s : resource.Structs»
 			«s.generateStructDeclaration»
 		«ENDFOR»
-		
-		«generateMPIStructTypeDeclarations(resource)»
+				
 		«IF Config.processes > 1»
+			«generateMPIStructTypeDeclarations(resource)»
 			«generateMPIFoldOperatorDeclarations(resource)»
 			
 			«val dist_matrices = resource.Matrices.filter[it.type.distributionMode == DistributionMode.DIST]»
