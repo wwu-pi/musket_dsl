@@ -19,7 +19,7 @@ class GatherScatterGenerator {
 			
 		«IF resource.Matrices.size() > 0»
 			template<typename T>
-			void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
+			void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out«IF Config.processes > 1», const MPI_Datatype& dt«ENDIF»);
 		«ENDIF»		
 	'''
 	
@@ -43,7 +43,7 @@ class GatherScatterGenerator {
 		«val type = co.calculateCollectionType.cppType»
 		«val dtype = if (co.calculateType.array) "DArray" else "DMatrix"»
 		template<>
-		void mkt::gather<«type»>(const mkt::«dtype»<«type»>& in, mkt::«dtype»<«type»>& out«IF co.calculateType.matrix», const MPI_Datatype& dt«ENDIF»){
+		void mkt::gather<«type»>(const mkt::«dtype»<«type»>& in, mkt::«dtype»<«type»>& out«IF co.calculateType.matrix && Config.processes > 1», const MPI_Datatype& dt«ENDIF»){
 			«IF Config.processes > 1»
 				«IF co.calculateType.array»
 					«generateMPIAllgather('in.get_data()', co.type.sizeLocal(0), co.calculateCollectionType, 'out.get_data()')»
@@ -52,7 +52,7 @@ class GatherScatterGenerator {
 					MPI_Allgatherv(in.get_data(), «se.obj.type.sizeLocal(0)», «se.obj.calculateCollectionType.MPIType», out.get_data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»1«ENDFOR»}).data(), (std::array<int, «Config.processes»>{«FOR i: 0 ..< Config.processes SEPARATOR ', '»«displacement * (co.collectionType as MatrixType).partitionPosition(i).key + (co.collectionType as MatrixType).partitionPosition(i).value»«ENDFOR»}).data(), dt, MPI_COMM_WORLD);
 				«ENDIF»				
 			«ELSE»
-				#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+				#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
 				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
 				  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
 				}
@@ -78,12 +78,12 @@ class GatherScatterGenerator {
 			void mkt::scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out){
 				«IF Config.processes > 1»
 					int offset = out.get_offset();
-					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
 					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(offset + «Config.var_loop_counter»));
 					}
 				«ELSE»
-					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
 					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
 					}
@@ -105,7 +105,7 @@ class GatherScatterGenerator {
 					  }
 					}
 				«ELSE»
-					#pragma omp«IF Config.cores > 1» parallel for «ENDIF»simd
+					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
 					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
 					}

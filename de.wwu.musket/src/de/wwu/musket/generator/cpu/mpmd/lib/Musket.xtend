@@ -328,12 +328,16 @@ class Musket {
 		}
 	'''
 		
-	def static generateForwardDeclarations() '''
-		template<typename T>
-		class DArray;
+	def static generateForwardDeclarations(Resource resource) '''
+		«IF resource.Arrays.size() > 0»
+			template<typename T>
+			class DArray;
+		«ENDIF»
 		
-		template<typename T>
-		class DMatrix;
+		«IF resource.Matrices.size() > 0»
+			template<typename T>
+			class DMatrix;
+		«ENDIF»
 	'''
 	
 	def static generateDistEnum() '''
