@@ -62,12 +62,14 @@ class HeaderFileGenerator {
 		«ENDFOR»
 		
 		«generateMPIStructTypeDeclarations(resource)»
-		«generateMPIFoldOperatorDeclarations(resource)»
-		
-		«val dist_matrices = resource.Matrices.filter[it.type.distributionMode == DistributionMode.DIST]»
-		«FOR m : dist_matrices»
-			«generateMPIVectorTypeVariable(m.type as MatrixType)»
-		«ENDFOR»
+		«IF Config.processes > 1»
+			«generateMPIFoldOperatorDeclarations(resource)»
+			
+			«val dist_matrices = resource.Matrices.filter[it.type.distributionMode == DistributionMode.DIST]»
+			«FOR m : dist_matrices»
+				«generateMPIVectorTypeVariable(m.type as MatrixType)»
+			«ENDFOR»
+		«ENDIF»
 	'''
 
 	/**
