@@ -114,15 +114,15 @@ class ExpressionGenerator {
 		«IF or.value.calculateType.isArray»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 1»
-				(«orName»).get_local(«or.localCollectionIndex.head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
+				«orName»[«or.localCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSE»
 «««				COPY or LOC
 				«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
-					(«orName»)[«or.globalCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
+					«orName»[«or.globalCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««             COPY or LOC
 				«ELSEIF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY »
-					(«orName»).get_local(«or.globalCollectionIndex.head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
+					«orName»[«or.globalCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
 					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
@@ -132,12 +132,12 @@ class ExpressionGenerator {
 		«ELSEIF or.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 2»
-				(«orName»).get_local(«or.localCollectionIndex.head.generateExpression(param_map, processId)», «or.localCollectionIndex.drop(1).head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
+				«orName»[«or.localCollectionIndex.head.generateExpression(param_map, processId)» * «(or.value.collectionType as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSEIF or.globalCollectionIndex.size == 2»
 «««					COPY
 					«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
-						(«orName»).get_local(«or.globalCollectionIndex.head.generateExpression(param_map, processId)», «or.globalCollectionIndex.drop(1).head.generateExpression(param_map, processId)»)«or?.tail.generateTail»
+						«orName»[«or.localCollectionIndex.head.generateExpression(param_map, processId)» * «(or.value.collectionType as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««					DIST
 					«ELSE»
 						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed

@@ -36,6 +36,9 @@ class DMatrix {
 		  void set_local(int row, int column, const T& value);
 		  void set_local(int index, const T& value);
 		
+		  T& operator[](int local_index);
+		  const T& operator[](int local_index) const;
+		
 		  int get_size() const;
 		  int get_size_local() const;
 		
@@ -172,6 +175,16 @@ class DMatrix {
 		template<typename T>
 		void mkt::DMatrix<T>::set_global(int row, int column, const T& v) {
 		  // TODO
+		}
+		
+		template<typename T>
+		T& mkt::DMatrix<T>::operator[](int local_index) {
+		  return _data[local_index];
+		}
+		
+		template<typename T>
+		const T& mkt::DMatrix<T>::operator[](int local_index) const {
+		  return _data[local_index];
 		}
 		
 		template<typename T>
@@ -358,10 +371,13 @@ class DMatrix {
 		
 		template<typename T, typename Functor>
 		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, const Functor& f){
+		  int number_of_rows_local = m.get_number_of_rows_local();
+		  int number_of_columns_local = m.get_number_of_columns_local();
+		
 		  #pragma omp parallel for
-		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
+		  for (int i = 0; i < number_of_rows_local; ++i) {
 		    #pragma omp simd
-		    for (int j = 0; j < m.get_number_of_columns_local(); ++j) {
+		    for (int j = 0; j < number_of_columns_local; ++j) {
 		      m.set_local(i, j, f(i, j, m.get_local(i, j)));
 		    }
 		  }

@@ -30,6 +30,9 @@ class DArray {
 		  T get_local(int index) const;
 		  void set_local(int index, const T& value);
 		
+		  T& operator[](int local_index);
+		  const T& operator[](int local_index) const;
+		
 		  int get_size() const;
 		  int get_size_local() const;
 		
@@ -99,6 +102,16 @@ class DArray {
 		template<typename T>
 		void mkt::DArray<T>::set_global(int index, const T& v) {
 		  // TODO
+		}
+		
+		template<typename T>
+		T& mkt::DArray<T>::operator[](int local_index) {
+		  return _data[local_index];
+		}
+		
+		template<typename T>
+		const T& mkt::DArray<T>::operator[](int local_index) const {
+		  return _data[local_index];
 		}
 		
 		template<typename T>
