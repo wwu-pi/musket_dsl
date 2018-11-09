@@ -13,6 +13,10 @@ import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.StructType
+import de.wwu.musket.musket.MapSkeletonVariants
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.LambdaFunction
 
 /**
  * Dependencies:
@@ -26,10 +30,31 @@ class MapVariantTransformation extends PreprocessorTransformation {
 	
 	override run(Resource input) {
 		
+		transformMapNotInPlace(input)
+		
 		transformMapInPlace(input)
 		
 		transformMapWithSideEffects(input)
 	}
+	
+	/**
+	 * Add hint to all map functions that are NOT in place to use const parameter passing. 
+	 */
+	 def transformMapNotInPlace(Resource resource){
+	 	val maps = resource.allContents.filter(MapSkeletonVariants).filter[!(it instanceof MapInPlaceSkeleton) 
+	 		&& !(it instanceof MapLocalIndexInPlaceSkeleton) && !(it instanceof MapIndexInPlaceSkeleton)]
+		
+		maps.forEach[
+			val skeletonParam = it.param
+			val userFunction = switch (skeletonParam){
+				InternalFunctionCall: skeletonParam.value
+				LambdaFunction: skeletonParam
+			}
+			
+			// Add const parameter hint
+			userFunction.params.forEach[it.const = true]
+		]
+	 }
 	
 	/**
 	 * Replace object references within a map (not in place) user function that deals 
@@ -72,7 +97,6 @@ class MapVariantTransformation extends PreprocessorTransformation {
 						
 						// Set struct parameter to reference 
 						targetFunction.params.head.reference = true
-						targetFunction.params.head.const = true
 					}
 				}
 				// TODO else duplicate function
