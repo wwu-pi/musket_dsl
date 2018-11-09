@@ -23,6 +23,7 @@ import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.StructVariable
 
 class FunctorGenerator {
 	
@@ -125,7 +126,7 @@ class FunctorGenerator {
 	 * @return the generated function call
 	 */
 	def static dispatch generateStatement(Variable variable, int processId) '''
-		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(null, processId)»«ENDIF»;
+		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(null, processId)»«ELSEIF variable instanceof StructVariable && (variable as StructVariable).copyFrom !== null»{«(variable as StructVariable).copyFrom.value.name»}«ENDIF»;
 	'''
 
 	/**
