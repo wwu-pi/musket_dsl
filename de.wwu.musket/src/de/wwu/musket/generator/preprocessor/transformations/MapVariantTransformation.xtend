@@ -91,7 +91,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 						targetFunction.statement.add(0, newCopy)
 						
 						// Replace all old references to parameter
-						targetFunction.eAllContents.filter[it !== newRef].filter(ObjectRef).forEach[
+						targetFunction.eAllContents.filter[it !== newRef].filter(ObjectRef).filter[it.value.name === struct.name].forEach[
 							it.value = newCopy
 						]
 						
