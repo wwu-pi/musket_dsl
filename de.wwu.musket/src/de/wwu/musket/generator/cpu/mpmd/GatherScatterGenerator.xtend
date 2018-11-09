@@ -54,7 +54,7 @@ class GatherScatterGenerator {
 			«ELSE»
 				#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
 				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
-				  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
+				  out[«Config.var_loop_counter»] = in[«Config.var_loop_counter»];
 				}
 			«ENDIF»
 		}
