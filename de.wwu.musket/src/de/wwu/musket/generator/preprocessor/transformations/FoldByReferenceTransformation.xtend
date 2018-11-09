@@ -26,7 +26,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 	 * (i.e., reusing the identity value for intermediate calculations instead of copying values). 
 	 * Example:
 	 *  
-	 * int sum(int a, int b){     -->	void sum(int a, int b){ 
+	 * int sum(int a, int b){     -->	void sum(int& a, int b){ 
 	 * 		int result = a + b;				int result = a + b;
 	 * 		return result;					a = result;
 	 * }								}

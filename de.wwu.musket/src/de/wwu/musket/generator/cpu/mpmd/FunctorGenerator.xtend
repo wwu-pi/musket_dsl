@@ -48,7 +48,7 @@ class FunctorGenerator {
 
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
-		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR»){
+		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.generateParameter» «p.name»«ENDFOR»){
 			«FOR s : f.statement»
 				«s.generateFunctionStatement(processId)»
 			«ENDFOR»

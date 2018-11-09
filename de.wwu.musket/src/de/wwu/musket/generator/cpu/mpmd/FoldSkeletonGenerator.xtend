@@ -76,7 +76,7 @@ class FoldSkeletonGenerator {
 	 * @return generated code
 	 */
 	def static generateReductionDeclaration(FoldSkeletonVariants s, CollectionObject a, int processId) '''
-		#pragma omp declare reduction(«s.param.functionName.toFirstLower»_reduction : «s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString)» : omp_out = «s.param.functionName»_function(«FOR p : s.param.functionArguments SEPARATOR ", " AFTER ", "»«p.generateExpression(null, processId)»«ENDFOR»omp_in, omp_out)) initializer(omp_priv = omp_orig)
+		#pragma omp declare reduction(«s.param.functionName.toFirstLower»_reduction : «s.identity.calculateType.cppType.replace("0", s.identity.calculateType.collectionType?.size.toString)» : «s.param.functionName»_function(«FOR p : s.param.functionArguments SEPARATOR ", " AFTER ", "»«p.generateExpression(null, processId)»«ENDFOR»omp_out, omp_in)) initializer(omp_priv = omp_orig)
 	'''
 
 // MPI part
@@ -119,7 +119,7 @@ class FoldSkeletonGenerator {
 		void «foldSkeleton.param.functionName»(void* in, void* inout, int *len, MPI_Datatype *dptr){
 			«type»* inv = static_cast<«type»*>(in);
 			«type»* inoutv = static_cast<«type»*>(inout);
-			*inoutv = «foldSkeleton.param.functionName»_function(«FOR arg : foldSkeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»*inv, *inoutv);
+			«foldSkeleton.param.functionName»_function(«FOR arg : foldSkeleton.param.functionArguments SEPARATOR ", " AFTER ", "»«arg.generateExpression(null, processId)»«ENDFOR»*inoutv, *inv);
 		} 
 	'''
 
