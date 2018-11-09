@@ -44,11 +44,11 @@ class FunctorGenerator {
 		};
 	'''
 	
-	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
+	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
 
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
-		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.generateParameter» «p.name»«ENDFOR»){
+		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
 			«FOR s : f.statement»
 				«s.generateFunctionStatement(processId)»
 			«ENDFOR»

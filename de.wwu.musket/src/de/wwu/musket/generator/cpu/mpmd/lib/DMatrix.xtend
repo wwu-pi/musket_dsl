@@ -328,7 +328,7 @@ class DMatrix {
 		void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor& f) {
 		  int row_offset = in.get_row_offset();
 		  int column_offset = in.get_column_offset();
-		  int rows_local = in.get_number_of_rows_local()
+		  int rows_local = in.get_number_of_rows_local();
 		  int columns_local = in.get_number_of_columns_local();
 		  
 		#pragma omp parallel for
@@ -342,7 +342,7 @@ class DMatrix {
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor& f) {
-		  int rows_local = in.get_number_of_rows_local()
+		  int rows_local = in.get_number_of_rows_local();
 		  int columns_local = in.get_number_of_columns_local();
 		#pragma omp parallel for
 		  for (int i = 0; i < rows_local; ++i) {
@@ -365,8 +365,8 @@ class DMatrix {
 		void mkt::map_index_in_place(mkt::DMatrix<T>& m, const Functor& f){
 		  int row_offset = m.get_row_offset();
 		  int column_offset = m.get_column_offset();
-		  int rows_local = in.get_number_of_rows_local()
-		  int columns_local = in.get_number_of_columns_local();
+		  int rows_local = m.get_number_of_rows_local();
+		  int columns_local = m.get_number_of_columns_local();
 		  
 		  #pragma omp parallel for
 		  for (int i = 0; i < rows_local; ++i) {
@@ -386,7 +386,7 @@ class DMatrix {
 		  for (int i = 0; i < number_of_rows_local; ++i) {
 		    #pragma omp simd
 		    for (int j = 0; j < number_of_columns_local; ++j) {
-		      m[i * columns_local + j] = f(i, j, m[i * columns_local + j]);
+		      m[i * number_of_columns_local + j] = f(i, j, m[i * number_of_columns_local + j]);
 		    }
 		  }
 		}
