@@ -1,7 +1,7 @@
 package de.wwu.musket.generator.preprocessor.transformations
 
 import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
-import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.FoldSkeletonVariants
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.LambdaFunction
@@ -11,6 +11,7 @@ import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EcoreUtil
 import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /**
  * Dependencies:
@@ -34,7 +35,7 @@ import de.wwu.musket.musket.Skeleton
 	 */
 	override run(Resource input) {
 		// Get all fold skeleton calls
-		val folds = input.allContents.filter(SkeletonExpression).filter[it.skeleton instanceof FoldSkeleton].toList
+		val folds = input.allContents.filter(SkeletonExpression).filter[it.skeleton instanceof FoldSkeletonVariants].toList
 		
 		folds.forEach[
 			val fold = it
@@ -47,7 +48,11 @@ import de.wwu.musket.musket.Skeleton
 			
 			// Check if other non-fold skeletons also call this user function
 			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].filter[it.value === userFunction]
-				.map[it.eContainer as Skeleton].filter[!(it instanceof FoldSkeleton)].size == 0){
+				.map[it.eContainer as Skeleton].filter[!(it instanceof FoldSkeletonVariants) || // either fold skeletons are ok
+					(it instanceof MapFoldSkeleton && ((it as MapFoldSkeleton).mapFunction instanceof InternalFunctionCall) // mapFold must not use this as map function
+						&& ((it as MapFoldSkeleton).mapFunction as InternalFunctionCall).value === userFunction
+					)
+				].size == 0){
 				
 				val returnStatement = userFunction.statement.last
 				if(returnStatement instanceof ReturnStatement){
