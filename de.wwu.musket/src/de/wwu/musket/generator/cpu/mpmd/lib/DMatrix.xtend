@@ -357,7 +357,7 @@ class DMatrix {
 		void mkt::map_in_place(mkt::DMatrix<T>& m, const Functor& f){
 		#pragma omp parallel for simd
 		  for (int i = 0; i < m.get_size_local(); ++i) {
-		    m[i] = f(m[i]);
+		    f(m[i]);
 		  }
 		}
 		
@@ -372,7 +372,7 @@ class DMatrix {
 		  for (int i = 0; i < rows_local; ++i) {
 		  	#pragma omp simd
 		  	for (int j = 0; j < columns_local; ++j) {
-		      m[i * columns_local + j] = f(i + row_offset, j + column_offset, m[i * columns_local + j]);
+		      f(i + row_offset, j + column_offset, m[i * columns_local + j]);
 		    }
 		  }
 		}
@@ -386,7 +386,7 @@ class DMatrix {
 		  for (int i = 0; i < number_of_rows_local; ++i) {
 		    #pragma omp simd
 		    for (int j = 0; j < number_of_columns_local; ++j) {
-		      m[i * number_of_columns_local + j] = f(i, j, m[i * number_of_columns_local + j]);
+		      f(i, j, m[i * number_of_columns_local + j]);
 		    }
 		  }
 		}

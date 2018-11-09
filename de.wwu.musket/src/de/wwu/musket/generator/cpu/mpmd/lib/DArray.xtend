@@ -214,7 +214,7 @@ class DArray {
 		void mkt::map_in_place(mkt::DArray<T>& a, const Functor& f){
 		#pragma omp parallel for simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
-		    a[i] = f(a[i]);
+		    f(a[i]);
 		  }
 		}
 		
@@ -223,7 +223,7 @@ class DArray {
 		  int offset = a.get_offset();
 		#pragma omp parallel for simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
-		    a[i] = f(i + offset, a[i]);
+		    f(i + offset, a[i]);
 		  }
 		}
 		
@@ -231,7 +231,7 @@ class DArray {
 		void mkt::map_local_index_in_place(mkt::DArray<T>& a, const Functor& f){
 		#pragma omp parallel for simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
-		    a[i] = f(i, a[i]);
+		    f(i, a[i]);
 		  }
 		}
 	'''

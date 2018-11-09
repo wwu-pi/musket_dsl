@@ -40,12 +40,14 @@ class FunctorGenerator {
 			}
 			
 			«FOR p : f.params.take(freeParameter)»
-				«p.generateParameter»;
+				«p.generateMember»;
 			«ENDFOR»
 		};
 	'''
 	
 	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
+	def static generateMember(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
+
 
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
