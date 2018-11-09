@@ -185,6 +185,10 @@ class MusketType {
 	def isCollection() {
 		return isArray || isMatrix || type === PrimitiveTypeLiteral.AUTO
 	}
+	
+	def isStruct(){
+		return structName !== null
+	}
 
 	override hashCode() {
 		Objects.hash(this.type, this.structName, this.isArray, this.isMatrix, this.distributionMode)
