@@ -56,6 +56,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 				val assignment = factory.createAssignment
 				assignment.^var = target
 				assignment.value = returnStatement.value
+				assignment.operator = '='
 				
 				EcoreUtil.replace(returnStatement, assignment)
 			}
