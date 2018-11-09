@@ -11,6 +11,7 @@ import de.wwu.musket.generator.preprocessor.transformations.MapFusionTransformat
 import de.wwu.musket.generator.preprocessor.transformations.DummyTransformation
 import de.wwu.musket.generator.preprocessor.transformations.ModelSimplificationTransformation
 import de.wwu.musket.generator.preprocessor.transformations.SkeletonFusionTransformation
+import de.wwu.musket.generator.preprocessor.transformations.FoldByReferenceTransformation
 
 class MusketPreprocessor {
 	
@@ -72,6 +73,7 @@ class MusketPreprocessor {
 		val workingModel = copyModel(unprocessedModel)
 		
 		val Collection<PreprocessorTransformation> transformations = #[
+			new FoldByReferenceTransformation(factory),
 			new ModelSimplificationTransformation(factory),
 			new MapFusionTransformation(factory),
 			new SkeletonFusionTransformation(factory), // after MapFusion

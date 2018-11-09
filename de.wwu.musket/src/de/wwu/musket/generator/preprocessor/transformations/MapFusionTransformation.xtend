@@ -11,6 +11,14 @@ class MapFusionTransformation extends PreprocessorTransformation {
 	
 	override run(Resource input) {
 		// TODO
+		
+		// Rename duplicate attribute names
+		
+		// Replace return expression with temporary variable
+		 
+		// Copy function content (so far, only one return is allowed at the end of the function)
+		
+		// Replace parameter reference with temporary variable
 	}
 	
 }
