@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.StructVariable
 
 class MusketModelValidator extends AbstractMusketValidator {
 	
@@ -144,8 +145,8 @@ class MusketModelValidator extends AbstractMusketValidator {
 	// Check collection access expression matches dimensions
 	@Check
 	def checkCollectionAccessIsNumeric(Ref ref) {
-		val dimensions = if (ref.value.calculateType.isArray) 1 
-					else if (ref.value.calculateType.isMatrix) 2 else 0
+		val dimensions = if (ref.value?.calculateType?.isArray) 1 
+					else if (ref.value?.calculateType?.isMatrix) 2 else 0
 		
 		val errorText = if(dimensions == 1) 'Array element access expects 1 dimension, ' else 'Matrix element access expects 2 dimensions, '
 		
@@ -185,4 +186,14 @@ class MusketModelValidator extends AbstractMusketValidator {
 				INVALID_PARAMETER)
 		}
 	}
+	
+	// Ensure copy constructor for structs gets struct input
+	@Check
+	def checkCopyConstructorInput(StructVariable s){
+		if(s.copyFrom !== null && !s.copyFrom.calculateType.isStruct){
+			error('Copy constructor expects struct input, ' + s.copyFrom.calculateType + ' given!', 
+				MusketPackage.eINSTANCE.structVariable_CopyFrom,
+				INVALID_PARAMETER)
+		}
+	} 
 }

@@ -41,6 +41,7 @@ struct Fish{
 
 // Data structures
 array<Fish,NUMBER_OF_FISH,dist> population;
+array<double,NUMBER_OF_FISH,dist> pop2;
 
 //array<double,DIMENSIONS,dist> instinctive_movement_vector;
 array<double,DIMENSIONS,copy> instinctive_movement_vector_copy;
@@ -297,7 +298,9 @@ main{
 	double step_size = STEP_SIZE_INITIAL;
 	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
 	//fi.weight
-	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+	pop2 = population.map((Fish fi) -> double { return fi.weight;});
+	double sum_weight_last_iteration = pop2.fold(0.0, sumWeight());
+	//double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 	
 	// main loop
 	for (int iteration = 0; iteration < ITERATIONS; ++iteration) {
