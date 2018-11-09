@@ -263,7 +263,7 @@ class FoldSkeletonGenerator {
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
-		    «local_result» = f(«local_result», in.get_local(«Config.var_loop_counter»));
+		    f(«local_result», in.get_local(«Config.var_loop_counter»));
 		  }
 		  
 		  «IF Config.processes > 1»
@@ -284,7 +284,7 @@ class FoldSkeletonGenerator {
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
-		    out = f(out, in.get_local(«Config.var_loop_counter»));
+		    f(out, in.get_local(«Config.var_loop_counter»));
 		  }
 		}
 	'''
@@ -306,7 +306,7 @@ class FoldSkeletonGenerator {
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
-		    «local_result» = f(«local_result», in.get_local(«Config.var_loop_counter»));
+		    f(«local_result», in.get_local(«Config.var_loop_counter»));
 		  }
 		  
 		  «IF Config.processes > 1»
@@ -327,7 +327,7 @@ class FoldSkeletonGenerator {
 		  
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
-		    out = f(out, in.get_local(«Config.var_loop_counter»));
+		    f(out, in.get_local(«Config.var_loop_counter»));
 		  }
 		}
 	'''
@@ -414,8 +414,8 @@ class FoldSkeletonGenerator {
 			#pragma omp parallel for simd reduction(«foldName»:«local_result»)
 			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
 			«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		 «local_result» = ff(«local_result», mapped_value);
-		 }
+		      ff(«local_result», mapped_value);
+		    }
 		 
 			«IF Config.processes > 1»
 				MPI_Allreduce(&local_result, «IF se.eContainer instanceof MusketAssignment && (se.eContainer as MusketAssignment).^var.calculateType.isArray»out.get_data(), out.get_size(), «(se.eContainer as MusketAssignment).^var.calculateCollectionType.MPIType»«ELSE»&out, 1, «fs.identity.calculateType.MPIType»«ENDIF», «foldName»«Config.mpi_op_suffix», MPI_COMM_WORLD); 
@@ -444,7 +444,7 @@ class FoldSkeletonGenerator {
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
 		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		  	 out = ff(out, mapped_value);
+		  	 ff(out, mapped_value);
 		  }
 		}
 	'''
@@ -468,7 +468,7 @@ class FoldSkeletonGenerator {
 		  #pragma omp parallel for simd reduction(«foldName»:«local_result»)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size_local; ++«Config.var_loop_counter»){
 		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		  	 «local_result» = ff(«local_result», mapped_value);
+		  	 ff(«local_result», mapped_value);
 		  }
 		  
 		  «IF Config.processes > 1»
@@ -491,7 +491,7 @@ class FoldSkeletonGenerator {
 		  #pragma omp parallel for simd reduction(«foldName»:out)
 		  for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < size; ++«Config.var_loop_counter»){
 		  	«foldcpptype» mapped_value = mf(in.get_local(«Config.var_loop_counter»));
-		  	 out = ff(out, mapped_value);
+		  	 ff(out, mapped_value);
 		  }
 		}
 	'''
