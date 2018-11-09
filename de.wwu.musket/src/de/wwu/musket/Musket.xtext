@@ -299,11 +299,11 @@ Parameter:
 ;
 
 CollectionParameter:
-	const?='const' type=CollectionType reference?='&' name=ID
+	(const?='const')? type=CollectionType (reference?='&')? name=ID
 ;
 
 IndividualParameter:
-	const?='const' type=IndividualType reference?='&' name=ID
+	(const?='const')? type=IndividualType (reference?='&')? name=ID
 ;
 	
 //-----------------------------------------------------------
