@@ -38,26 +38,32 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 		maps.forEach[
 			val fold = it
 			
-			var Function userFunction;
-			switch (fold.skeleton.param){
-				InternalFunctionCall: userFunction = (fold.skeleton.param as InternalFunctionCall).value
-				LambdaFunction: userFunction = (fold.skeleton.param as LambdaFunction)
+			val skeletonParam = fold.skeleton.param
+			val Function userFunction = switch (skeletonParam){
+				InternalFunctionCall: skeletonParam.value
+				LambdaFunction: skeletonParam
 			}
 			
-			val returnStatement = userFunction.statement.last
-			if(returnStatement instanceof ReturnStatement){
-				// Set function return type to void
-				userFunction.returnType = factory.createPrimitiveType(PrimitiveTypeLiteral.AUTO)
+			// Check if other skeletons also call this user function
+			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].map[it.value].filter[it === userFunction].size == 0){
 				
-				// Build assignment to write return value to first user function parameter 
-				val target = factory.createObjectRef
-				target.value = userFunction.params.head
-				
-				val assignment = factory.createAssignment
-				assignment.^var = target
-				assignment.value = returnStatement.value
-				
-				EcoreUtil.replace(returnStatement, assignment)
+				val returnStatement = userFunction.statement.last
+				if(returnStatement instanceof ReturnStatement){
+					// Set function return type to void and use parameter by reference
+					userFunction.returnType = factory.createPrimitiveType(PrimitiveTypeLiteral.AUTO)
+					userFunction.params.head.reference = true
+					
+					// Build assignment to write return value to first user function parameter 
+					val target = factory.createObjectRef
+					target.value = userFunction.params.head
+					
+					val assignment = factory.createAssignment
+					assignment.^var = target
+					assignment.value = returnStatement.value
+					assignment.operator = '='
+					
+					EcoreUtil.replace(returnStatement, assignment)
+				}
 			}
 		]
 	}
