@@ -69,6 +69,10 @@ class MapVariantTransformation extends PreprocessorTransformation {
 						targetFunction.eAllContents.filter[it !== newRef].filter(ObjectRef).forEach[
 							it.value = newCopy
 						]
+						
+						// Set struct parameter to reference 
+						targetFunction.params.head.reference = true
+						targetFunction.params.head.const = true
 					}
 				}
 				// TODO else duplicate function
@@ -105,6 +109,9 @@ class MapVariantTransformation extends PreprocessorTransformation {
 							
 							targetFunction.statement.remove(targetFunction.statement.size - 1)
 							targetFunction.returnType = factory.createPrimitiveType(PrimitiveTypeLiteral.AUTO)
+							
+							// Set struct parameter to reference 
+							targetFunction.params.head.reference = true
 						}
 					}
 				}
