@@ -10,6 +10,7 @@ import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EcoreUtil
+import de.wwu.musket.musket.Skeleton
 
 /**
  * Dependencies:
@@ -33,9 +34,9 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 	 */
 	override run(Resource input) {
 		// Get all fold skeleton calls
-		val maps = input.allContents.filter(SkeletonExpression).filter[it.skeleton instanceof FoldSkeleton].toList
+		val folds = input.allContents.filter(SkeletonExpression).filter[it.skeleton instanceof FoldSkeleton].toList
 		
-		maps.forEach[
+		folds.forEach[
 			val fold = it
 			
 			val skeletonParam = fold.skeleton.param
@@ -44,8 +45,9 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 				LambdaFunction: skeletonParam
 			}
 			
-			// Check if other skeletons also call this user function
-			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].map[it.value].filter[it === userFunction].size == 0){
+			// Check if other non-fold skeletons also call this user function
+			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].filter[it.value === userFunction]
+				.map[it.eContainer as Skeleton].filter[!(it instanceof FoldSkeleton)].size == 0){
 				
 				val returnStatement = userFunction.statement.last
 				if(returnStatement instanceof ReturnStatement){
