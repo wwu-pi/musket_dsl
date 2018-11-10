@@ -4,6 +4,7 @@ import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import org.eclipse.emf.ecore.resource.Resource
 
+import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ObjectRef
@@ -17,6 +18,7 @@ import de.wwu.musket.musket.MapSkeletonVariants
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.Skeleton
 
 /**
  * Dependencies:
@@ -96,7 +98,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 						]
 						
 						// Set struct parameter to reference 
-						targetFunction.params.head.reference = true
+						targetFunction.params.last.reference = true
 					}
 				}
 				// TODO else duplicate function
@@ -122,9 +124,12 @@ class MapVariantTransformation extends PreprocessorTransformation {
 				val targetFunction = functionCall.value
 								
 				// Check if other skeletons also call this user function
-				if(resource.allContents.filter(InternalFunctionCall).filter[it !== functionCall].map[it.value].filter[it === functionCall.value].size == 0){
+				if(resource.allContents.filter(InternalFunctionCall).filter[it !== functionCall].filter[it.value === targetFunction]
+				.map[it.eContainerOfType(Skeleton)].filter[!(it instanceof MapInPlaceSkeleton) && 
+					!(it instanceof MapIndexInPlaceSkeleton) && !(it instanceof MapLocalIndexInPlaceSkeleton)
+				].size == 0){
 					// Dealing with struct?
-					if(targetFunction.params.last.calculateType.isStruct){
+					//if(targetFunction.params.last.calculateType.isStruct){ // Temporary simplification -> do for all
 						// Remove return statement and return type if only main object is returned
 						if(targetFunction.statement.last instanceof ReturnStatement 
 							&& (targetFunction.statement.last as ReturnStatement).value instanceof CompareExpression
@@ -135,9 +140,9 @@ class MapVariantTransformation extends PreprocessorTransformation {
 							targetFunction.returnType = factory.createPrimitiveType(PrimitiveTypeLiteral.AUTO)
 							
 							// Set struct parameter to reference 
-							targetFunction.params.head.reference = true
+							targetFunction.params.last.reference = true
 						}
-					}
+					//}
 				}
 				// TODO else duplicate function
 			}
