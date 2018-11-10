@@ -128,7 +128,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 					!(it instanceof MapIndexInPlaceSkeleton) && !(it instanceof MapLocalIndexInPlaceSkeleton)
 				].size == 0){
 					// Dealing with struct?
-					if(targetFunction.params.last.calculateType.isStruct){
+					//if(targetFunction.params.last.calculateType.isStruct){ // Temporary simplification -> do for all
 						// Remove return statement and return type if only main object is returned
 						if(targetFunction.statement.last instanceof ReturnStatement 
 							&& (targetFunction.statement.last as ReturnStatement).value instanceof CompareExpression
@@ -141,7 +141,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 							// Set struct parameter to reference 
 							targetFunction.params.last.reference = true
 						}
-					}
+					//}
 				}
 				// TODO else duplicate function
 			}
