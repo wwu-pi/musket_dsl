@@ -26,4 +26,13 @@ class PreprocessorUtil {
 		copier.copyReferences
 		return newElem
 	}
+	
+	def static EObject eContainerOfType(EObject elem, Class<?> containerType){
+		var currentElem = elem
+		while(currentElem.eContainer !== null){
+			currentElem = currentElem.eContainer
+			if(containerType.isInstance(currentElem)) return currentElem
+		}
+		return null
+	}
 }

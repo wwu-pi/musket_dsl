@@ -1,5 +1,6 @@
 package de.wwu.musket.generator.preprocessor.transformations
 
+import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
 import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
 import de.wwu.musket.musket.FoldSkeletonVariants
 import de.wwu.musket.musket.Function
@@ -48,7 +49,7 @@ import de.wwu.musket.musket.MapFoldSkeleton
 			
 			// Check if other non-fold skeletons also call this user function
 			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].filter[it.value === userFunction]
-				.map[it.eContainer as Skeleton].filter[!(it instanceof FoldSkeletonVariants) || // either fold skeletons are ok
+				.map[it.eContainerOfType(Skeleton) as Skeleton].filter[!(it instanceof FoldSkeletonVariants) || // either fold skeletons are ok
 					(it instanceof MapFoldSkeleton && ((it as MapFoldSkeleton).mapFunction instanceof InternalFunctionCall) // mapFold must not use this as map function
 						&& ((it as MapFoldSkeleton).mapFunction as InternalFunctionCall).value === userFunction
 					)

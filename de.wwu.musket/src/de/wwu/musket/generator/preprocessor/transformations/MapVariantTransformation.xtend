@@ -4,6 +4,7 @@ import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import org.eclipse.emf.ecore.resource.Resource
 
+import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.ReturnStatement
 import de.wwu.musket.musket.ObjectRef
@@ -124,7 +125,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 								
 				// Check if other skeletons also call this user function
 				if(resource.allContents.filter(InternalFunctionCall).filter[it !== functionCall].filter[it.value === targetFunction]
-				.map[it.eContainer as Skeleton].filter[!(it instanceof MapInPlaceSkeleton) && 
+				.map[it.eContainerOfType(Skeleton)].filter[!(it instanceof MapInPlaceSkeleton) && 
 					!(it instanceof MapIndexInPlaceSkeleton) && !(it instanceof MapLocalIndexInPlaceSkeleton)
 				].size == 0){
 					// Dealing with struct?
