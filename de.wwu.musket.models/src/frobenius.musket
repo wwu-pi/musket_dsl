@@ -6,11 +6,13 @@
 matrix<double,32,32,dist> as;
 
 double init(int x, int y, double a){
-	return (double) (x + y + 1);
+	a = (double) (x + y + 1);
+	return a;
 }
 
 double square(double a){
-	return a * a;
+	a = a * a;
+	return a;
 }
 
 double sum(double a, double b){

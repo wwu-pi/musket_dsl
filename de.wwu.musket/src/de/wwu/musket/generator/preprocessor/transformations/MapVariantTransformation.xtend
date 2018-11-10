@@ -69,7 +69,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 	 * 												}
 	 */
 	def transformMapWithSideEffects(Resource resource) {
-		val maps = resource.allContents.filter(MapSkeleton)
+		val maps = resource.allContents.filter(MapSkeletonVariants).filter[!(it instanceof MapInPlaceSkeleton) && !(it instanceof MapIndexInPlaceSkeleton) && !(it instanceof MapLocalIndexInPlaceSkeleton)]
 		
 		maps.forEach[
 			if(it.param instanceof InternalFunctionCall){
@@ -116,7 +116,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 	 * }
 	 */
 	def transformMapInPlace(Resource resource) {
-		val maps = resource.allContents.filter(MapInPlaceSkeleton)
+		val maps = resource.allContents.filter(MapSkeletonVariants).filter[it instanceof MapInPlaceSkeleton || it instanceof MapIndexInPlaceSkeleton || it instanceof MapLocalIndexInPlaceSkeleton]
 		
 		maps.forEach[
 			if(it.param instanceof InternalFunctionCall){
