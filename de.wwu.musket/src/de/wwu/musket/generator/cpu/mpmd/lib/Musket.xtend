@@ -55,15 +55,19 @@ class Musket {
 		«val showCalls = resource.ShowCalls»
 		«IF showCalls.size() > 0»			
 			«IF resource.Arrays.size() > 0»
-				template<typename T>
-				void print_dist(const std::string& name, const mkt::DArray<T>& a);
+				«IF Config.processes > 1»
+					template<typename T>
+					void print_dist(const std::string& name, const mkt::DArray<T>& a);
+				«ENDIF»
 				template<typename T>
 				void print(const std::string& name, const mkt::DArray<T>& a);				
 			«ENDIF»
 			«IF resource.Matrices.size() > 0»
 				template<typename T>
 				void print(const std::string& name, const mkt::DMatrix<T>& a);
-				«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
+				«IF Config.processes > 1»
+					«generatePrintDistFunctionDeclarationsMatrix(showCalls)»
+				«ENDIF»
 			«ENDIF»			
 		«ENDIF»
 		
@@ -117,11 +121,15 @@ class Musket {
 		«IF showCalls.size() > 0»			
 			«IF resource.Arrays.size() > 0»
 				«generatePrintCopyArray»
-				«generatePrintDistFunctionsArray(showCalls)»
+				«IF Config.processes > 1»
+					«generatePrintDistFunctionsArray(showCalls)»
+				«ENDIF»
 			«ENDIF»
 			«IF resource.Matrices.size() > 0»
 				«generatePrintCopyMatrix»
-				«generatePrintDistFunctionsMatrix(showCalls)»
+				«IF Config.processes > 1»
+					«generatePrintDistFunctionsMatrix(showCalls)»
+				«ENDIF»
 			«ENDIF»
 		«ENDIF»
 		
