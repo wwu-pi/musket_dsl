@@ -187,7 +187,7 @@ class DArray {
 	def static generateDArraySkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < in.get_size_local(); ++i) {
 		      out[i] = f(in[i]);
 		  }
@@ -196,7 +196,7 @@ class DArray {
 		template<typename T, typename R, typename Functor>
 		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
 		  int offset = in.get_offset();
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < in.get_size_local(); ++i) {
 		    out[i] = f(i + offset, in[i]);
 		  }
@@ -204,7 +204,7 @@ class DArray {
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < in.get_size_local(); ++i) {
 		      out[i] = f(i, in[i]);
 		  }
@@ -212,7 +212,7 @@ class DArray {
 		
 		template<typename T, typename Functor>
 		void mkt::map_in_place(mkt::DArray<T>& a, const Functor& f){
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
 		    f(a[i]);
 		  }
@@ -221,7 +221,7 @@ class DArray {
 		template<typename T, typename Functor>
 		void mkt::map_index_in_place(mkt::DArray<T>& a, const Functor& f){
 		  int offset = a.get_offset();
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
 		    f(i + offset, a[i]);
 		  }
@@ -229,7 +229,7 @@ class DArray {
 		
 		template<typename T, typename Functor>
 		void mkt::map_local_index_in_place(mkt::DArray<T>& a, const Functor& f){
-		#pragma omp parallel for simd
+		#pragma omp «IF Config.cores > 1»parallel for «ENDIF»simd
 		  for (int i = 0; i < a.get_size_local(); ++i) {
 		    f(i, a[i]);
 		  }
