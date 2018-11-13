@@ -1,18 +1,19 @@
 package de.wwu.musket.generator.preprocessor.transformations
 
-import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
 import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
 import de.wwu.musket.musket.FoldSkeletonVariants
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.InternalFunctionCall
-import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.PrimitiveTypeLiteral
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.SkeletonExpression
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EcoreUtil
-import de.wwu.musket.musket.Skeleton
-import de.wwu.musket.musket.MapFoldSkeleton
+
+import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
+import static extension de.wwu.musket.util.MusketHelper.*
 
 /**
  * Dependencies:
@@ -42,10 +43,7 @@ import de.wwu.musket.musket.MapFoldSkeleton
 			val fold = it
 			
 			val skeletonParam = fold.skeleton.param
-			val Function userFunction = switch (skeletonParam){
-				InternalFunctionCall: skeletonParam.value
-				LambdaFunction: skeletonParam
-			}
+			val Function userFunction = skeletonParam.toFunction
 			
 			// Check if other non-fold skeletons also call this user function
 			if(input.allContents.filter(InternalFunctionCall).filter[it !== skeletonParam].filter[it.value === userFunction]

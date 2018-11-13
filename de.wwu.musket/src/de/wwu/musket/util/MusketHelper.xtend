@@ -25,7 +25,9 @@ import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.CollectionType
 
 class MusketHelper {
-	// Resolve concrete values from references
+	/**
+	 * Resolve concrete values from references
+	 */
 	static def getConcreteValue(IntRef ref) {
 		if (ref.ref !== null) {
 			return ref.ref.value
@@ -33,6 +35,9 @@ class MusketHelper {
 		return ref.value
 	}
 
+	/**
+	 * Map the Musket type to a C++ primitive type
+	 */
 	static def getCXXPrimitiveDefaultValue(Type t) {
 		switch (t) {
 			IntArrayType,
@@ -53,6 +58,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Map Musket type to a C++ constructor call
+	 */
 	static def getCXXDefaultConstructorValue(Type t) {
 		switch (t) {
 			CollectionType: '''(«t.sizeLocal», «t.CXXPrimitiveDefaultValue»)'''
@@ -61,6 +69,9 @@ class MusketHelper {
 		}
 	}
 	
+	/**
+	 * Map Musket type to a corresponding MPI primitive type
+	 */
 	static def toMPIPrimitiveType(Type t){
 		switch(t){
 			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''MPI_BOOL'''
@@ -72,6 +83,9 @@ class MusketHelper {
 		}
 	}
 	
+	/**
+	 * Shortcut to reach function from skeleton parameter
+	 */
 	static def toFunction(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:
@@ -81,6 +95,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Prepare list of custom arguments to a user function 
+	 */
 	static def getFunctionArguments(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:
@@ -90,6 +107,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Prepare list of parameters of a user function 
+	 */
 	static def getFunctionParameters(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:
@@ -99,6 +119,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Shortcut to reach function name from skeleton parameter
+	 */
 	static def getFunctionName(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:
@@ -108,6 +131,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Shortcut to reach function name from abstract function object
+	 */
 	static def getName(Function func) {
 		switch func {
 			RegularFunction:
@@ -124,6 +150,9 @@ class MusketHelper {
 		}
 	}
 
+	/**
+	 * Internal data structure to capture lambda abstractions within the model.
+	 */
 	static class State {
 		private static int lambdaCounter = 0;
 

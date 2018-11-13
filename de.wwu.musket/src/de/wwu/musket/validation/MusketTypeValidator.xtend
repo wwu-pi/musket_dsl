@@ -1,33 +1,45 @@
 package de.wwu.musket.validation
 
 import de.wwu.musket.musket.Assignment
-import de.wwu.musket.musket.CollectionType
-import de.wwu.musket.musket.FoldOption
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.Expression
+import de.wwu.musket.musket.FoldLocalSkeleton
 import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.FoldSkeletonVariants
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexSkeleton
 import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexSkeleton
 import de.wwu.musket.musket.MapOption
 import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.MapSkeletonVariants
 import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.MusketAssignment
+import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.MusketFunctionName
 import de.wwu.musket.musket.MusketIteratorForLoop
 import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.ScatterSkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
 import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
 import de.wwu.musket.musket.ZipOption
 import de.wwu.musket.musket.ZipSkeleton
 import de.wwu.musket.musket.ZipSkeletonVariants
@@ -36,20 +48,6 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
-import de.wwu.musket.musket.Expression
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.MusketFunctionCall
-import de.wwu.musket.musket.MusketFunctionName
-import de.wwu.musket.musket.FoldLocalSkeleton
-import de.wwu.musket.musket.MapFoldSkeleton
-import de.wwu.musket.musket.LambdaFunction
-import de.wwu.musket.musket.MapLocalIndexSkeleton
-import de.wwu.musket.musket.ZipLocalIndexSkeleton
-import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
-import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.ScatterSkeleton
-import de.wwu.musket.musket.DistributionMode
-import de.wwu.musket.musket.MusketAssignment
 
 class MusketTypeValidator extends AbstractMusketValidator {
 

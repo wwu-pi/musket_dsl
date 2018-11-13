@@ -49,17 +49,6 @@ class MusketModelValidator extends AbstractMusketValidator {
 		}
 	}
 	
-	// Check if function parameter names overwrite global object names
-	@Check
-	def checkFunctionParameterNamesOverwriteGlobals(Parameter param) {
-		// Already checked in checkVariableNamesOverwritePrevious() and marked as error
-//		if((param.eResource.allContents.filter(Model).next as Model).data.exists[it !== param && it.name == param.name]) {
-//			warning('Parameter ' + param.name + ' overwrites global object with the same name!', 
-//				MusketPackage.eINSTANCE.referableObject_Name,
-//				INVALID_ID)
-//		}
-	}
-	
 	// Check if variable name overwrites other name defined in the scope
 	@Check
 	def checkVariableNamesOverwritePrevious(ReferableObject variable) {	

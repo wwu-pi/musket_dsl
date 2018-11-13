@@ -1,11 +1,9 @@
 package de.wwu.musket.generator.preprocessor.util
 
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl
 import org.eclipse.emf.ecore.util.EcoreUtil
-import org.eclipse.emf.ecore.EObject
-import de.wwu.musket.musket.MusketAssignment
-import de.wwu.musket.musket.ObjectRef
 
 class PreprocessorUtil {
 	
