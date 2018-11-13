@@ -231,6 +231,9 @@ class MusketType {
 		return this.primitiveType
 	}
 
+	/** 
+	 * Map Musket type to C++ type
+	 */
 	def getCppType() {
 		var primtype = ''
 		// struct
@@ -259,6 +262,9 @@ class MusketType {
 		}
 	}
 
+	/** 
+	 * Map Musket type to MPI type
+	 */
 	def getMPIType() {
 		var mpi_type = ''
 		// struct

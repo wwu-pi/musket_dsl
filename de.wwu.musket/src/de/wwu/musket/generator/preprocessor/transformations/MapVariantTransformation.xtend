@@ -1,24 +1,23 @@
 package de.wwu.musket.generator.preprocessor.transformations
 
+import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
+import de.wwu.musket.musket.CompareExpression
+import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapSkeletonVariants
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.PrimitiveTypeLiteral
+import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.StructType
 import org.eclipse.emf.ecore.resource.Resource
 
 import static extension de.wwu.musket.generator.preprocessor.util.PreprocessorUtil.*
+import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
-import de.wwu.musket.musket.ReturnStatement
-import de.wwu.musket.musket.ObjectRef
-import de.wwu.musket.musket.PrimitiveTypeLiteral
-import de.wwu.musket.generator.preprocessor.util.MusketComplexElementFactory
-import de.wwu.musket.musket.CompareExpression
-import de.wwu.musket.musket.MapSkeleton
-import de.wwu.musket.musket.IndividualParameter
-import de.wwu.musket.musket.StructType
-import de.wwu.musket.musket.MapSkeletonVariants
-import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
-import de.wwu.musket.musket.MapIndexInPlaceSkeleton
-import de.wwu.musket.musket.LambdaFunction
-import de.wwu.musket.musket.Skeleton
 
 /**
  * Dependencies:
@@ -47,11 +46,7 @@ class MapVariantTransformation extends PreprocessorTransformation {
 	 		&& !(it instanceof MapLocalIndexInPlaceSkeleton) && !(it instanceof MapIndexInPlaceSkeleton)]
 		
 		maps.forEach[
-			val skeletonParam = it.param
-			val userFunction = switch (skeletonParam){
-				InternalFunctionCall: skeletonParam.value
-				LambdaFunction: skeletonParam
-			}
+			val userFunction = it.param.toFunction
 			
 			// Add const parameter hint
 			userFunction.params.forEach[it.const = true]

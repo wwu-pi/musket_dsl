@@ -37,7 +37,7 @@ class MusketLimitationValidator extends AbstractMusketValidator {
 		}
 	}
 	
-	// Only allow the fold result to be a copy-distrubted data structure
+	// Only allow the fold result to be a copy-distributed data structure
 	@Check
 	def checkFoldAssignmentIsCopyDistributed(MusketAssignment assignment) {
 		if(assignment.value instanceof SkeletonExpression && (assignment.value as SkeletonExpression).skeleton instanceof FoldSkeletonVariants &&
