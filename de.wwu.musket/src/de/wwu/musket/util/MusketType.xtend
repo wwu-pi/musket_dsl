@@ -23,6 +23,7 @@ import de.wwu.musket.musket.CollectionType
 
 class MusketType {
 
+	public static final MusketType VOID = new MusketType()
 	public static final MusketType AUTO = new MusketType(PrimitiveTypeLiteral.AUTO)
 	public static final MusketType INT = new MusketType(PrimitiveTypeLiteral.INT)
 	public static final MusketType DOUBLE = new MusketType(PrimitiveTypeLiteral.DOUBLE)
@@ -49,6 +50,10 @@ class MusketType {
 	protected boolean isArray = false
 	protected boolean isMatrix = false
 
+	new(){
+		// Void type constructor
+	}
+	
 	new(PrimitiveTypeLiteral t) {
 		type = t
 	}
@@ -162,6 +167,16 @@ class MusketType {
 		distributionMode = DistributionMode.LOC
 		return this
 	}
+	
+	def toCopyCollection() {
+		distributionMode = DistributionMode.COPY
+		return this
+	}
+	
+	def toDistributedCollection() {
+		distributionMode = DistributionMode.DIST
+		return this
+	}
 
 	def isNumeric() {
 		return !isArray && !isMatrix &&
@@ -205,6 +220,8 @@ class MusketType {
 	}
 
 	override def String toString() {
+		if (type === null) return 'void'
+		
 		val name = if(structName !== null) structName else type.toString
 
 		if (isArray) {

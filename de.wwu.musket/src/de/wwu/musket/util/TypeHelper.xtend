@@ -18,7 +18,15 @@ import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.DoubleVal
 import de.wwu.musket.musket.DoubleVariable
 import de.wwu.musket.musket.ExternalFunctionCall
+import de.wwu.musket.musket.FloatArrayType
+import de.wwu.musket.musket.FloatConstant
+import de.wwu.musket.musket.FloatMatrixType
+import de.wwu.musket.musket.FloatVal
+import de.wwu.musket.musket.FloatVariable
+import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.FoldSkeleton
 import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.IndividualParameter
 import de.wwu.musket.musket.IntArrayType
 import de.wwu.musket.musket.IntConstant
@@ -26,10 +34,20 @@ import de.wwu.musket.musket.IntMatrixType
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.InternalFunctionCall
+import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexSkeleton
+import de.wwu.musket.musket.MapOption
+import de.wwu.musket.musket.MapSkeleton
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
 import de.wwu.musket.musket.MusketBoolVariable
 import de.wwu.musket.musket.MusketDoubleVariable
+import de.wwu.musket.musket.MusketFloatVariable
 import de.wwu.musket.musket.MusketFunctionCall
 import de.wwu.musket.musket.MusketIntVariable
 import de.wwu.musket.musket.MusketStructVariable
@@ -44,22 +62,26 @@ import de.wwu.musket.musket.PrimitiveType
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.ScatterSkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.SignedArithmetic
+import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.StructArrayType
 import de.wwu.musket.musket.StructMatrixType
 import de.wwu.musket.musket.StructVariable
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
+import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
+import de.wwu.musket.musket.ZipOption
+import de.wwu.musket.musket.ZipSkeleton
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
-import de.wwu.musket.musket.FloatArrayType
-import de.wwu.musket.musket.FloatMatrixType
-import de.wwu.musket.musket.FloatVal
-import de.wwu.musket.musket.FloatConstant
-import de.wwu.musket.musket.MusketFloatVariable
-import de.wwu.musket.musket.FloatVariable
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArrayType obj){
@@ -157,6 +179,10 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(InternalFunctionCall exp){
 		return new MusketType(exp.value)
+	}
+	
+	static dispatch def MusketType calculateType(LambdaFunction exp){
+		return new MusketType(exp)
 	}
 	
 	static dispatch def MusketType calculateType(MusketFunctionCall exp){
@@ -388,6 +414,41 @@ class TypeHelper {
 	
 	static dispatch def MusketType calculateType(CollectionInstantiation exp){
 		return new MusketType(exp.type).toLocalCollection
+	}
+	
+	static dispatch def MusketType calculateType(SkeletonExpression exp){
+		val skeleton = exp.skeleton
+		val srcType = exp.obj.calculateType
+		switch skeleton {
+			// In place skeletons return nothing
+			MapSkeleton case skeleton.options.exists[it == MapOption.IN_PLACE],
+			ZipSkeleton case skeleton.options.exists[it == ZipOption.IN_PLACE],
+			ZipInPlaceSkeleton,
+			ZipIndexInPlaceSkeleton,
+			MapInPlaceSkeleton,
+			MapIndexInPlaceSkeleton,
+			MapLocalIndexInPlaceSkeleton: return MusketType.VOID
+			
+			// Map/Zip returns same collection type as input with return type of user function
+			MapSkeleton,
+			MapIndexSkeleton,
+			MapLocalIndexSkeleton,
+			ZipSkeleton,
+			ZipIndexSkeleton,
+			ZipLocalIndexSkeleton: if (srcType.isArray) return skeleton.param.calculateType.toArray.toLocalCollection else return skeleton.param.calculateType.toMatrix.toLocalCollection
+			
+			FoldSkeleton,
+			FoldLocalSkeleton,
+			MapFoldSkeleton: return skeleton.param.calculateType
+			
+			GatherSkeleton: return srcType.toCopyCollection
+			ScatterSkeleton: return srcType.toDistributedCollection
+			
+			// Shift is just rearranging -> void
+			ShiftPartitionsHorizontallySkeleton,
+			ShiftPartitionsVerticallySkeleton: return MusketType.VOID
+		}
+		return MusketType.VOID
 	}
 	
 	static dispatch def MusketType calculateType(EObject exp){ // Else case

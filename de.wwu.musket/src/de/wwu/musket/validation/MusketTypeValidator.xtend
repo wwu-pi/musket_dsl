@@ -48,6 +48,13 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.validation.Check
 
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.MusketVariable
+import de.wwu.musket.musket.Variable
+import de.wwu.musket.musket.MusketIntVariable
+import de.wwu.musket.musket.MusketDoubleVariable
+import de.wwu.musket.musket.MusketFloatVariable
+import de.wwu.musket.musket.MusketBoolVariable
+import de.wwu.musket.musket.MusketStructVariable
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -510,6 +517,71 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if(assign.value?.calculateType != assign.^var?.calculateType){
 			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
 				MusketPackage.eINSTANCE.assignment_Value,
+				INVALID_TYPE)
+		}
+	}
+	
+	@Check
+	def checkAssignmentType(MusketAssignment assign) {
+		if(assign.value?.calculateType != assign.^var?.calculateType && assign.value?.calculateType.distributionMode !== DistributionMode.LOC){
+			error('Expression of type ' + assign.value.calculateType + ' cannot be assigned to variable of type ' + assign.^var.calculateType + '!', 
+				MusketPackage.eINSTANCE.musketAssignment_Value,
+				INVALID_TYPE)
+		}
+	}
+	
+	@Check
+	def checkAssignmentType(MusketVariable assign) {
+		switch (assign){
+			MusketIntVariable: {
+				if(assign.initExpression === null) return;
+				if(assign.initExpression?.calculateType != assign.calculateType){
+					error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+						MusketPackage.eINSTANCE.musketIntVariable_InitExpression,
+						INVALID_TYPE)
+				}
+			}
+			MusketDoubleVariable: {
+				if(assign.initExpression === null) return;
+				if(assign.initExpression?.calculateType != assign.calculateType){
+					error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+						MusketPackage.eINSTANCE.musketDoubleVariable_InitExpression,
+						INVALID_TYPE)
+				}
+			}
+			MusketFloatVariable: {
+				if(assign.initExpression === null) return;
+				if(assign.initExpression?.calculateType != assign.calculateType){
+					error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+						MusketPackage.eINSTANCE.musketFloatVariable_InitExpression,
+						INVALID_TYPE)
+				}
+			}
+			MusketBoolVariable: {
+				if(assign.initExpression === null) return;
+				if(assign.initExpression?.calculateType != assign.calculateType){
+					error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+						MusketPackage.eINSTANCE.musketBoolVariable_InitExpression,
+						INVALID_TYPE)
+				}
+			}
+			MusketStructVariable: {
+				if(assign.initExpression === null) return;
+				if(assign.initExpression?.calculateType != assign.calculateType){
+					error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+						MusketPackage.eINSTANCE.musketStructVariable_InitExpression,
+						INVALID_TYPE)
+				}
+			}
+		}
+	}
+	
+	@Check
+	def checkAssignmentType(Variable assign) {
+		if(assign.initExpression === null) return;
+		if(assign.initExpression?.calculateType != assign.calculateType){
+			error('Expression of type ' + assign.initExpression?.calculateType + ' cannot be assigned to variable of type ' + assign.calculateType + '!', 
+				MusketPackage.eINSTANCE.variable_InitExpression,
 				INVALID_TYPE)
 		}
 	}
