@@ -18,6 +18,10 @@ class MPIRoutines {
 	def static generateMPIGather(String send_buffer, long count, MusketType type, String recv_buffer) '''
 		MPI_Gather(«send_buffer», «count», «type.MPIType», «recv_buffer», «count», «type.MPIType», 0, MPI_COMM_WORLD);
 	'''
+	
+	def static generateMPIGathervNonRoot(String send_buffer, long count, MusketType type) '''
+		MPI_Gatherv(«send_buffer», «count», «type.MPIType», nullptr, nullptr, nullptr, nullptr, 0, MPI_COMM_WORLD);
+	'''
 
 	def static generateMPIAllgather(String send_buffer, long count, MusketType type, String recv_buffer) '''
 		MPI_Allgather(«send_buffer», «count», «type.MPIType», «recv_buffer», «count», «type.MPIType», MPI_COMM_WORLD);
@@ -51,13 +55,23 @@ class MPIRoutines {
 		int tag_«counter» = ((«source» + «target») * («source» + «target» + 1)) / 2 + «target»;
 		MPI_Irecv(«recv_buffer», «Config.tmp_size_t», «type.MPIType», «source», tag_«counter++», MPI_COMM_WORLD, «request»);
 	'''
+	
+	def static generateMPIIsend2(int source, String send_buffer, long count, MusketType type, String target,
+		String request) '''
+		int tag_«counter» = ((«source» + «target») * («source» + «target» + 1)) / 2 + «target»;
+		MPI_Isend(«send_buffer», «count», «type.MPIType», «target», tag_«counter++», MPI_COMM_WORLD, «request»);
+	'''
 
 	def static generateMPIWaitall(int count, String requests, String statuses) '''
 		MPI_Waitall(«count», «requests», «statuses»);
 	'''
+	
+	def static generateMPIBarrier() '''
+		MPI_Barrier(MPI_COMM_WORLD);
+	'''
 
 	def static generateCreateDatatypeStruct(Struct s) '''
-		MPI_Datatype «s.name»_mpi_type_temp, «s.name»_mpi_type;
+		MPI_Datatype «s.name»_mpi_type_temp;
 		MPI_Type_create_struct(«s.attributes.size», (std::array<int,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»1«ENDFOR»}).data(), (std::array<MPI_Aint,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»static_cast<MPI_Aint>(offsetof(struct «s.name», «s.attributes.get(i).name»))«ENDFOR»}).data(), (std::array<MPI_Datatype,«s.attributes.size»>{«FOR i : 0 ..< s.attributes.size SEPARATOR ", "»«s.attributes.get(i).calculateType.MPIType»«ENDFOR»}).data(), &«s.name»_mpi_type_temp);
 		MPI_Type_create_resized(«s.name»_mpi_type_temp, 0, sizeof(«s.name»), &«s.name»_mpi_type);
 		MPI_Type_free(&«s.name»_mpi_type_temp);

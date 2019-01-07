@@ -20,6 +20,9 @@ import de.wwu.musket.musket.FloatArrayType
 import de.wwu.musket.musket.FloatMatrixType
 import org.eclipse.xtend.lib.annotations.Accessors
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.ArrayType
+import de.wwu.musket.musket.MatrixType
+import static extension de.wwu.musket.util.MusketHelper.*
 
 class MusketType {
 
@@ -65,60 +68,70 @@ class MusketType {
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			DoubleArrayType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			FloatArrayType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			BoolArrayType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			StructArrayType: {
 				structName = t.type.name;
 				toArray;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as ArrayType).size.concreteValue
 			}
 			IntMatrixType: {
 				type = PrimitiveTypeLiteral.INT;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			DoubleMatrixType: {
 				type = PrimitiveTypeLiteral.DOUBLE;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			FloatMatrixType: {
 				type = PrimitiveTypeLiteral.FLOAT;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			BoolMatrixType: {
 				type = PrimitiveTypeLiteral.BOOL;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			StructMatrixType: {
 				structName = t.type.name;
 				toMatrix;
 				distributionMode = t.distributionMode
 				collectionType = t
+				size = (t as MatrixType).rows.concreteValue * (t as MatrixType).cols.concreteValue
 			}
 			PrimitiveType: {
 				type = t.type
@@ -272,10 +285,48 @@ class MusketType {
 			if(distributionMode == DistributionMode.LOC)
 				return 'std::array<' + primtype + ',' + size + '>'
 			else{
-				return 'std::vector<' + primtype + '>'
+				if(isArray){
+					return 'mkt::DArray<' + primtype + '>'
+				}else if(isMatrix){
+					return 'mkt::DMatrix<' + primtype + '>'
+				}					
+				return ''
 			}			
 		} else {
 			return primtype
+		}
+	}
+	
+	def getCXXDefaultValue() {
+		if(primitiveType !== null){
+			switch (this.primitiveType) {
+				PrimitiveType case type == PrimitiveTypeLiteral.INT: '''0'''
+				PrimitiveType case type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
+				PrimitiveType case type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
+				PrimitiveType case type == PrimitiveTypeLiteral.BOOL: '''false'''
+				PrimitiveType case type == PrimitiveTypeLiteral.STRING: '''""'''
+				default:
+					'''/*getCXXDefaultValue: primitiveType*/'''
+			}
+		}else if (collectionType !== null){
+			switch (this.collectionType) {
+				IntArrayType,
+				IntMatrixType: '''0'''
+				DoubleArrayType,
+				DoubleMatrixType: '''0.0'''
+				FloatArrayType,
+				FloatMatrixType: '''0.0f'''
+				BoolArrayType,
+				BoolMatrixType: '''false'''
+				StructArrayType,
+				StructMatrixType: '''«this.collectionType.toFullType.structName»{}'''
+				default:
+					'''/*getCXXDefaultValue: Collection*/'''
+			}
+		} else if(structName !== null) {
+			'''«structName»{}'''			
+		}else{
+			'''/*getCXXDefaultValue: else*/'''
 		}
 	}
 

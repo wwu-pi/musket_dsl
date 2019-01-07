@@ -44,12 +44,7 @@ class CollectionFunctionsGenerator {
 				}
 			}
 			
-			case SHOW_LOCAL: {
-				switch (cfc.^var.type) {
-					ArrayType: generateShowLocalArray(cfc.^var, processId)
-					MatrixType: generateShowLocalMatrix(cfc.^var, processId)
-				}
-			}
+			case SHOW_LOCAL: generateShowLocal(cfc.^var, processId)
 			
 			case COLUMNS:
 				(cfc.^var.type as MatrixType).cols
@@ -89,32 +84,26 @@ class CollectionFunctionsGenerator {
 	 * @return generated code
 	 */
 	def static generateShowArray(CollectionObject a, int processId) '''
-		«IF a.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
-			«State.setArrayName(a.name)»
-		«ELSE»
+		«IF Config.processes == 1»
+			mkt::print("«a.name»", «a.name»);
+		«ELSEIF a.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
-				«State.setArrayName("temp" + State.counter)»
-				std::array<«a.calculateCollectionType.cppType», «a.type.size»> «State.arrayName»{};
-			«ENDIF»
-			«IF processId == 0»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, State.arrayName + '.data()')»
+				mkt::print("«a.name»", «a.name»);
+				«generateMPIBarrier»
 			«ELSE»
-				«generateMPIGather(a.name + '.data()', a.type.sizeLocal(processId), a.calculateCollectionType, "nullptr")»
-			«ENDIF»
-		«ENDIF»
-		
-		«IF processId == 0»
-			«val streamName = 's' + State.counter»
-			«State.incCounter»
-			std::ostringstream «streamName»;
-			«streamName» << "«a.name»: " << std::endl << "[";
-			for (int i = 0; i < «(a.type as ArrayType).size.concreteValue - 1»; i++) {
-			«streamName» << «generateShowElements(a, State.arrayName, "i")»;
-			«streamName» << "; ";
-			}
-			«streamName» << «generateShowElements(a, State.arrayName, ((a.type as ArrayType).size.concreteValue - 1).toString)» << "]" << std::endl;
-			«streamName» << std::endl;
-			printf("%s", «streamName».str().c_str());
+				// show array (copy) --> only in p0
+				«generateMPIBarrier»
+		  	«ENDIF»
+		«ELSEIF a.type.distributionMode == DistributionMode.DIST»
+			«IF processId == 0»
+				mkt::print_dist("«a.name»", «a.name»);
+				«generateMPIBarrier»
+		  	«ELSE»
+				«generateMPIGather(a.name + ".get_data()", (a.type as ArrayType).sizeLocal(processId), a.calculateType, "nullptr")»
+				«generateMPIBarrier»
+		  	«ENDIF»
+		«ELSE»
+		  // Collection Functions: generateShowArray default case --> something went wrong
 		«ENDIF»
 	'''
 
@@ -125,94 +114,38 @@ class CollectionFunctionsGenerator {
 	 * @return generated code
 	 */
 	def static generateShowMatrix(CollectionObject m, int processId) '''
-		«val type = m.type as MatrixType»
-		«IF m.type.distributionMode == DistributionMode.COPY || Config.processes == 1»
-			«State.setArrayName(m.name)»
-		«ELSE»
+		«IF Config.processes == 1»
+			mkt::print("«m.name»", «m.name»);
+		«ELSEIF m.type.distributionMode == DistributionMode.COPY»
 			«IF processId == 0»
-				«State.setArrayName("temp" + State.counter)»
-				std::array<«m.calculateCollectionType.cppType», «m.type.size»> «State.arrayName»{};
-			«ENDIF»
-			«IF processId == 0»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, State.arrayName + '.data()')»
+				mkt::print("«m.name»", «m.name»);
+				«generateMPIBarrier»
 			«ELSE»
-				«generateMPIGather(m.name + '.data()', m.type.sizeLocal(processId), m.calculateCollectionType, 'nullptr')»
-			«ENDIF»
-		«ENDIF»
-		
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		«IF processId == 0»
-			std::ostringstream «streamName»;
-			«streamName» << "«m.name»: " << std::endl << "[" << std::endl;
-			
-			for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rows.concreteValue»; ++«Config.var_loop_counter_rows»){
-				«streamName» << "[";
-				for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.cols.concreteValue»; ++«Config.var_loop_counter_cols»){
-					«IF type.blocksInRow == 1»
-						«streamName» << «generateShowElements(m, State.arrayName, Config.var_loop_counter_rows + " * " + type.rows.concreteValue + " + " + Config.var_loop_counter_cols)»;
-					«ELSE»
-						«val index = "(" + Config.var_loop_counter_rows + "%" + type.rowsLocal + ") * " + type.colsLocal + " + (" + Config.var_loop_counter_rows + " / " + type.rowsLocal + ") * " + type.sizeLocal(processId) + " * " + type.blocksInColumn + " + (" + Config.var_loop_counter_cols + "/ " + type.colsLocal + ") * " + type.sizeLocal(processId) + " + " + Config.var_loop_counter_cols + "%" + type.colsLocal»
-						«streamName» << «generateShowElements(m, State.arrayName, index)»;
-					«ENDIF»
-					if(«Config.var_loop_counter_cols» < «type.cols.concreteValue - 1»){
-						«streamName» << "; ";
-					}else{
-						«streamName» << "]" << std::endl;
-					}
-				}
-			}
-			
-			«streamName» << "]" << std::endl;
-			printf("%s", «streamName».str().c_str());
+				// show matrix (copy) --> only in p0
+				«generateMPIBarrier»
+		  	«ENDIF»
+		«ELSEIF m.type.distributionMode == DistributionMode.DIST»
+			«IF processId == 0»
+				mkt::print_dist_«m.name»(«m.name», «m.name»_partition_type_resized);
+				«generateMPIBarrier»
+		  	«ELSE»
+				// show matrix dist
+				«generateMPIGathervNonRoot(m.name + ".get_data()", (m.type as MatrixType).sizeLocal(processId), m.calculateCollectionType)»
+				«generateMPIBarrier»
+		  	«ENDIF»
+		«ELSE»
+		  // Collection Functions: generateShowArray default case --> something went wrong
 		«ENDIF»
 	'''
 
-	/**
-	 * Generates the showLocal() method for arrays.
-	 * 
-	 * @param a the array
-	 * @return generated code
-	 */
-	def static generateShowLocalArray(CollectionObject a, int processId) '''
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		std::ostringstream «streamName»;
-		«streamName» << "«a.name» on «processId»: " << std::endl << "[";
-		for (int i = 0; i < «(a.type as ArrayType).sizeLocal(processId) - 1»; i++) {
-		«streamName» << «generateShowElements(a, a.name, "i")»;
-		«streamName» << "; ";
-		}
-		«streamName» << «generateShowElements(a, a.name, ((a.type as ArrayType).sizeLocal(processId) - 1).toString)» << "]" << std::endl;
-		«streamName» << std::endl;
-		printf("%s", «streamName».str().c_str());
-	'''
-
-	/**
-	 * Generates the showLocal() method for matrices.
-	 * 
-	 * @param a the array
-	 * @return generated code
-	 */
-	def static generateShowLocalMatrix(CollectionObject m, int processId) '''
-		«val type = m.type as MatrixType»
-		«val streamName = 's' + State.counter»
-		«State.incCounter»
-		std::ostringstream «streamName»;
-		«streamName» << "«m.name» on «processId»: " << std::endl << "[";
-		
-		for(int «Config.var_loop_counter_rows» = 0; «Config.var_loop_counter_rows» < «type.rowsLocal»; ++«Config.var_loop_counter_rows»){
-			«streamName» << "[";
-			for(int «Config.var_loop_counter_cols» = 0; «Config.var_loop_counter_cols» < «type.colsLocal»; ++«Config.var_loop_counter_cols»){
-				«streamName» << «generateShowElements(m, m.name, Config.var_loop_counter_rows + " * " + type.rowsLocal + " + " + Config.var_loop_counter_cols)»;
-				if(«Config.var_loop_counter_cols» < «type.colsLocal - 1»){
-					«streamName» << "; ";
-				}else{
-					«streamName» << "]" << std::endl;
-				}
+	def static generateShowLocal(CollectionObject co, int processId) '''
+		«val type = co.calculateCollectionType.cppType»
+		for(int i = 0; i < «Config.processes»; ++ i){
+			if(i == «processId»){
+				mkt::print_local_partition<«type»>("«co.name»", «processId», «co.name»);
 			}
+			«generateMPIBarrier»
 		}
-		printf("%s", «streamName».str().c_str());
 	'''
 
 	// helper

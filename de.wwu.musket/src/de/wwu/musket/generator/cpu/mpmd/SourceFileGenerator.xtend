@@ -20,14 +20,22 @@ import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.generateSh
 import static de.wwu.musket.generator.cpu.mpmd.MusketFunctionCalls.generateAllTimerGlobalVars
 import static extension de.wwu.musket.generator.cpu.mpmd.MPIRoutines.*
 
+import static de.wwu.musket.generator.cpu.mpmd.ShiftSkeletonGenerator.*
+
 import static extension de.wwu.musket.generator.cpu.mpmd.DataGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.StructGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
+import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.MatrixType
+import java.util.List
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.MapFoldSkeleton
 
 /** 
  * Generates the source file of the project.
@@ -41,10 +49,11 @@ class SourceFileGenerator {
 	/**
 	 * Creates the source file in the source folder of the project.
 	 */
-	def static void generateSourceFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, int processId) {
+	def static void generateSourceFile(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context,
+		int processId) {
 		logger.info("Generate source file.")
-		fsa.generateFile(Config.base_path + Config.source_path + resource.ProjectName +  '_' + processId + Config.source_extension,
-			sourceFileContent(resource, processId))
+		fsa.generateFile(Config.base_path + Config.source_path + resource.ProjectName + '_' + processId +
+			Config.source_extension, sourceFileContent(resource, processId))
 		logger.info("Generation of source file done.")
 	}
 
@@ -54,37 +63,47 @@ class SourceFileGenerator {
 	 * @return content of the source file
 	 */
 	def static sourceFileContent(Resource resource, int processId) '''
-		«generateIncludes»
-		#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
+			«generateIncludes»
+			#include "../«Config.include_path + resource.ProjectName + "_" + processId + Config.header_extension»"
+			
+			«generateGlobalConstants(processId)»
+			«generateGlobalVariables(resource, processId)»
 		
-		«generateGlobalConstants(processId)»
-		«generateGlobalVariables(resource, processId)»
-		«generateTmpVariables»
+			
+			«FOR d : resource.Data»
+				«d.generateObjectDefinition(processId)»
+			«ENDFOR»
+			
+			«FOR s : resource.Structs»
+				«s.generateStructDefaultConstructor»
+			«ENDFOR»
+			
+			«val fold_functions = (resource.FoldSkeletons.map[it.param.toFunction] + resource.MapFoldSkeletons.map[it.param.toFunction]).toSet»
 		
-		
-		«FOR d : resource.Data»
-			«d.generateObjectDefinition(processId)»
-		«ENDFOR»
-		
-		«FOR s : resource.Structs»
-			«s.generateStructDefaultConstructor»
-		«ENDFOR»
-		
-		«val fold_functions = (resource.FoldSkeletons.map[it.param.toFunction] + resource.MapFoldSkeletons.map[it.param.toFunction]).toSet»
-
-		«FOR f : fold_functions»
-			«f.generateFunction(processId)»
-		«ENDFOR»
-		
-		«FOR f : resource.FunctionsAndLambdas»
-			«f.generateFunctor(processId)»
-		«ENDFOR»
-		
-		«IF Config.processes > 1»
-			«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
-		«ENDIF»
-		
-		«generateMainFunction(resource, processId)»
+			«FOR f : fold_functions»
+				«f.generateFunction(processId)»
+			«ENDFOR»
+			
+			«generateFunctors(resource, processId)»
+			
+			«IF Config.processes > 1»
+				«generateMPIFoldFunction(resource.SkeletonExpressions, processId)»
+			«ENDIF»
+			
+			«generateReductionDeclarations(resource, processId)»
+			
+			«generateFoldFunctionDefinitions(resource, processId)»
+			«generateMapFoldFunctionDefinitions(resource, processId)»
+			
+			«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0  && Config.processes > 1»
+				«generateShiftHorizontallyFunctionDefinitions(resource)»
+			«ENDIF»
+			
+			«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0  && Config.processes > 1»
+				«generateShiftVerticallyFunctionDefinitions(resource)»
+			«ENDIF»
+			
+			«generateMainFunction(resource, processId)»
 	'''
 
 	/** 
@@ -106,6 +125,9 @@ class SourceFileGenerator {
 		#include <limits>
 		#include <memory>
 		#include <cstddef>
+		#include <type_traits>
+		
+		#include "../include/musket.hpp"
 	'''
 
 	/**
@@ -136,12 +158,72 @@ class SourceFileGenerator {
 		«generateAllTimerGlobalVars(resource.MusketFunctionCalls, processId)»
 	'''
 
-	/**
-	 * Generates temporary variable, which are required but not in the model.
-	 */
-	def static generateTmpVariables() '''
-		size_t «Config.tmp_size_t» = 0;
-	'''
+	def static generateFunctors(Resource resource, int processId) {
+		var result = ""
+		var List<Pair<String, String>> generated = newArrayList
+		// all skeleton expressions but those without function such as gather and scatter
+		for (skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]) {
+			val skel = skeletonExpression.skeleton
+
+			if (!(Config.processes < 2 &&
+				(skel instanceof ShiftPartitionsHorizontallySkeleton ||
+					skel instanceof ShiftPartitionsVerticallySkeleton))) {
+
+				val func = skeletonExpression.skeleton.param.toFunction
+				val skelContainerName = skel.skeletonName.toString + "_" +
+					skeletonExpression.obj.collectionContainerName.toString
+
+				if (!generated.contains(skelContainerName -> func.name)) {
+					generated.add(skelContainerName -> func.name)
+					result +=
+						FunctorGenerator.generateFunctor(func, skel.skeletonName.toString,
+							skeletonExpression.obj.collectionContainerName.toString,
+							skeletonExpression.getNumberOfFreeParameters(func), processId)
+				}
+
+				if (skel instanceof MapFoldSkeleton) {
+					val mapFunction = (skel as MapFoldSkeleton).mapFunction.toFunction
+					if (!generated.contains(skelContainerName -> mapFunction.name)) {
+						generated.add(skelContainerName -> mapFunction.name)
+						result +=
+							FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
+								skeletonExpression.obj.collectionContainerName.toString,
+								skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+					}
+				}
+			}
+		}
+		return result
+	}
+
+	def static generateFunctorInstantiations(Resource resource, int processId) {
+		var result = ""
+		var List<Pair<String, String>> generated = newArrayList
+		// all skeleton expressions but those without function such as gather and scatter
+		for (skeletonExpression : resource.SkeletonExpressions.reject[it.skeleton.param.toFunction === null]) {
+			val skel = skeletonExpression.skeleton
+			if (!(Config.processes < 2 &&
+				(skel instanceof ShiftPartitionsHorizontallySkeleton ||
+					skel instanceof ShiftPartitionsVerticallySkeleton))) {
+				val func = skeletonExpression.skeleton.param.toFunction
+				val skelContainerName = skel.skeletonName.toString + "_" +
+					skeletonExpression.obj.collectionContainerName.toString
+				if (!generated.contains(skelContainerName -> func.name)) {
+					generated.add(skelContainerName -> func.name)
+					result += generateFunctorInstantiation(skeletonExpression, skel.param, processId)
+				}
+
+				if (skel instanceof MapFoldSkeleton) {
+					val mfunc = (skel as MapFoldSkeleton).mapFunction.toFunction
+					if (!generated.contains(skelContainerName -> mfunc)) {
+						generated.add(skelContainerName -> mfunc.name)
+						result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
+					}
+				}
+			}
+		}
+		return result
+	}
 
 	/** 
 	 * Generate content of the main function in the cpp source file.
@@ -153,13 +235,11 @@ class SourceFileGenerator {
 			«generateInitialization»
 			
 			«IF Config.processes > 1 && processId == 0»
-				printf("Run «resource.ProjectName.toFirstUpper»\n\n");			
+				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
-«««			functor instantiation
-			«FOR f : resource.FunctionsAndLambdas»
-				«f.generateFunctorInstantiation(processId)»
-			«ENDFOR»
+		«««			functor instantiation
+			«generateFunctorInstantiations(resource, processId)»
 			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 				«generateRandomEnginesArrayInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
@@ -169,8 +249,7 @@ class SourceFileGenerator {
 			«generateDistributionArraysInit(rcs, resource.ConfigBlock.cores)»
 			
 			«generateInitializeDataStructures(resource, processId)»
-			«generateReductionDeclarations(resource, processId)»
-			
+					
 			«IF Config.processes > 1»
 				«FOR s : resource.Structs»
 					«s.generateCreateDatatypeStruct»
@@ -181,15 +260,13 @@ class SourceFileGenerator {
 				«FOR m : dist_matrices»
 					«generateMPIVectorType(m.type as MatrixType, processId)»
 				«ENDFOR»
-
+			
 				«generateMPIFoldOperators(resource)»
-				«generateTmpFoldResults(resource)»
 				
-				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
-					«generateShiftSkeletonVariables(processId)»
-				«ENDIF»
-				
-				«generateOffsetVariableDeclarations(resource.SkeletonExpressions)»
+			«««				«IF resource.SkeletonExpressions.exists[it.skeleton instanceof ShiftPartitionsHorizontallySkeleton || it.skeleton instanceof ShiftPartitionsVerticallySkeleton]»
+«««					«generateShiftSkeletonVariables(processId)»
+«««					ENDIF»
+
 			«ENDIF»
 			
 			«generateLogic(resource.Model.main, processId)»
@@ -203,7 +280,7 @@ class SourceFileGenerator {
 			«ENDIF»
 			
 			«generateFinalization»
-		}
+			}
 	'''
 
 	/**
@@ -246,39 +323,36 @@ class SourceFileGenerator {
 		var result = ""
 
 		// init distributed arrays with values
-		if (resource.Arrays.reject [
-			it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY ||
-				it.type.distributionMode == DistributionMode.LOC
-		].exists [
-			it.ValuesAsString.size > 1
-		] && Config.processes > 1) {
+		if (Config.processes > 1) {
 //		distributed
-				for (a : resource.Arrays.reject [
-					it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.COPY
-				]) {
-					val values = a.ValuesAsString
-					if (values.size > 1) {
-						val sizeLocal = a.type.sizeLocal(processId)
-						result += a.generateArrayInitializationForProcess(values.drop((sizeLocal * processId) as int).take(sizeLocal as int))
-					}
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
+				it.type.distributionMode == DistributionMode.DIST
+			]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
+					val sizeLocal = a.type.sizeLocal(processId)
+					result +=
+						a.generateArrayInitializationForProcess(
+							values.drop((sizeLocal * processId) as int).take(sizeLocal as int))
 				}
-		} else {
+			}
 //		copy distributed
-			for (a : resource.Arrays.reject[it.type instanceof StructArrayType]) {
+			for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
+				it.type.distributionMode == DistributionMode.COPY
+			]) {
 				val values = a.ValuesAsString
 				if (values.size > 1) {
 					result += a.generateArrayInitializationForProcess(values)
 				}
 			}
-		}
-
-		// init copy dist data structures with init list
-		for (a : resource.Arrays.reject[it.type instanceof StructArrayType].filter [
-			it.type.distributionMode == DistributionMode.COPY
-		]) {
-			val values = a.ValuesAsString
-			if (values.size > 1) {
-				result += a.generateArrayInitializationForProcess(values)
+		} else {
+			for (a : resource.Arrays.reject [
+				it.type instanceof StructArrayType || it.type.distributionMode == DistributionMode.LOC
+			]) {
+				val values = a.ValuesAsString
+				if (values.size > 1) {
+					result += a.generateArrayInitializationForProcess(values)
+				}
 			}
 		}
 

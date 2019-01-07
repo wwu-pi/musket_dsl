@@ -31,6 +31,7 @@ import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.CollectionObjectOrParam
 import de.wwu.musket.musket.TailObjectRef
+import de.wwu.musket.musket.Skeleton
 
 class DataHelper {
 // Value
@@ -185,6 +186,14 @@ class DataHelper {
 		switch a.distributionMode {
 			case DIST: processId * a.sizeLocal(processId)// {var o = 0l; for(i : 0 ..< processId){ o += a.sizeLocal(i)}} 
 			case COPY: 0
+			default: 0
+		}
+	}
+	
+	def static blocks(ArrayType a) {
+		switch a.distributionMode {
+			case DIST: Math.sqrt(Config.processes).intValue
+			case COPY: 1
 			default: 0
 		}
 	}

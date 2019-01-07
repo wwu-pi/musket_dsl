@@ -8,6 +8,7 @@ import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.CollectionObject
 import static extension de.wwu.musket.util.TypeHelper.*
+import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.generator.cpu.mpmd.util.DataHelper.*
 
 /**
@@ -28,8 +29,8 @@ class DataGenerator {
 
 	def static dispatch generateObjectDeclaration(CollectionObject c) {
 		switch (c.type) {
-			ArrayType: '''extern std::vector<«c.calculateCollectionType.cppType»> «c.name»;'''
-			MatrixType: '''extern std::vector<«c.calculateCollectionType.cppType»> «c.name»;'''
+			ArrayType: '''extern mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»;'''
+			MatrixType: '''extern mkt::DMatrix<«c.calculateCollectionType.cppType»> «c.name»;'''
 		}
 	}
 
@@ -53,8 +54,8 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinition(CollectionObject c, int processId) {
 		switch (c.type) {
-			ArrayType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.ValueAsString»«ENDIF»);'''
-			MatrixType: '''std::vector<«c.calculateCollectionType.cppType»> «c.name»(«c.type.sizeLocal(processId)»«IF c.values.size == 1», «c.values.head.ValueAsString»«ENDIF»);'''
+			ArrayType: '''mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase»);'''
+			MatrixType: '''mkt::DMatrix<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as MatrixType).rows.concreteValue», «(c.type as MatrixType).cols.concreteValue», «(c.type as MatrixType).rowsLocal()», «(c.type as MatrixType).colsLocal()», «(c.type as MatrixType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as MatrixType).blocksInRow», «(c.type as MatrixType).blocksInColumn», «(c.type as MatrixType).partitionPosition(processId).key», «(c.type as MatrixType).partitionPosition(processId).value», «(c.type as MatrixType).globalRowOffset(processId)», «(c.type as MatrixType).globalColOffset(processId)», mkt::«(c.type as MatrixType).distributionMode.toString.toUpperCase»);'''
 		}
 	}
 
@@ -64,7 +65,7 @@ class DataGenerator {
 	def static generateArrayInitializationForProcess(CollectionObject a, Iterable<String> values) '''
 		«var value_id = 0»
 		«FOR v : values»
-			«a.name»[«value_id++»] = «v»;
+			«a.name».set_local(«value_id++», «v»);
 		«ENDFOR»
 	'''
 }

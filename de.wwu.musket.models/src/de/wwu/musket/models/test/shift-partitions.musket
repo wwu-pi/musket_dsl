@@ -1,0 +1,31 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+matrix<int,4,4,dist> as;
+
+int init(int row, int col, int x){
+	return row * 4 + col;
+}
+
+int identity(int x){
+	return x;
+}
+
+main{
+
+	as.show();
+	
+	as.mapIndexInPlace(init());
+	
+	as.show();
+
+	as.shiftPartitionsVertically(identity());
+
+	as.show();
+
+	as.shiftPartitionsHorizontally(identity());
+
+	as.show();
+}

@@ -1,4 +1,4 @@
-#config PLATFORM CPU
+#config PLATFORM CPU_MPMD
 #config PROCESSES 4
 #config CORES 8
 #config MODE debug
@@ -19,8 +19,10 @@ main{
 
 	ads.show();
 	bds.show();	
+	cds.show();
 	acs.show();
-		bcs.show();
+	bcs.show();
+	ccs.show();	
 	
 	cds.mapIndexInPlace(init());
 	ccs.mapIndexInPlace(init());

@@ -24,7 +24,7 @@ matrix<Complex,dimM,dimM,copy> mcr;
 Complex plusIndexA(int i, Complex x){
 	Complex result;
 	result.real = x.real + i;
-	result.imaginary = x.imaginary + i / 2;
+	result.imaginary = x.imaginary + (float) i / 2.0f;
 	return result;
 }
 

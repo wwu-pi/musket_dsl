@@ -23,6 +23,7 @@ import static extension de.wwu.musket.generator.cpu.mpmd.ExpressionGenerator.*
 import static extension de.wwu.musket.generator.cpu.mpmd.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.cpu.mpmd.SkeletonGenerator.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.StructVariable
 
 /**
  * Generates the content of the main block.
@@ -99,7 +100,7 @@ class LogicGenerator {
 	'''
 
 	def static dispatch generateStatement(Variable v, int processId) '''
-		«v.calculateType.cppType» «v.name» «IF v.initExpression !== null» = «v.initExpression.generateExpression(null, processId)»«ENDIF»;
+		«v.calculateType.cppType» «v.name»«IF v.initExpression !== null» = «v.initExpression.generateExpression(null, processId)»«ELSEIF v instanceof StructVariable && (v as StructVariable).copyFrom !== null»{«(v as StructVariable).copyFrom.value.name»}«ENDIF»;
 	'''
 
 	def static dispatch generateStatement(Assignment s, int processId) '''

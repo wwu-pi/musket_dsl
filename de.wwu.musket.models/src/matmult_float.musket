@@ -8,15 +8,17 @@ matrix<float,4,4,dist> bs = {0.001f};
 matrix<float,4,4,dist> cs = {0.0f};
 
 float initA(int a, int b, float x){
-	return (float) a * 4 + b;
+	x = (float) a * 4 + b;
+	return x;
 }
 
 float initB(int a, int b, float x){
-	return (float) 16 + a * 4 + b;
+	x = (float) 16 + a * 4 + b;
+	return x;
 }
 
 int negate(int a){
-	return -a;
+	return a;
 }
 
 int identity(int a){
@@ -28,13 +30,11 @@ int minusOne(int a){
 }
 
 float dotProduct(int i, int j, float Cij){
-	float sum = Cij;
-
 	for (int k = 0; k < cs.columnsLocal(); k++) {
-		sum += as[[i,k]] * bs[[k,j]];
+		Cij += as[[i,k]] * bs[[k,j]];
 	}
 
-	return sum;
+	return Cij;
 }
 
 main{

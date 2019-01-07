@@ -1,12 +1,14 @@
-#config PLATFORM CPU
+#config PLATFORM CPU CPU_MPMD
 #config PROCESSES 4
 #config CORES 8
 #config MODE debug
 
-matrix<float,32,32,dist> as;
+const int mdim = 32;
+
+matrix<float,mdim,mdim,dist> as;
 
 float init(int x, int y, float a){
-	return (float) x + y + 1;
+	return (float) x * mdim + y;
 }
 
 float square(float a){
@@ -18,8 +20,12 @@ float sum(float a, float b){
 }
 
 main{
+	//as.showLocal();
 	as.mapIndexInPlace(init());
-	as.show();
+	
+	//as.showLocal();
+	
+	//as.show();
 	
 	mkt::roi_start();
 	

@@ -1,7 +1,7 @@
 #config PLATFORM CPU CPU_MPMD
-#config PROCESSES 4
+#config PROCESSES 1
 #config CORES 8
-#config MODE debug
+#config MODE release
 
 const double PI = 3.141592653589793;
 const double EULER = 2.718281828459045;
@@ -18,8 +18,8 @@ const double STEP_SIZE_FINAL = 0.00001;
 const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 0.00002;
 
-const int NUMBER_OF_FISH = 32;
-const int ITERATIONS = 100;
+const int NUMBER_OF_FISH = 512;
+const int ITERATIONS = 50;
 const int DIMENSIONS = 512;
 
 // Fish
@@ -41,7 +41,6 @@ struct Fish{
 
 // Data structures
 array<Fish,NUMBER_OF_FISH,dist> population;
-array<double,NUMBER_OF_FISH,dist> pop2;
 
 //array<double,DIMENSIONS,dist> instinctive_movement_vector;
 array<double,DIMENSIONS,copy> instinctive_movement_vector_copy;
@@ -199,7 +198,8 @@ double calcInstinctiveMovementVector(double sum_fitness_variation, double x){
 	if(sum_fitness_variation != 0.0){
 		result = x /sum_fitness_variation;
 	}
-	return result;
+	x = result;
+	return x;
 }
 
 
@@ -240,7 +240,8 @@ double calcBarycenterMap(double sum_weight, double x){
 	if(sum_weight != 0){
 		result = x / sum_weight;
 	}
-	return result;
+	x = result;
+	return x;
 }
 
 Fish volitiveMovement(double step_size, double sum_weight, double sum_weight_last_iteration, Fish fi){
@@ -298,16 +299,13 @@ main{
 	double step_size = STEP_SIZE_INITIAL;
 	double step_size_vol = STEP_SIZE_VOLITIVE_INITIAL;
 	//fi.weight
-	pop2 = population.map((Fish fi) -> double { return fi.weight;});
-	double sum_weight_last_iteration = pop2.fold(0.0, sumWeight());
-	//double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
+	double sum_weight_last_iteration = population.mapFold((Fish fi) -> double { return fi.weight;}, 0.0, sumWeight());
 	
 	// main loop
 	for (int iteration = 0; iteration < ITERATIONS; ++iteration) {
 		// evaluate fitness		
 		population.mapInPlace(evaluateFitness());
-		
-		
+				
 		// update step size	
 		if (iteration > 0) {
 			step_size = step_size - ((STEP_SIZE_INITIAL - STEP_SIZE_FINAL) / (double)(ITERATIONS - 1));
@@ -318,25 +316,18 @@ main{
 		population.mapInPlace(individualMovement(step_size)); // incl. fitness eval	
 		
 		// feeding
-//		Fish max_fitness_variation_fish = population.fold(Fish{}, maxFitnessVariation());
-//		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
-		// or
 		double max_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, maxFitnessVariation());
-		
+				
 		population.mapInPlace(feeding(max_fitness_variation));
-		
-		// collective instinctive movement
-//		Fish sum_fitness_variation_fish = population.fold(Fish{}, sumFitnessVariation());
-//		double max_fitness_variation = max_fitness_variation_fish.fitness_variation;
-		// or 
+
+// instinctive
+
 		double sum_fitness_variation = population.mapFold((Fish fi) -> double { return fi.fitness_variation; }, 0.0, sumFitnessVariation());
 		
 		population.mapInPlace(calcDisplacementMap());
 		instinctive_movement_vector_copy = population.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.displacement; }, array<double, DIMENSIONS, loc>{0.0}, calcDisplacementFold());
 		
 		instinctive_movement_vector_copy.mapInPlace(calcInstinctiveMovementVector(sum_fitness_variation));
-		
-//		instinctive_movement_vector_copy = instinctive_movement_vector.gather();
 		
 		population.mapInPlace(instinctiveMovement());
 		
@@ -348,7 +339,6 @@ main{
 		barycenter_copy = weighted_fishes.mapFold((Fish fi) -> array<double, DIMENSIONS, loc> { return fi.position;}, array<double, DIMENSIONS, loc>{0.0}, calcBarycenterFold());
 
 		barycenter_copy.mapInPlace(calcBarycenterMap(sum_weight));
-//		barycenter_copy = barycenter.gather();
 
 		population.mapInPlace(volitiveMovement(step_size_vol, sum_weight, sum_weight_last_iteration));
 		sum_weight_last_iteration = sum_weight;

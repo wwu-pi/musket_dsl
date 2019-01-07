@@ -23,6 +23,32 @@ import de.wwu.musket.musket.FloatMatrixType
 import de.wwu.musket.musket.PrimitiveType
 import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.musket.Struct
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.MapSkeleton
+import de.wwu.musket.musket.MapInPlaceSkeleton
+import de.wwu.musket.musket.MapIndexSkeleton
+import de.wwu.musket.musket.MapLocalIndexSkeleton
+import de.wwu.musket.musket.MapIndexInPlaceSkeleton
+import de.wwu.musket.musket.MapLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.FoldSkeleton
+import de.wwu.musket.musket.FoldLocalSkeleton
+import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.ZipSkeleton
+import de.wwu.musket.musket.ZipInPlaceSkeleton
+import de.wwu.musket.musket.ZipIndexSkeleton
+import de.wwu.musket.musket.ZipLocalIndexSkeleton
+import de.wwu.musket.musket.ZipIndexInPlaceSkeleton
+import de.wwu.musket.musket.ZipLocalIndexInPlaceSkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.GatherSkeleton
+import de.wwu.musket.musket.ScatterSkeleton
+import de.wwu.musket.musket.SkeletonExpression
+
+import static extension de.wwu.musket.util.CollectionHelper.*
+import static extension de.wwu.musket.util.MusketType.*
+import static extension de.wwu.musket.util.TypeHelper.*
 
 class MusketHelper {
 	/**
@@ -57,6 +83,27 @@ class MusketHelper {
 				null
 		}
 	}
+	
+	static def getCXXDefaultValue(Type t) {
+		switch (t) {
+			IntArrayType,
+			IntMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.INT: '''0'''
+			DoubleArrayType,
+			DoubleMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
+			FloatArrayType,
+			FloatMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
+			BoolArrayType,
+			BoolMatrixType,
+			PrimitiveType case t.type == PrimitiveTypeLiteral.BOOL: '''false'''
+			PrimitiveType case t.type == PrimitiveTypeLiteral.STRING: ''''''
+			Struct: '''«t.name»{}'''
+			default:
+				null
+		}
+	}
 
 	/**
 	 * Map Musket type to a C++ constructor call
@@ -83,9 +130,78 @@ class MusketHelper {
 		}
 	}
 	
-	/**
-	 * Shortcut to reach function from skeleton parameter
-	 */
+
+	static def getFunctorName(SkeletonExpression se, SkeletonParameterInput spi) {
+		val skel = se.skeleton
+		val container = se.obj.collectionContainerName
+		spi.functionName.toFirstUpper + "_" + skel.skeletonName + "_" + container + '_functor'
+	}
+	
+	static def getFunctorObjectName(SkeletonExpression se, SkeletonParameterInput spi) {
+		val skel = se.skeleton
+		val container = se.obj.collectionContainerName
+		spi.functionName.toFirstLower + "_" + skel.skeletonName + "_" + container + '_functor'
+	}
+	
+	static def getSkeletonName(Skeleton skel) {
+		switch skel {
+			MapSkeleton: '''map'''
+			MapInPlaceSkeleton: '''map_in_place'''
+			MapIndexSkeleton: '''map_index'''
+			MapLocalIndexSkeleton: '''map_local_index'''
+			MapIndexInPlaceSkeleton: '''map_index_in_place'''
+			MapLocalIndexInPlaceSkeleton: '''map_local_index_in_place'''
+			FoldSkeleton: '''fold'''
+			FoldLocalSkeleton: '''fold_local'''
+			MapFoldSkeleton: '''map_fold'''
+			ZipSkeleton:  '''zip'''
+			ZipInPlaceSkeleton:  '''zip_in_place'''
+			ZipIndexSkeleton: '''zip_index'''	
+			ZipLocalIndexSkeleton: '''zip_local_index'''
+			ZipIndexInPlaceSkeleton: '''zip_index_in_place'''
+			ZipLocalIndexInPlaceSkeleton: '''zip_local_index_in_place'''
+			ShiftPartitionsHorizontallySkeleton: '''shift_partitions_horizontally'''
+			ShiftPartitionsVerticallySkeleton: '''shift_partitions_vertically'''
+			GatherSkeleton: '''gather'''
+			ScatterSkeleton: '''scatter'''
+			default: '''// error switch: default case skeleton name'''
+		}
+	}
+	
+	static def int getNumberOfFixedParameters(SkeletonExpression se, Function f) {
+		switch se.skeleton {
+			MapSkeleton: 1
+			MapInPlaceSkeleton: 1
+			MapIndexSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapLocalIndexSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			MapLocalIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 2 else 3
+			FoldSkeleton: 2
+			FoldLocalSkeleton: -1
+			MapFoldSkeleton: if((se.skeleton as MapFoldSkeleton).mapFunction.functionName == f.name) 1 else 2
+			ZipSkeleton: 2
+			ZipInPlaceSkeleton:  2
+			ZipIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipLocalIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ZipLocalIndexInPlaceSkeleton: if (se.obj.calculateType.isArray) 3 else 4
+			ShiftPartitionsHorizontallySkeleton: 1
+			ShiftPartitionsVerticallySkeleton: 1
+			GatherSkeleton: 0
+			ScatterSkeleton: 0
+			default: -1
+		}
+	}
+	
+	static def int getNumberOfFreeParameters(SkeletonExpression se, Function f) {
+		if(f === null){
+			return 0
+		}
+		
+		f.params.size - getNumberOfFixedParameters(se, f)
+	}
+	
+
 	static def toFunction(SkeletonParameterInput spi) {
 		switch spi {
 			InternalFunctionCall:

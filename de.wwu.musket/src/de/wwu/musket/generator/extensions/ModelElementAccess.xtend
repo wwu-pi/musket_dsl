@@ -14,6 +14,12 @@ import de.wwu.musket.musket.RegularFunction
 import de.wwu.musket.musket.LambdaFunction
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.CollectionFunctionName
+import java.util.List
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -48,6 +54,15 @@ class ModelElementAccess {
 		resource.allContents.filter(Function).toIterable
 	}
 	
+	//def static SkeletonParamInputPairs(Resource resource) {
+	//	val skeletonExpressions = resource.SkeletonExpressions
+	//	var List<Pair<Skeleton, Function>> result = newArrayList
+	//	for(skelExpr : skeletonExpressions){
+	//		result.add(skelExpr.skeleton -> skelExpr.skeleton.param.)	
+	//	}
+	//	return result
+	//}
+	
 	def static Data(Resource resource) {
 		resource.Model.data
 	}
@@ -68,6 +83,14 @@ class ModelElementAccess {
 		resource.Model.data.filter(Struct)
 	}
 	
+	def static ShiftPartitionsHorizontallySkeletons(Resource resource) {
+		resource.allContents.filter(ShiftPartitionsHorizontallySkeleton).toIterable
+	}
+	
+	def static ShiftPartitionsVerticallySkeletons(Resource resource) {
+		resource.allContents.filter(ShiftPartitionsVerticallySkeleton).toIterable
+	}
+	
 	def static MapFoldSkeletons(Resource resource) {
 		resource.allContents.filter(MapFoldSkeleton).toIterable
 	}
@@ -82,6 +105,14 @@ class ModelElementAccess {
 	
 	def static MusketFunctionCalls(Resource resource) {
 		resource.allContents.filter(MusketFunctionCall).toList
+	}
+	
+	def static ShowCalls(Resource resource) {
+		resource.allContents.filter(CollectionFunctionCall).filter[it.function == CollectionFunctionName.SHOW].toList
+	}
+	
+	def static ShowLocalCalls(Resource resource) {
+		resource.allContents.filter(CollectionFunctionCall).filter[it.function == CollectionFunctionName.SHOW_LOCAL].toList
 	}
 
 	def static isPlatformCPU(Resource resource) {

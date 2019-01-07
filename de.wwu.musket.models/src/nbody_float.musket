@@ -19,8 +19,8 @@ struct Particle{
 	float charge;
 };
 
-array<Particle,16,dist> P;
-array<Particle,16,copy> oldP;
+array<Particle,4,dist> P;
+array<Particle,4,copy> oldP;
 
 Particle init_particles(int i, Particle p){
 	p.x = mkt::rand(0.0f,1.0f);
@@ -108,7 +108,7 @@ main{
 		oldP = P.gather();
 	}
   
-  mkt::roi_end();
+	mkt::roi_end();
   
 	mkt::print('Final Particle System:\n');
 	oldP.show();

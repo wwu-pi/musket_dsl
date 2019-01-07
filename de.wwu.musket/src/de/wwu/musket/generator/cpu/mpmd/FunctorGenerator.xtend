@@ -19,27 +19,39 @@ import static extension de.wwu.musket.util.TypeHelper.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import de.wwu.musket.musket.CollectionObject
 import de.wwu.musket.musket.CollectionType
+import de.wwu.musket.generator.cpu.mpmd.lib.Musket
+import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.StructVariable
 
 class FunctorGenerator {
 	
-	def static generateFunctorInstantiation(Function f, int processId) '''
-		«f.name.toFirstUpper»_functor «f.name.toFirstLower»_functor{};
+	def static generateFunctorInstantiation(SkeletonExpression se, SkeletonParameterInput spi, int processId) '''
+		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{};
 	'''
 
-	def static generateFunctor(Function f, int processId) '''
-		struct «f.name.toFirstUpper»_functor{
-			auto operator()(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR») const{
+	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
+		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
+			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
 			}
+			
+			«FOR p : f.params.take(freeParameter)»
+				«p.generateMember»;
+			«ENDFOR»
 		};
 	'''
+	
+	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
+	def static generateMember(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
 
 
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
-		inline auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»«ENDFOR»){
+		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
 			«FOR s : f.statement»
 				«s.generateFunctionStatement(processId)»
 			«ENDFOR»
@@ -116,7 +128,7 @@ class FunctorGenerator {
 	 * @return the generated function call
 	 */
 	def static dispatch generateStatement(Variable variable, int processId) '''
-		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(null, processId)»«ENDIF»;
+		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(null, processId)»«ELSEIF variable instanceof StructVariable && (variable as StructVariable).copyFrom !== null»{«(variable as StructVariable).copyFrom.value.name»}«ENDIF»;
 	'''
 
 	/**
