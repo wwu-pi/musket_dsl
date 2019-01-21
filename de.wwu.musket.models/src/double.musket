@@ -1,26 +1,34 @@
-#config PLATFORM CPU_MPMD
-#config PROCESSES 4
-#config CORES 8
+#config PLATFORM GPU
+#config PROCESSES 1
+#config CORES 4
+#config GPUS 2
 #config MODE debug
 
-array<int,4,copy> a = {1, 2, 3, 4};
-array<int,4,dist> b = {1, 2, 3, 4};
+//array<int,4,copy> a = {1, 2, 3, 4};
+array<int,4,dist> b;
+
+int init(int i, int x){
+	x = i;
+	return x;
+}
 
 int double_values(int i){
 	return i + i;
 }
 
 main{
-	a.show();
+	//a.show();
 	b.show();
+
+	b.mapIndexInPlace(init());
 
 	//mkt::roi_start();
 
-	a.mapInPlace(double_values());
-	b.mapInPlace(double_values());
+	//a.mapInPlace(double_values());
+	//b.mapInPlace(init());
 	//mkt::roi_end();
 	
-	a.show();
+	//a.show();
 	b.show();
 }
 

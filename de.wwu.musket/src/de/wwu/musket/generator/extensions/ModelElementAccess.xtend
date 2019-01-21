@@ -122,4 +122,8 @@ class ModelElementAccess {
 	def static isPlatformCPUMPMD(Resource resource) {
 		resource.allContents.filter(ConfigBlock).head.platformCPUMPMD
 	}
+	
+	def static isPlatformGPU(Resource resource) {
+		resource.allContents.filter(ConfigBlock).head.platformGPU
+	}
 }
