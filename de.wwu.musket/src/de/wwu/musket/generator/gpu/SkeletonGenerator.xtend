@@ -32,6 +32,7 @@ import static de.wwu.musket.generator.gpu.MPIRoutines.generateMPIIrecv
 import static de.wwu.musket.generator.gpu.MPIRoutines.generateMPIIsend
 import static de.wwu.musket.generator.gpu.MPIRoutines.generateMPIWaitall
 
+import static extension de.wwu.musket.generator.gpu.util.DataHelper.*
 import static de.wwu.musket.generator.gpu.FunctionGenerator.generateFunctionCall
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.gpu.util.DataHelper.*
@@ -44,6 +45,8 @@ import de.wwu.musket.musket.Expression
 import org.eclipse.emf.common.util.EList
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.SkeletonParameterInput
+import de.wwu.musket.musket.ReductionSkeleton
+import de.wwu.musket.musket.ReductionOperation
 
 /**
  * Generates the skeleton calls.
@@ -72,6 +75,7 @@ class SkeletonGenerator {
 			FoldSkeleton: generateFoldSkeleton(s, s.obj, target, processId)
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
 			MapFoldSkeleton: generateMapFoldSkeleton(s, s.obj, target, processId)
+			ReductionSkeleton: generateReductionSkeleton(s, s.obj, target, processId)
 			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
 			ZipInPlaceSkeleton:  generateZipInPlaceSkeleton(s, processId)
 			ZipIndexSkeleton: generateZipIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)		
@@ -328,6 +332,11 @@ class SkeletonGenerator {
 		«val skel = s.skeleton as FoldSkeleton»
 		«generateSetValuesInFunctor(s, s.skeleton.param)»
 		mkt::fold«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType», «s.getFunctorName(skel.param)»>(«co.name», «target.name», «skel.identity.generateExpression(null, processId)»,«s.getFunctorObjectName(skel.param)»);
+	'''
+
+	def static generateReductionSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
+		«val skel = s.skeleton as ReductionSkeleton»
+		«target.name» = mkt::reduce_«(skel.param as ReductionOperation).getName»«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType»>(«co.name»);
 	'''
 
 

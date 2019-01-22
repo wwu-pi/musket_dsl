@@ -32,6 +32,11 @@ import de.wwu.musket.musket.CollectionParameter
 import de.wwu.musket.musket.CollectionObjectOrParam
 import de.wwu.musket.musket.TailObjectRef
 import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.ReductionOperation
+import de.wwu.musket.musket.PlusReduction
+import de.wwu.musket.musket.MultiplyReduction
+import de.wwu.musket.musket.MaxReduction
+import de.wwu.musket.musket.MinReduction
 
 class DataHelper {
 // Value
@@ -285,6 +290,33 @@ class DataHelper {
 			case ROW_DIST: pid -> 0
 			case COLUMN_DIST: 0 -> pid
 			default: -1 -> -1
+		}
+	}
+	
+	def static getName(ReductionOperation ro){
+		switch(ro){
+			PlusReduction: '''plus'''
+			MultiplyReduction: '''multiply'''
+			MaxReduction: '''max'''
+			MinReduction: '''min'''
+		}
+	}
+	
+	def static getSign(ReductionOperation ro){
+		switch(ro){
+			PlusReduction: '''+'''
+			MultiplyReduction: '''*'''
+			MaxReduction: '''max'''
+			MinReduction: '''min'''
+		}
+	}
+	
+	def static getMPIReduction(ReductionOperation ro){
+		switch(ro){
+			PlusReduction: '''MPI_SUM'''
+			MultiplyReduction: '''MPI_PROD'''
+			MaxReduction: '''MPI_MAX'''
+			MinReduction: '''MPI_MIN'''
 		}
 	}
 

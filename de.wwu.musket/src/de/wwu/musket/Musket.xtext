@@ -359,6 +359,7 @@ SkeletonExpression:
 Skeleton:
 	MapSkeletonVariants |
 	FoldSkeletonVariants | 
+	{ReductionSkeleton} 'reduce' '(' param=SkeletonParameterInput ')' |
 	ZipSkeletonVariants |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
 	{ScatterSkeleton} 'scatter' '(' param=SkeletonParameterInput? ')' |
@@ -402,9 +403,19 @@ enum ZipOption:
 	index | localIndex | inPlace
 ;
 
+ReductionOperation:
+	PlusReduction | MultiplyReduction | MaxReduction | MinReduction
+;
+
+PlusReduction:{PlusReduction}"plus";
+MultiplyReduction:{MultiplyReduction}"multiply";
+MaxReduction:{MaxReduction}"max";
+MinReduction:{MinReduction}"min";
+
 SkeletonParameterInput:
 	InternalFunctionCall |
-	LambdaFunction
+	LambdaFunction |
+	ReductionOperation
 ;
 
 Statement:

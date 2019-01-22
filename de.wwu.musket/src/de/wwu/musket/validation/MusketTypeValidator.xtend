@@ -55,6 +55,7 @@ import de.wwu.musket.musket.MusketDoubleVariable
 import de.wwu.musket.musket.MusketFloatVariable
 import de.wwu.musket.musket.MusketBoolVariable
 import de.wwu.musket.musket.MusketStructVariable
+import de.wwu.musket.musket.ReductionOperation
 
 class MusketTypeValidator extends AbstractMusketValidator {
 
@@ -96,8 +97,10 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		val isFunctionCall = skel.param instanceof InternalFunctionCall
 		val callFunction = if (isFunctionCall){
 			(skel.param as InternalFunctionCall).value
-		} else {
+		} else if (skel.param instanceof LambdaFunction) {
 			skel.param as LambdaFunction
+		} else {
+			return // Reduction Operation
 		}
 		
 		// check type of objects on which the skeleton is called: Array has 1, Matrix 2 index parameters
@@ -239,8 +242,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	def checkSkeletonFunctionImplicitParameterType(Skeleton skel) {
 		val callFunction = if (skel.param instanceof InternalFunctionCall){
 			(skel.param as InternalFunctionCall).value
-		} else {
+		} else if(skel.param instanceof LambdaFunction) {
 			skel.param as LambdaFunction
+		} else {
+//			skel.param as ReductionOperation
+			return
 		}
 		val callingType = (skel.eContainer as SkeletonExpression).obj.calculateCollectionType
 		
@@ -340,8 +346,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	def checkSkeletonFunctionIndexParameterType(Skeleton skel) {
 		val callFunction = if (skel.param instanceof InternalFunctionCall){
 			(skel.param as InternalFunctionCall).value
-		} else {
+		} else if(skel.param instanceof LambdaFunction) {
 			skel.param as LambdaFunction
+		} else {
+//			skel.param as ReductionOperation
+			return
 		}		
 		val isArray = (skel.eContainer as SkeletonExpression).obj.calculateType.isArray
 			
@@ -459,8 +468,11 @@ class MusketTypeValidator extends AbstractMusketValidator {
 	def checkReturnTypeForInPlaceSkeletons(Skeleton skel) {
 		val callFunction = if (skel.param instanceof InternalFunctionCall){
 			(skel.param as InternalFunctionCall).value
-		} else {
+		} else if(skel.param instanceof LambdaFunction) {
 			skel.param as LambdaFunction
+		} else {
+//			skel.param as ReductionOperation
+			return
 		}
 			
 		switch skel {

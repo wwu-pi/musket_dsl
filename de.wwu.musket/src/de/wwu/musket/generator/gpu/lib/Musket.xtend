@@ -24,6 +24,7 @@ import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.MatrixType
 import static de.wwu.musket.generator.gpu.GatherScatterGenerator.*
 import static de.wwu.musket.generator.gpu.ShiftSkeletonGenerator.*
+import static de.wwu.musket.generator.gpu.ReductionSkeletonGenerator.*
 
 class Musket {
 	static final Logger logger = LogManager.getLogger(Musket)
@@ -94,6 +95,8 @@ class Musket {
 		«IF resource.ShiftPartitionsVerticallySkeletons.size() > 0 && Config.processes > 1»
 			«generateShiftVerticallySkeletonsFunctionDeclarations»
 		«ENDIF»
+		
+		«generateReductionSkeletonFunctionDeclarations»
 		
 		} // namespace mkt
 		

@@ -13,6 +13,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static de.wwu.musket.generator.gpu.FoldSkeletonGenerator.*
 import static de.wwu.musket.generator.gpu.LogicGenerator.*
 import static de.wwu.musket.generator.gpu.MapSkeletonGenerator.*
+import static de.wwu.musket.generator.gpu.ReductionSkeletonGenerator.*
 import static de.wwu.musket.generator.gpu.RngGenerator.*
 import static extension de.wwu.musket.generator.gpu.FunctorGenerator.*
 import static de.wwu.musket.generator.gpu.ShiftSkeletonGenerator.generateMPIVectorType
@@ -94,6 +95,7 @@ class SourceFileGenerator {
 			
 			«generateFoldFunctionDefinitions(resource, processId)»
 			«generateMapFoldFunctionDefinitions(resource, processId)»
+			«generateReductionSkeletonFunctionDefinitions(resource)»
 			
 			«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0  && Config.processes > 1»
 				«generateShiftHorizontallyFunctionDefinitions(resource)»
