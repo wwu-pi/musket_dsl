@@ -262,7 +262,7 @@ class DArray {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				const int gpu_elements = in.get_size_gpu();
-				#pragma acc parallel loop deviceptr(devptr) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					out_devptr[i] = f(in_devptr[i]);
 				}
@@ -279,7 +279,7 @@ class DArray {
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
 				offset += gpu * gpu_elements;
-				#pragma acc parallel loop deviceptr(devptr) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					out_devptr[i] = f(i + offset, in_devptr[i]);
 				}
@@ -295,7 +295,7 @@ class DArray {
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
 				int offset = gpu * gpu_elements;
-				#pragma acc parallel loop deviceptr(devptr) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					out_devptr[i] = f(i + offset, in_devptr[i]);
 				}
