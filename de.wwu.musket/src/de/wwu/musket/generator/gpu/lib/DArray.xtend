@@ -24,6 +24,7 @@ class DArray {
 		  ~ DArray(); 
 		   
 		   void update_self();
+		   void update_devices();
 		   void map_pointer();
 		   
 		// Getter and Setter
@@ -87,12 +88,18 @@ class DArray {
 		    : _pid(pid),
 		      _size(size),
 		      _size_local(size_local),
-		      _size_gpu(size_local / «Config.gpus»), // assume even distribution for now
+		      _size_gpu(0), 
 		      _partitions(partitions),
 		      _partition_pos(partition_pos),
 		      _offset(offset),
 		      _dist(d),
 		      _data(size_local, init_value) {
+		    
+		    if(d == mkt::Distribution::DIST){
+		    	_size_gpu = size_local / «Config.gpus»; // assume even distribution for now
+		    }else if(d == mkt::Distribution::COPY){
+		    	_size_gpu = size_local;
+		    }
 		    
 		    #pragma omp parallel for
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
@@ -102,7 +109,12 @@ class DArray {
 				
 				// store pointer to device memory and host memory
 				_gpu_data[gpu] = devptr;
-				_host_data[gpu] = _data.data() + gpu * _size_gpu;
+				if(d == mkt::Distribution::DIST){
+			    	_host_data[gpu] = _data.data() + gpu * _size_gpu;
+			    }else if(d == mkt::Distribution::COPY){
+			    	_host_data[gpu] = _data.data(); // all gpus have complete data, thus point to the beginning of host vector
+			    }
+				
 				
 				// init values
 				#pragma acc parallel loop deviceptr(devptr) async(0)
@@ -130,6 +142,16 @@ class DArray {
 				acc_set_device_num(gpu, acc_device_not_host);
 				acc_update_self_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 				//acc_memcpy_from_device_async(acc_hostptr(_gpu_data[gpu]), _gpu_data[gpu], _size_gpu * sizeof(T), 0);
+				#pragma acc wait
+			}
+		}
+		
+		template<typename T>
+		void mkt::DArray<T>::update_devices() {
+		  	#pragma omp parallel for
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				acc_set_device_num(gpu, acc_device_not_host);
+				void acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 				#pragma acc wait
 			}
 		}
