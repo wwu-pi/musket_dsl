@@ -25,6 +25,10 @@ class DMatrix {
 		          int number_of_columns_local, int size, int size_local, T init_value, 
 		          int partitions_in_row, int partitions_in_column, int partition_x_pos, int partition_y_pos, 
 		          int row_offset, int column_offset, Distribution d = DIST);
+		  ~DMatrix();
+		  
+		  void update_self();
+		  void map_pointer();
 		
 		// Getter and Setter
 		
@@ -41,6 +45,7 @@ class DMatrix {
 		
 		  int get_size() const;
 		  int get_size_local() const;
+		  int get_size_gpu() const;
 		
 		  int get_row_offset() const;
 		  int get_column_offset() const;
@@ -87,6 +92,7 @@ class DMatrix {
 		
 		  int _size;
 		  int _size_local;
+		  int _size_gpu;
 		
 		  // number of (local) partitions per row
 		  int _partitions_in_row;
@@ -120,6 +126,8 @@ class DMatrix {
 		  Distribution _dist;
 		
 		  std::vector<T> _data;
+		  std::array<T*, «Config.gpus»> _host_data;
+		  std::array<T*, «Config.gpus»> _gpu_data;
 		};
 	'''
 	
