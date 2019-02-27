@@ -252,7 +252,7 @@ class FoldSkeletonGenerator {
 		«val foldName = fs.param.functionName + "_reduction"»
 		«var local_result = ""»
 		template<>
-		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
+		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)» f){
 		  «IF Config.processes > 1»  		  	
 		  	«cpptype» «local_result = "local_result"» = identity;
 		  «ELSE»
@@ -277,7 +277,7 @@ class FoldSkeletonGenerator {
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::fold_copy<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
+		void mkt::fold_copy<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DArray<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)» f){
 		  out = identity;
 		  
 		  const int size = in.get_size();
@@ -295,8 +295,8 @@ class FoldSkeletonGenerator {
 		«val foldName = fs.param.functionName + "_reduction"»
 		«var local_result = ""»
 		template<>
-		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
-		  «IF Config.processes > 1»  		  	
+		void mkt::fold<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)» f){
+		  «IF Config.processes > 1»  		  
 		  	«cpptype» «local_result = "local_result"» = identity;
 		  «ELSE»
 		  	«local_result = "out"» = identity;
@@ -320,7 +320,7 @@ class FoldSkeletonGenerator {
 		«val FoldSkeleton fs = se.skeleton as FoldSkeleton»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::fold_copy<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)»& f){
+		void mkt::fold_copy<«cpptype», «se.getFunctorName(se.skeleton.param)»>(const mkt::DMatrix<«cpptype»>& in, «cpptype»& out, const «cpptype» identity, const «se.getFunctorName(se.skeleton.param)» f){
 		  out = identity;
 		  
 		  const int size = in.get_size();
@@ -398,7 +398,7 @@ class FoldSkeletonGenerator {
 		«val resultIsArray = se.eContainer instanceof MusketAssignment && (se.eContainer as MusketAssignment).^var.calculateType.isArray»
 		«val resultcpptype = try{ (se.eContainer as MusketAssignment).^var.calculateCollectionType.cppType } catch(ClassCastException e) {""}»
 		template<>
-		void mkt::map_fold<«mapcpptype», «IF resultIsArray»«resultcpptype», «ENDIF»«foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «IF resultIsArray»mkt::DArray<«resultcpptype»>&«ELSE»«foldcpptype»&«ENDIF» out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold<«mapcpptype», «IF resultIsArray»«resultcpptype», «ENDIF»«foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «IF resultIsArray»mkt::DArray<«resultcpptype»>&«ELSE»«foldcpptype»&«ENDIF» out, const «se.getFunctorName(fs.mapFunction)» mf, const «foldcpptype» identity, const «se.getFunctorName(fs.param)» ff){
 		«IF Config.processes > 1»  		  	
 			«foldcpptype» «local_result = "local_result"» = identity;
 			«ELSE»
@@ -436,7 +436,7 @@ class FoldSkeletonGenerator {
 		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DArray<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)» mf, const «foldcpptype» identity, const «se.getFunctorName(fs.param)» ff){
 		  out = identity;
 		  
 		  const int size = in.get_size();
@@ -456,7 +456,7 @@ class FoldSkeletonGenerator {
 		«val foldName = fs.param.functionName + "_reduction"»
 		«var local_result = ""»
 		template<>
-		void mkt::map_fold<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)» mf, const «foldcpptype» identity, const «se.getFunctorName(fs.param)» ff){
 		  «IF Config.processes > 1»  		  	
 		  	«foldcpptype» «local_result = "local_result"» = identity;
 		  «ELSE»
@@ -483,7 +483,7 @@ class FoldSkeletonGenerator {
 		«val foldcpptype = fs.identity.calculateType.cppType»
 		«val foldName = fs.param.functionName + "_reduction"»
 		template<>
-		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)»& mf, const «foldcpptype»& identity, const «se.getFunctorName(fs.param)»& ff){
+		void mkt::map_fold_copy<«mapcpptype», «foldcpptype», «se.getFunctorName(fs.mapFunction)», «se.getFunctorName(fs.param)»>(const mkt::DMatrix<«mapcpptype»>& in, «foldcpptype»& out, const «se.getFunctorName(fs.mapFunction)» mf, const «foldcpptype» identity, const «se.getFunctorName(fs.param)» ff){
 		  out = identity;
 		  
 		  const int size = in.get_size();

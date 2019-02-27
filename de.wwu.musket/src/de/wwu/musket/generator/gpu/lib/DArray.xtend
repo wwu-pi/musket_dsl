@@ -239,45 +239,45 @@ class DArray {
 	
 	def static generateDArraySkeletonDeclarations() '''
 		template<typename T, typename R, typename Functor>
-		void map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f);
+		void map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f);
+		void map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f);
+		void map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
 		
 		template<typename T, typename Functor>
-		void map_in_place(mkt::DArray<T>& a, const Functor& f);
+		void map_in_place(mkt::DArray<T>& a, const Functor f);
 		
 		template<typename T, typename Functor>
-		void map_index_in_place(mkt::DArray<T>& a, const Functor& f);
+		void map_index_in_place(mkt::DArray<T>& a, const Functor f);
 		
 		template<typename T, typename Functor>
-		void map_local_index_in_place(mkt::DArray<T>& a, const Functor& f);
+		void map_local_index_in_place(mkt::DArray<T>& a, const Functor f);
 		
 		template<typename T, typename Functor>
-		void fold(const mkt::DArray<T>& a, T& out, const T identity, const Functor& f);
+		void fold(const mkt::DArray<T>& a, T& out, const T identity, const Functor f);
 		
 		template<typename T, typename Functor>
-		void fold_copy(const mkt::DArray<T>& a, T& out, const T identity, const Functor& f);
+		void fold_copy(const mkt::DArray<T>& a, T& out, const T identity, const Functor f);
 		
 		template<typename T, typename R, typename MapFunctor, typename FoldFunctor>
-		void map_fold(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R& identity, const FoldFunctor& f_fold);
+		void map_fold(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R identity, const FoldFunctor f_fold);
 		
 		template<typename T, typename R, typename MapFunctor, typename FoldFunctor>
-		void map_fold_copy(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R& identity, const FoldFunctor& f_fold);
+		void map_fold_copy(const mkt::DArray<T>& a, R& out, const MapFunctor& f_map, const R identity, const FoldFunctor f_fold);
 
 		template<typename T, typename R, typename I, typename MapFunctor, typename FoldFunctor>
-		void map_fold(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I& identity, const FoldFunctor& f_fold);
-				
+		void map_fold(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I identity, const FoldFunctor f_fold);
+
 		template<typename T, typename R, typename I, typename MapFunctor, typename FoldFunctor>
-		void map_fold_copy(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I& identity, const FoldFunctor& f_fold);
+		void map_fold_copy(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor f_map, const I identity, const FoldFunctor f_fold);
 	'''
 	
 	def static generateDArraySkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
-		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
+		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
 			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -292,7 +292,7 @@ class DArray {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
+		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
 			int offset = in.get_offset();
 			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
@@ -309,7 +309,7 @@ class DArray {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor& f) {
+		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
 			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -325,7 +325,7 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_in_place(mkt::DArray<T>& a, const Functor& f){
+		void mkt::map_in_place(mkt::DArray<T>& a, const Functor f){
 		  «IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
@@ -339,7 +339,7 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_index_in_place(mkt::DArray<T>& a, const Functor& f){
+		void mkt::map_index_in_place(mkt::DArray<T>& a, const Functor f){
 			int offset = a.get_offset();		  
 		  	«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  	for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
@@ -355,7 +355,7 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_local_index_in_place(mkt::DArray<T>& a, const Functor& f){
+		void mkt::map_local_index_in_place(mkt::DArray<T>& a, const Functor f){
 		  «IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
