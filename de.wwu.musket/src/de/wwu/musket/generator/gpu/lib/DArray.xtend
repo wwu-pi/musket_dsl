@@ -29,10 +29,10 @@ class DArray {
 		   
 		// Getter and Setter
 		
-		  T get_global(int index) const;
+		  T get_global(int index);
 		  void set_global(int index, const T& value);
 		
-		  T get_local(int index) const;
+		  T get_local(int index);
 		  void set_local(int index, const T& value);
 		
 		  T& operator[](int local_index);
@@ -52,6 +52,9 @@ class DArray {
 		  T* get_device_pointer(int gpu) const;
 				
 		 private:
+		
+		  int get_gpu_by_local_index(int local_index) const;
+		  int get_gpu_by_global_index(int global_index) const;
 		
 		  //
 		  // Attributes
@@ -166,17 +169,29 @@ class DArray {
 		}
 				
 		template<typename T>
-		T mkt::DArray<T>::get_local(int index) const {
-		  return _data[index];
+		T mkt::DArray<T>::get_local(int index) {
+			int gpu = get_gpu_by_local_index(index);
+			acc_set_device_num(gpu, acc_device_not_host);
+			T* host_pointer = _data.data() + index;
+			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
+			acc_memcpy_from_device_async(host_pointer, gpu_pointer, sizeof(T), 0);
+			#pragma acc wait
+		    return _data[index];
 		}
 		
 		template<typename T>
 		void mkt::DArray<T>::set_local(int index, const T& v) {
-		  _data[index] = v;
+			_data[index] = v;
+			int gpu = get_gpu_by_local_index(index);
+			acc_set_device_num(gpu, acc_device_not_host);
+			T* host_pointer = _data.data() + index;
+			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
+			acc_memcpy_to_device_async(host_pointer, gpu_pointer*, sizeof(T), 0 );
+			#pragma acc wait
 		}
-		
+
 		template<typename T>
-		T mkt::DArray<T>::get_global(int index) const {
+		T mkt::DArray<T>::get_global(int index) {
 		  // TODO
 		}
 		
@@ -187,12 +202,12 @@ class DArray {
 		
 		template<typename T>
 		T& mkt::DArray<T>::operator[](int local_index) {
-		  return _data[local_index];
+		  	return _data[local_index];
 		}
 		
 		template<typename T>
 		const T& mkt::DArray<T>::operator[](int local_index) const {
-		  return _data[local_index];
+		  	return _data[local_index];
 		}
 		
 		template<typename T>
@@ -233,6 +248,24 @@ class DArray {
 		template<typename T>
 		T* mkt::DArray<T>::get_device_pointer(int gpu) const{
 		  return _gpu_data[gpu];
+		}
+		
+		template<typename T>
+		int mkt::DArray<T>::get_gpu_by_local_index(int local_index) const {
+			if(_dist == mkt::Distribution::COPY){
+				return 0;
+			}else if(_dist == mkt::Distribution::DIST){
+				return local_index / _size_gpu;
+			}
+			else{
+				return -1;
+			}
+		}
+		
+		template<typename T>
+		int mkt::DArray<T>::get_gpu_by_global_index(int global_index) const {
+			// TODO
+			return -1;
 		}
 	'''
 	

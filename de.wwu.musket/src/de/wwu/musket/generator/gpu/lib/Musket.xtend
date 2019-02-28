@@ -155,10 +155,10 @@ class Musket {
 		  std::ostringstream stream;
 		  stream << name << ": " << std::endl << "[";
 		  for (int i = 0; i < a.get_size() - 1; ++i) {
-		  	mkt::print<T>(stream, a.get_local(i));
+		  	mkt::print<T>(stream, a[i]);
 		  	stream << "; ";
 		  }
-		  mkt::print<T>(stream, a.get_local(a.get_size() - 1));
+		  mkt::print<T>(stream, a[a.get_size() - 1]);
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
@@ -189,10 +189,10 @@ class Musket {
 		  std::ostringstream stream;
 		  stream << name << " on process " << pid <<": " << std::endl << "[";
 		  for (int i = 0; i < a.get_size_local() - 1; ++i) {
-		  	mkt::print<T>(stream, a.get_local(i));
+		  	mkt::print<T>(stream, a[i]);
 		  	stream << "; ";
 		  }
-		  mkt::print<T>(stream, a.get_local(a.get_size_local() - 1));
+		  mkt::print<T>(stream, a[a.get_size_local() - 1]);
 		  stream << "]" << std::endl << std::endl;
 		  printf("%s", stream.str().c_str());
 		}
