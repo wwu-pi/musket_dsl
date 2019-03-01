@@ -20,6 +20,7 @@ import java.util.List
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ReductionSkeleton
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -97,6 +98,10 @@ class ModelElementAccess {
 	
 	def static FoldSkeletons(Resource resource) {
 		resource.allContents.filter(FoldSkeleton).toIterable
+	}
+	
+	def static ReductionSkeletons(Resource resource) {
+		resource.allContents.filter(ReductionSkeleton).toIterable
 	}
 	
 	def static SkeletonExpressions(Resource resource) {

@@ -96,7 +96,15 @@ class Musket {
 			«generateShiftVerticallySkeletonsFunctionDeclarations»
 		«ENDIF»
 		
-		«generateReductionSkeletonFunctionDeclarations»
+		«IF resource.ReductionSkeletons.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				«generateReductionSkeletonArrayFunctionDeclarations»
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				«generateReductionSkeletonMatrixFunctionDeclarations»
+			«ENDIF»
+		«ENDIF»
+		
 		
 		} // namespace mkt
 		
@@ -172,10 +180,10 @@ class Musket {
 		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
 		  	stream << "[";
 		  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
-		  	  mkt::print<T>(stream, m.get_local(i, j));
+		  	  mkt::print<T>(stream, m.get_local_host_data(i, j));
 		  	  stream << "; ";
 		  	}
-		  	mkt::print<T>(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
+		  	mkt::print<T>(stream, m.get_local_host_data(i, m.get_number_of_columns_local() - 1));
 		  	stream << "]" << std::endl;
 		  }		  
 		  stream << std::endl;
@@ -206,10 +214,10 @@ class Musket {
 		  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
 		  	stream << "[";
 		  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
-		  	  mkt::print<T>(stream, m.get_local(i, j));
+		  	  mkt::print<T>(stream, m.get_local_host_data(i, j));
 		  	  stream << "; ";
 		  	}
-		  	mkt::print<T>(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
+		  	mkt::print<T>(stream, m.get_local_host_data(i, m.get_number_of_columns_local() - 1));
 		  	stream << "]" << std::endl;
 		  }		  
 		  stream << std::endl;

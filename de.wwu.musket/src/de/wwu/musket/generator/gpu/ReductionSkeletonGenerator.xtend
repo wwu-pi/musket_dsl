@@ -32,7 +32,7 @@ import de.wwu.musket.musket.MinReduction
 
 class ReductionSkeletonGenerator {
 
-	def static generateReductionSkeletonFunctionDeclarations() '''
+	def static generateReductionSkeletonArrayFunctionDeclarations() '''
 		template<typename T>
 		T reduce_plus(mkt::DArray<T>& a);
 		
@@ -58,6 +58,32 @@ class ReductionSkeletonGenerator {
 		T reduce_min_copy(mkt::DArray<T>& a);
 	'''
 	
+	def static generateReductionSkeletonMatrixFunctionDeclarations() '''
+		template<typename T>
+		T reduce_plus(mkt::DMatrix<T>& m);
+		
+		template<typename T>
+		T reduce_multiply(mkt::DMatrix<T>& m);
+				
+		template<typename T>
+		T reduce_max(mkt::DMatrix<T>& m);
+						
+		template<typename T>
+		T reduce_min(mkt::DMatrix<T>& m);
+		
+		template<typename T>
+		T reduce_plus_copy(mkt::DMatrix<T>& m);
+		
+		template<typename T>
+		T reduce_multiply_copy(mkt::DMatrix<T>& m);
+				
+		template<typename T>
+		T reduce_max_copy(mkt::DMatrix<T>& m);
+						
+		template<typename T>
+		T reduce_min_copy(mkt::DMatrix<T>& m);
+	'''
+	
 	def static generateReductionSkeletonFunctionDefinitions(Resource resource) {
 		var result = ''''''
 		var typeOperatorPairs = newArrayList
@@ -68,18 +94,21 @@ class ReductionSkeletonGenerator {
 			val operatorName = operator.name
 			val pair = type -> operatorName
 			if(!typeOperatorPairs.contains(pair)){
-				result += generateReductionSkeletonFunctionDefinition(mktType, operator)
+				if(resource.Arrays.size() > 0)
+					result += generateReductionSkeletonFunctionDefinition(mktType, operator, "DArray")
+				if(resource.Matrices.size() > 0)
+					result += generateReductionSkeletonFunctionDefinition(mktType, operator, "DMatrix")
 				typeOperatorPairs.add(pair)
 			}			
 		}
 		return result
 	}
 	
-	def static generateReductionSkeletonFunctionDefinition(MusketType type, ReductionOperation ro) '''
+	def static generateReductionSkeletonFunctionDefinition(MusketType type, ReductionOperation ro, String dataStructure) '''
 		«val cppType = type.cppType»
 		«val mpiType = type.MPIType»
 		template<>
-		«cppType» mkt::reduce_«ro.getName»<«cppType»>(mkt::DArray<«cppType»>& a){
+		«cppType» mkt::reduce_«ro.getName»<«cppType»>(mkt::«dataStructure»<«cppType»>& a){
 			«cppType» local_result = «getIdentity(type, ro)»;
 			«IF Config.processes > 1»
 				T global_result = «getIdentity(type, ro)»;
