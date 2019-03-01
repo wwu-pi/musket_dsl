@@ -82,6 +82,7 @@ import de.wwu.musket.musket.ZipSkeleton
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.wwu.musket.util.CollectionHelper.*
+import de.wwu.musket.musket.ReductionSkeleton
 
 class TypeHelper {
 	static dispatch def MusketType calculateCollectionType(IntArrayType obj){
@@ -440,6 +441,8 @@ class TypeHelper {
 			FoldSkeleton,
 			FoldLocalSkeleton,
 			MapFoldSkeleton: return skeleton.param.calculateType
+			
+			ReductionSkeleton: return exp.obj.calculateCollectionType
 			
 			GatherSkeleton: return srcType.toCopyCollection
 			ScatterSkeleton: return srcType.toDistributedCollection
