@@ -182,11 +182,20 @@ class DArray {
 		template<typename T>
 		void mkt::DArray<T>::set_local(int index, const T& v) {
 			_data[index] = v;
-			int gpu = get_gpu_by_local_index(index);
-			acc_set_device_num(gpu, acc_device_not_host);
 			T* host_pointer = _data.data() + index;
-			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
-			acc_memcpy_to_device_async(host_pointer, gpu_pointer*, sizeof(T), 0 );
+			if(_dist == mkt::Distribution::COPY){
+				#pragma omp parallel for
+				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+					acc_set_device_num(gpu, acc_device_not_host);
+					T* gpu_pointer = _gpu_data[gpu] + index;
+					acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
+				}
+			}else if(_dist == mkt::Distribution::DIST){
+				int gpu = get_gpu_by_local_index(index);
+				acc_set_device_num(gpu, acc_device_not_host);
+				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
+				acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
+			}
 			#pragma acc wait
 		}
 
@@ -333,7 +342,9 @@ class DArray {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
-				offset += gpu * gpu_elements;
+				if(in.get_distribution() == mkt::Distribution::COPY){
+					offset += gpu * gpu_elements;
+				}				
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					out_devptr[i] = f(i + offset, in_devptr[i]);
@@ -349,7 +360,10 @@ class DArray {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
-				int offset = gpu * gpu_elements;
+				int offset = 0;
+				if(in.get_distribution() == mkt::Distribution::COPY){
+					offset = gpu * gpu_elements;
+				}
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					out_devptr[i] = f(i + offset, in_devptr[i]);
@@ -379,7 +393,9 @@ class DArray {
 				acc_set_device_num(gpu, acc_device_not_host);
 				T* devptr = a.get_device_pointer(gpu);
 				int gpu_elements = a.get_size_gpu();
-				offset += gpu * gpu_elements;
+				if(in.get_distribution() == mkt::Distribution::COPY){
+					offset += gpu * gpu_elements;
+				}
 				#pragma acc parallel loop deviceptr(devptr) async(0)
 			  	for (int i = 0; i < gpu_elements; ++i) {
 			    	f(i + offset, devptr[i]);
@@ -394,7 +410,10 @@ class DArray {
 			acc_set_device_num(gpu, acc_device_not_host);
 			T* devptr = a.get_device_pointer(gpu);				
 			int gpu_elements = a.get_size_gpu();
-			int offset = gpu * gpu_elements;
+			int offset = 0;
+			if(in.get_distribution() == mkt::Distribution::COPY){
+				offset = gpu * gpu_elements;
+			}
 			#pragma acc parallel loop deviceptr(devptr) async(0)
 		  	for (int i = 0; i < gpu_elements; ++i) {
 		    	f(i + offset, devptr[i]);
