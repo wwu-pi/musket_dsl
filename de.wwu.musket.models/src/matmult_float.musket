@@ -1,11 +1,13 @@
-#config PLATFORM CPU CPU_MPMD
-#config PROCESSES 4
-#config CORES 8
+#config PLATFORM GPU
+#config PROCESSES 1
+#config GPUS 1
+#config CORES 4
 #config MODE debug
 
-matrix<float,4,4,dist> as = {1.0f};
-matrix<float,4,4,dist> bs = {0.001f};
-matrix<float,4,4,dist> cs = {0.0f};
+const int dim = 4;
+matrix<float,dim,dim,dist,dist> as = {1.0f};
+matrix<float,dim,dim,dist,copy> bs = {0.001f};
+matrix<float,dim,dim,dist,dist> cs = {0.0f};
 
 float initA(int a, int b, float x){
 	x = (float) a * 4 + b;

@@ -1,46 +1,98 @@
 package de.wwu.musket.generator.gpu
 
+import de.wwu.musket.musket.Addition
+import de.wwu.musket.musket.And
 import de.wwu.musket.musket.Assignment
+import de.wwu.musket.musket.BoolVal
+import de.wwu.musket.musket.CollectionFunctionCall
+import de.wwu.musket.musket.CollectionInstantiation
+import de.wwu.musket.musket.CollectionObject
+import de.wwu.musket.musket.CollectionObjectOrParam
+import de.wwu.musket.musket.CompareExpression
 import de.wwu.musket.musket.ConditionalForLoop
 import de.wwu.musket.musket.ControlStructure
+import de.wwu.musket.musket.DistributionMode
+import de.wwu.musket.musket.Division
+import de.wwu.musket.musket.DoubleVal
+import de.wwu.musket.musket.Expression
+import de.wwu.musket.musket.ExternalFunctionCall
+import de.wwu.musket.musket.FloatVal
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.FunctionCall
 import de.wwu.musket.musket.FunctionStatement
 import de.wwu.musket.musket.IfClause
+import de.wwu.musket.musket.IndividualObject
+import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.MatrixType
+import de.wwu.musket.musket.Modulo
+import de.wwu.musket.musket.Multiplication
+import de.wwu.musket.musket.MusketFunctionCall
+import de.wwu.musket.musket.Not
+import de.wwu.musket.musket.ObjectRef
+import de.wwu.musket.musket.Or
+import de.wwu.musket.musket.PostDecrement
+import de.wwu.musket.musket.PostIncrement
+import de.wwu.musket.musket.PreDecrement
+import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.SignedArithmetic
+import de.wwu.musket.musket.SkeletonExpression
+import de.wwu.musket.musket.SkeletonParameterInput
 import de.wwu.musket.musket.Statement
+import de.wwu.musket.musket.StringVal
+import de.wwu.musket.musket.StructVariable
+import de.wwu.musket.musket.Subtraction
+import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Variable
 
-import static extension de.wwu.musket.generator.gpu.ExpressionGenerator.*
+import static extension de.wwu.musket.generator.cpu.CollectionFunctionsGenerator.*
+import static extension de.wwu.musket.generator.extensions.StringExtension.*
+import static extension de.wwu.musket.generator.gpu.ExternalFunctionCallGenerator.*
+import static extension de.wwu.musket.generator.gpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.gpu.util.DataHelper.*
+import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
-import static extension de.wwu.musket.generator.extensions.StringExtension.*
-import de.wwu.musket.musket.CollectionObject
-import de.wwu.musket.musket.CollectionType
-import de.wwu.musket.generator.gpu.lib.Musket
-import de.wwu.musket.musket.SkeletonExpression
-import de.wwu.musket.musket.MapFoldSkeleton
-import de.wwu.musket.musket.SkeletonParameterInput
-import de.wwu.musket.musket.StructVariable
+
+import org.apache.log4j.LogManager
+import org.apache.log4j.Logger
+import java.util.List
+import java.util.Set
 
 class FunctorGenerator {
 	
+	static final Logger logger = LogManager.getLogger(FunctorGenerator)
+	
 	def static generateFunctorInstantiation(SkeletonExpression se, SkeletonParameterInput spi, int processId) '''
-		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{};
+		«val referencedCollections = spi.toFunction.referencedCollections»
+		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»};
 	'''
 
 	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
+		«val referencedCollections = f.referencedCollections»
 		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
+			
+			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR») : «FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
+			
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
 			}
+
+			void init(int gpu){
+				«FOR co : referencedCollections»
+					«co.generateInitFunctionCall»;
+				«ENDFOR»
+			}
 			
 			«FOR p : f.params.take(freeParameter)»
 				«p.generateMember»;
+			«ENDFOR»
+			
+			«FOR co : referencedCollections»
+				«co.generateCollectionMember»;
 			«ENDFOR»
 		};
 	'''
@@ -48,7 +100,17 @@ class FunctorGenerator {
 	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
 	def static generateMember(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
 
-
+	def static getReferencedCollections(Function function){
+		function.eAllContents.filter(ObjectRef).filter[it.collectionElementRef].map[it.value as CollectionObject].toSet
+	}
+	
+	def static generateCollectionObjectConstructorArgument(CollectionObject co)'''const «co.calculateType.cppType.replace("0", co.calculateType.collectionType?.size.toString)» _«co.name»'''
+	def static generateCollectionObjectInitListEntry(CollectionObject co)'''«co.name»(_«co.name»)'''
+	
+	def static generateInitFunctionCall(CollectionObject co)'''«co.name».init(gpu)'''
+	
+	def static generateCollectionMember(CollectionObject co)'''«IF co.calculateType.isArray»DeviceArray«ELSE»DeviceMatrix«ENDIF» «co.name»'''
+	
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
 		auto «f.name.toFirstLower»_function(«FOR p : f.params SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
@@ -93,13 +155,13 @@ class FunctorGenerator {
 		«val targetName = assignment.^var.value.name»
 		«««	collection with local ref	
 		«IF !assignment.^var.localCollectionIndex.nullOrEmpty»
-			«targetName»[«assignment.^var.value.collectionType.convertLocalCollectionIndex(assignment.^var.localCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(null, processId)»;
+			«targetName»[«assignment.^var.value.collectionType.convertLocalCollectionIndex(assignment.^var.localCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
 		«««	collection with global ref
 		«ELSEIF !assignment.^var.globalCollectionIndex.nullOrEmpty»
-			«targetName»[«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(null, processId)»;
+			«targetName»[«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
 		«««	no collection ref
 		«ELSE»
-			«targetName»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(null, processId)»;
+			«targetName»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
 		«ENDIF»
 	'''
 
@@ -115,7 +177,7 @@ class FunctorGenerator {
 	 * @return the generated code
 	 */
 	def static dispatch generateStatement(ReturnStatement returnStatement, int processId) '''
-		return «returnStatement.value.generateExpression(null, processId)»;
+		return «returnStatement.value.generateExpression(processId)»;
 	'''
 
 	/**
@@ -128,7 +190,7 @@ class FunctorGenerator {
 	 * @return the generated function call
 	 */
 	def static dispatch generateStatement(Variable variable, int processId) '''
-		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(null, processId)»«ELSEIF variable instanceof StructVariable && (variable as StructVariable).copyFrom !== null»{«(variable as StructVariable).copyFrom.value.name»}«ENDIF»;
+		«variable.calculateType.cppType» «variable.name»«IF variable.initExpression !== null» = «variable.initExpression.generateExpression(processId)»«ELSEIF variable instanceof StructVariable && (variable as StructVariable).copyFrom !== null»{«(variable as StructVariable).copyFrom.value.name»}«ENDIF»;
 	'''
 
 	/**
@@ -157,7 +219,7 @@ class FunctorGenerator {
 	 * @return the generated conditional for loop
 	 */
 	def static dispatch generateControlStructure(ConditionalForLoop cfl, int processId) '''
-		for(«cfl.init.calculateType.cppType» «cfl.init.name» = «cfl.init.initExpression.generateExpression(null, processId)»; «cfl.condition.generateExpression(null, processId)»; «cfl.increment.generateExpression(null, processId)»){
+		for(«cfl.init.calculateType.cppType» «cfl.init.name» = «cfl.init.initExpression.generateExpression(processId)»; «cfl.condition.generateExpression(processId)»; «cfl.increment.generateExpression(processId)»){
 			«FOR statement : cfl.statements»
 				«statement.generateFunctionStatement(processId)»
 			«ENDFOR»
@@ -191,7 +253,7 @@ class FunctorGenerator {
 	def static dispatch generateControlStructure(IfClause ic, int processId) '''
 		
 		«FOR ifs : ic.ifClauses SEPARATOR "\n} else " AFTER "}"»
-			if(«ifs.condition.generateExpression(null, processId)»){
+			if(«ifs.condition.generateExpression(processId)»){
 			«FOR statement: ifs.statements»
 				«statement.generateFunctionStatement(processId)»
 			«ENDFOR»
@@ -204,4 +266,101 @@ class FunctorGenerator {
 			}
 		«ENDIF»
 	'''
+	
+	def static String generateExpression(Expression expression, int processId) {
+		switch expression {
+			Addition: '''(«expression.left.generateExpression(processId)» + «expression.right.generateExpression(processId)»)'''
+			Subtraction: '''(«expression.left.generateExpression(processId)» - «expression.right.generateExpression(processId)»)'''
+			Multiplication: '''(«expression.left.generateExpression(processId)» * «expression.right.generateExpression(processId)»)'''
+			Division: '''(«expression.left.generateExpression(processId)» / «expression.right.generateExpression(processId)»)'''
+			CompareExpression case expression.eqRight === null: '''«expression.eqLeft.generateExpression(processId)»'''
+			CompareExpression case expression.eqRight !==
+				null: '''(«expression.eqLeft.generateExpression(processId)» «expression.op» «expression.eqRight.generateExpression(processId)»)'''
+			SignedArithmetic: '''-(«expression.expression.generateExpression(processId)»)'''
+			Modulo: '''(«expression.left.generateExpression(processId)» % «expression.right.generateExpression(processId)»)'''
+			Not: '''!«expression.expression.generateExpression(processId)»'''
+			And: '''(«expression.leftExpression.generateExpression(processId)» && «expression.rightExpression.generateExpression(processId)»)'''
+			Or: '''(«expression.leftExpression.generateExpression(processId)» || «expression.rightExpression.generateExpression(processId)»)'''
+			ObjectRef case expression.isCollectionElementRef: '''«expression.generateCollectionElementRef(processId).toString.removeLineBreak»'''
+			ObjectRef: '''(«expression.value.generateObjectRef()»)«expression?.tail.generateTail»'''
+			CollectionInstantiation: '''«expression.generateCollectionInstantiation»'''
+			IntVal: '''«expression.value»'''
+			DoubleVal: '''«expression.value»'''
+			FloatVal: '''«expression.value»f'''
+			StringVal: '''"«expression.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"''' // this is necessary so that the line break remains as \n in the generated code
+			BoolVal: '''«expression.value»'''
+			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(null, processId)»'''
+			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
+			PostIncrement: '''«expression.value.generateObjectRef()»++'''
+			PostDecrement: '''«expression.value.generateObjectRef()»--'''
+			PreIncrement: '''++«expression.value.generateObjectRef()»'''
+			PreDecrement: '''--«expression.value.generateObjectRef()»'''
+			MusketFunctionCall: '''«expression.generateMusketFunctionCall(processId)»'''
+			TypeCast: '''static_cast<«expression.targetType.calculateType.cppType»>(«expression.expression.generateExpression(processId)»)'''
+			default: {logger.error("Functor Expression Generator ran into default case!"); ""}
+		}
+	}
+
+/**
+ * Generate a reference to a collection element.
+ * The function considers different cases, based on:
+ * array or matrix
+ * global or local index
+ * distributed or copy
+ * 
+ * @param or the object ref object 
+ * @param param_map the param map
+ * @return the generated code
+ */
+	def static generateCollectionElementRef(ObjectRef or, int processId)'''
+		«val orName = or.value.name»
+«««		ARRAY
+		«IF or.value.calculateType.isArray»
+«««			LOCAL REF
+			«IF or.localCollectionIndex.size == 1»
+				«orName»[«or.localCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
+«««			GLOBAL REF
+			«ELSE»
+«««				COPY or LOC
+				«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
+					«orName»[«or.globalCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
+«««             COPY or LOC
+				«ELSEIF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY »
+					«orName»[«or.globalCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
+«««				DIST
+				«ELSE»
+					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
+				«ENDIF»
+			«ENDIF»
+«««		MATRIX
+		«ELSEIF or.value.calculateType.isMatrix»
+«««			LOCAL REF
+			«IF or.localCollectionIndex.size == 2»
+				«orName»[«or.localCollectionIndex.head.generateExpression(processId)» * «(or.value.collectionType as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(processId)»]«or?.tail.generateTail»
+«««			GLOBAL REF
+			«ELSEIF or.globalCollectionIndex.size == 2»
+«««					COPY
+					«IF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY || (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.LOC»
+						«orName»[«or.localCollectionIndex.head.generateExpression(processId)» * «(or.value.collectionType as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(processId)»]«or?.tail.generateTail»
+«««					DIST
+					«ELSE»
+						//TODO: ExpressionGenerator.generateCollectionElementRef: Matrix, global indices, distributed
+					«ENDIF»				
+			«ENDIF»
+		«ELSE»
+			(«orName»)«or?.tail.generateTail»
+		«ENDIF»
+	'''
+
+
+// dispatch methods for generation of OjbectReference
+
+	def static dispatch generateObjectRef(CollectionObject co) '''«co.name»'''
+
+	def static dispatch generateObjectRef(IndividualObject i) '''«i.name»'''
+
+	def static dispatch generateObjectRef(de.wwu.musket.musket.Parameter p) '''«p.name»'''
+
+	def static generateCollectionInstantiation(CollectionInstantiation ci)'''«val type = ci.calculateType»«IF type.isArray && type.distributionMode == DistributionMode.LOC»«type.cppType»{}«ENDIF»'''
+	
 }

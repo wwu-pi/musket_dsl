@@ -24,7 +24,7 @@ class DMatrix {
 		  DMatrix(int pid, int number_of_rows, int number_of_columns, int number_of_rows_local, 
 		          int number_of_columns_local, int size, int size_local, T init_value, 
 		          int partitions_in_row, int partitions_in_column, int partition_x_pos, int partition_y_pos, 
-		          int row_offset, int column_offset, Distribution d = DIST);
+		          int row_offset, int column_offset, Distribution d = DIST, Distribution device_dist = DIST);
 		  ~DMatrix();
 		  
 		  void update_self();
@@ -45,6 +45,8 @@ class DMatrix {
 		  const T& get_local_host_data(int row, int column) const;
 		  T& operator[](int local_index);
 		  const T& operator[](int local_index) const;
+		  
+		  T* get_local_device_data(int row, int column);
 		
 		  int get_size() const;
 		  int get_size_local() const;
@@ -67,6 +69,7 @@ class DMatrix {
 		  int get_partition_y_pos() const;
 		  
 		  Distribution get_distribution() const;
+		  Distribution get_device_distribution() const;
 
 		  T* get_data();
 		  const T* get_data() const;
@@ -134,6 +137,7 @@ class DMatrix {
 		
 		  // checks whether data is copy distributed among all processes
 		  Distribution _dist;
+		  Distribution _device_dist;
 		
 		  std::vector<T> _data;
 		  std::array<T*, «Config.gpus»> _host_data;
@@ -147,7 +151,7 @@ class DMatrix {
 		mkt::DMatrix<T>::DMatrix(int pid, int number_of_rows, int number_of_columns, int number_of_rows_local, 
 		                         int number_of_columns_local, int size, int size_local, T init_value, 
 		                         int partitions_in_row, int partitions_in_column, int partition_x_pos, int partition_y_pos, 
-		                         int row_offset, int column_offset, Distribution d)
+		                         int row_offset, int column_offset, Distribution d, Distribution device_dist)
 		    : _pid(pid),
 		      _number_of_rows(number_of_rows),
 		      _number_of_columns(number_of_columns),
@@ -162,11 +166,12 @@ class DMatrix {
 		      _row_offset(row_offset),
 		      _column_offset(column_offset),
 		      _dist(d),
+		      _device_dist(device_dist),
 		      _data(size_local, init_value) {
-			if(d == mkt::Distribution::DIST){
+			if(device_dist == mkt::Distribution::DIST){
 		    	_size_gpu = size_local / «Config.gpus»; // assume even distribution for now
 		    	_rows_gpu = number_of_rows_local / «Config.gpus»;
-		    }else if(d == mkt::Distribution::COPY){
+		    }else if(device_dist == mkt::Distribution::COPY){
 		    	_size_gpu = size_local;
 		    }
 		    
@@ -178,9 +183,9 @@ class DMatrix {
 				
 				// store pointer to device memory and host memory
 				_gpu_data[gpu] = devptr;
-				if(d == mkt::Distribution::DIST){
+				if(device_dist == mkt::Distribution::DIST){
 			    	_host_data[gpu] = _data.data() + gpu * _size_gpu;
-			    }else if(d == mkt::Distribution::COPY){
+			    }else if(device_dist == mkt::Distribution::COPY){
 			    	_host_data[gpu] = _data.data(); // all gpus have complete data, thus point to the beginning of host vector
 			    }
 				
@@ -259,14 +264,14 @@ class DMatrix {
 			int index = row * _number_of_columns_local + column;
 			_data[index] = v;
 			T* host_pointer = _data.data() + index;
-			if(_dist == mkt::Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				#pragma omp parallel for
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					acc_set_device_num(gpu, acc_device_not_host);
 					T* gpu_pointer = _gpu_data[gpu] + index;
 					acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
 				}
-			}else if(_dist == mkt::Distribution::DIST){
+			}else if(_device_dist == mkt::Distribution::DIST){
 				int gpu = get_gpu_by_local_index(index);
 				acc_set_device_num(gpu, acc_device_not_host);
 				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
@@ -279,14 +284,14 @@ class DMatrix {
 		void mkt::DMatrix<T>::set_local(int index, const T& v) {
 			_data[index] = v;
 			T* host_pointer = _data.data() + index;
-			if(_dist == mkt::Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				#pragma omp parallel for
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					acc_set_device_num(gpu, acc_device_not_host);
 					T* gpu_pointer = _gpu_data[gpu] + index;
 					acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
 				}
-			}else if(_dist == mkt::Distribution::DIST){
+			}else if(_device_dist == mkt::Distribution::DIST){
 				int gpu = get_gpu_by_local_index(index);
 				acc_set_device_num(gpu, acc_device_not_host);
 				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
@@ -323,6 +328,11 @@ class DMatrix {
 		template<typename T>
 		const T& mkt::DMatrix<T>::operator[](int local_index) const {
 		  return _data[local_index];
+		}
+		
+		template<typename T>
+		T* mkt::DMatrix<T>::get_local_device_data(int local_row, int local_column) {
+		  //TODO
 		}
 		
 		template<typename T>
@@ -401,6 +411,11 @@ class DMatrix {
 		}
 		
 		template<typename T>
+		mkt::Distribution mkt::DMatrix<T>::get_device_distribution() const {
+		  return _device_dist;
+		}
+		
+		template<typename T>
 		const T* mkt::DMatrix<T>::get_data() const {
 		  return _data.data();
 		}
@@ -437,9 +452,9 @@ class DMatrix {
 		
 		template<typename T>
 		int mkt::DMatrix<T>::get_gpu_by_local_index(int local_index) const {
-			if(_dist == mkt::Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				return 0;
-			}else if(_dist == mkt::Distribution::DIST){
+			}else if(_device_dist == mkt::Distribution::DIST){
 				return local_index / _size_gpu;
 			}
 			else{
@@ -489,9 +504,10 @@ class DMatrix {
 	def static generateDMatrixSkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				const int gpu_elements = in.get_size_gpu();
@@ -510,9 +526,10 @@ class DMatrix {
 
 		  	int gpu_elements = in.get_size_gpu();
 		  	int rows_on_gpu = in.get_rows_gpu();
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
@@ -536,9 +553,10 @@ class DMatrix {
 		  	int gpu_elements = in.get_size_gpu();
 		  	int rows_on_gpu = in.get_rows_gpu();
 		  	
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
@@ -558,9 +576,10 @@ class DMatrix {
 
 		template<typename T, typename Functor>
 		void mkt::map_in_place(mkt::DMatrix<T>& m, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 				const int gpu_elements = m.get_size_gpu();
 				#pragma acc parallel loop deviceptr(devptr) async(0)
@@ -578,9 +597,10 @@ class DMatrix {
 
 		  	int gpu_elements = m.get_size_gpu();
 		  	int rows_on_gpu = m.get_rows_gpu();
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 				
 				if(m.get_distribution() == mkt::Distribution::DIST){
@@ -603,9 +623,10 @@ class DMatrix {
 		  	int gpu_elements = m.get_size_gpu();
 		  	int rows_on_gpu = m.get_rows_gpu();
 		  	
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 
 				int row_offset = 0;

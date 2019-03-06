@@ -119,23 +119,23 @@ ArrayType:
 ;
 
 IntArrayType:
-	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode '>'
+	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 DoubleArrayType:
-	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode '>' 
+	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
 ;
 
 FloatArrayType:
-	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode '>' 
+	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
 ;
 
 BoolArrayType:
-	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode '>'
+	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 	
 StructArrayType:
-	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode '>'
+	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 MatrixType:
@@ -143,23 +143,23 @@ MatrixType:
 ;
 
 IntMatrixType:
-	'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+	'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 DoubleMatrixType:
-	'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+	'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 FloatMatrixType:
-	'matrix' '<' 'float' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+	'matrix' '<' 'float' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 	 
 BoolMatrixType:
-	'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>'
+	'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 StructMatrixType:
-	'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode '>' 
+	'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
 ;
 
 IndividualType:

@@ -1,6 +1,6 @@
 package de.wwu.musket.generator.extensions
 
-import de.wwu.musket.generator.cpu.Config
+import de.wwu.musket.generator.gpu.Config
 import de.wwu.musket.musket.ArrayType
 import de.wwu.musket.musket.BoolConstant
 import de.wwu.musket.musket.BoolVal
@@ -227,7 +227,7 @@ class ObjectExtension {
 		}
 	}
 
-	def static blocksInColumn(MatrixType m) {
+	def static blocksInColumn(MatrixType m) {			
 		switch m.distributionMode {
 			case DIST: Math.sqrt(Config.processes).intValue
 			case COPY: 1
