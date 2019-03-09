@@ -87,6 +87,7 @@ class ShiftSkeletonGenerator {
 			int source = ((((m.get_partition_y_pos() - steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
 				
 			if(target != «Config.var_mpi_rank»){
+				m.update_self();
 				MPI_Request requests[2];
 				MPI_Status statuses[2];
 				auto buffer = std::make_unique<std::vector<«type»>>(m.get_size_local());
@@ -99,6 +100,7 @@ class ShiftSkeletonGenerator {
 				«generateMPIWaitall(2, "requests", "statuses")»
 				
 				std::move(buffer->begin(), buffer->end(), m.begin());
+				m.update_devices();
 			}
 		}
 	'''
@@ -119,6 +121,7 @@ class ShiftSkeletonGenerator {
 			
 			
 			if(target != «Config.var_mpi_rank»){
+				m.update_self();
 				MPI_Request requests[2];
 				MPI_Status statuses[2];
 				auto buffer = std::make_unique<std::vector<«type»>>(m.get_size_local());
@@ -131,6 +134,7 @@ class ShiftSkeletonGenerator {
 				«generateMPIWaitall(2, "requests", "statuses")»
 				
 				std::move(buffer->begin(), buffer->end(), m.get_data());
+				m.update_devices();
 			}
 		}
 	'''
