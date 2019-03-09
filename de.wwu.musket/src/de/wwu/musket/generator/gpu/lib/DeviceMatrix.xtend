@@ -21,7 +21,8 @@ class DeviceMatrix {
 		 public:
 		
 		  // CONSTRUCTORS / DESTRUCTOR
-		  DeviceMatrix(const DMatrix& dm);
+		  DeviceMatrix(const DMatrix<T>& dm);
+		  DeviceMatrix(const DeviceMatrix<T>& dm);
 		  ~DeviceMatrix();
 		  
 		  void init(int device_id);
@@ -29,10 +30,10 @@ class DeviceMatrix {
 		  
 		// Getter and Setter
 		
-		  T* get_data_device(int device_index);
-		  T* get_data_device(int device_row, int device_column);
+		  const T& get_data_device(int device_index) const;
+		  const T& get_data_device(int device_row, int device_column) const;
 
-		  T* get_data_local(int local_row, int local_column);
+		  const T& get_data_local(int local_row, int local_column) const;
 		  
 «««		  int get_row_offset() const;
 «««		  int get_column_offset() const;
@@ -79,10 +80,10 @@ class DeviceMatrix {
 		};
 	'''
 	
-	def static generateDMatrixDefinition() '''
+	def static generateDeviceMatrixDefinition() '''
 				
 		template<typename T>
-		mkt::DeviceMatrix<T>::DeviceMatrix(const DMatrix& dm)
+		mkt::DeviceMatrix<T>::DeviceMatrix(const DMatrix<T>& dm)
 		    : _size(dm.get_size()),
 		      _size_local(dm.get_size_local()),
 		      _size_device(dm.get_size_gpu()),
@@ -95,6 +96,24 @@ class DeviceMatrix {
 		{
 			for(int i = 0; i < «Config.gpus»; ++i){
 				_gpu_data[i] = dm.get_device_pointer(i);
+			}
+		}
+		
+		template<typename T>
+		mkt::DeviceMatrix<T>::DeviceMatrix(const DeviceMatrix<T>& dm)
+		    : _size(dm._size),
+		      _size_local(dm._size_local),
+		      _size_device(dm._size_device),
+		      _rows_device(dm._rows_device),
+		      _columns_device(dm._columns_device),
+		      _row_offset(dm._row_offset),
+		      _column_offset(dm._column_offset),
+		      _dist(dm._dist),
+		      _device_dist(dm._device_dist) 
+		{
+			_device_data = dm._device_data;
+			for(int i = 0; i < «Config.gpus»; ++i){
+				_gpu_data[i] = dm._gpu_data[i];
 			}
 		}
 
@@ -116,17 +135,17 @@ class DeviceMatrix {
 		}
 		
 		template<typename T>
-		T* mkt::DMatrix<T>::get_data_device(int device_index) {
+		const T& mkt::DeviceMatrix<T>::get_data_device(int device_index) const {
 		  return _device_data[device_index];
 		}
 		
 		template<typename T>
-		T* mkt::DMatrix<T>::get_data_device(int device_row, int device_column) {
+		const T& mkt::DeviceMatrix<T>::get_data_device(int device_row, int device_column) const {
 		  return this->get_data_device(device_row * _columns_device + device_column);
 		}
 		
 		template<typename T>
-		T* mkt::DMatrix<T>::get_data_local(int local_row, int local_column) {
+		const T& mkt::DeviceMatrix<T>::get_data_local(int local_row, int local_column) const {
 		  return this->get_data_device(local_row - _device_row_offset, local_column - _device_column_offset);
 		}
 

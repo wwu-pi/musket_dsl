@@ -471,22 +471,22 @@ class DMatrix {
 	
 	def static generateDMatrixSkeletonDeclarations() '''
 		template<typename T, typename R, typename Functor>
-		void map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f);
+		void map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f);
+		void map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f);
+		void map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_in_place(mkt::DMatrix<T>& m, const Functor f);
+		void map_in_place(mkt::DMatrix<T>& m, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_index_in_place(mkt::DMatrix<T>& m, const Functor f);
+		void map_index_in_place(mkt::DMatrix<T>& m, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_local_index_in_place(mkt::DMatrix<T>& m, const Functor f);
+		void map_local_index_in_place(mkt::DMatrix<T>& m, Functor f);
 		
 		template<typename T, typename Functor>
 		void fold(const mkt::DMatrix<T>& m, T& out, const T identity, const Functor f);
@@ -503,8 +503,8 @@ class DMatrix {
 	
 	def static generateDMatrixSkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
-		void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+		void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
+			«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -519,14 +519,14 @@ class DMatrix {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f) {
+		void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 			int row_offset = in.get_row_offset();
 			int column_offset = in.get_column_offset();
 			int columns_local = in.get_number_of_columns_local();
 
 		  	int gpu_elements = in.get_size_gpu();
 		  	int rows_on_gpu = in.get_rows_gpu();
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -547,13 +547,13 @@ class DMatrix {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, const Functor f) {
+		void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 			int columns_local = in.get_number_of_columns_local();
 
 		  	int gpu_elements = in.get_size_gpu();
 		  	int rows_on_gpu = in.get_rows_gpu();
 		  	
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+			«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -575,8 +575,8 @@ class DMatrix {
 		}
 
 		template<typename T, typename Functor>
-		void mkt::map_in_place(mkt::DMatrix<T>& m, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+		void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
+			«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -590,14 +590,14 @@ class DMatrix {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_index_in_place(mkt::DMatrix<T>& m, const Functor f){
+		void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			int row_offset = m.get_row_offset();
 			int column_offset = m.get_column_offset();
 			int columns_local = m.get_number_of_columns_local();
 
 		  	int gpu_elements = m.get_size_gpu();
 		  	int rows_on_gpu = m.get_rows_gpu();
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -617,16 +617,17 @@ class DMatrix {
 		}	
 		
 		template<typename T, typename Functor>
-		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, const Functor f){
+		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			int columns_local = m.get_number_of_columns_local();
 
 		  	int gpu_elements = m.get_size_gpu();
 		  	int rows_on_gpu = m.get_rows_gpu();
 		  	
-			«IF Config.cores > 1»#pragma omp parallel for private(f)«ENDIF»
+			//«IF Config.cores > 1»#pragma omp parallel for shared(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
+				
 				T* devptr = m.get_device_pointer(gpu);
 
 				int row_offset = 0;

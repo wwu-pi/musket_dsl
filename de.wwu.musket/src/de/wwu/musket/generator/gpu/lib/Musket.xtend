@@ -14,6 +14,7 @@ import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static de.wwu.musket.generator.gpu.lib.DArray.*
 import static de.wwu.musket.generator.gpu.lib.DMatrix.*
+import static de.wwu.musket.generator.gpu.lib.DeviceMatrix.*
 import de.wwu.musket.generator.gpu.Config
 import java.util.List
 import de.wwu.musket.musket.CollectionFunctionCall
@@ -51,6 +52,7 @@ class Musket {
 		«IF resource.Matrices.size() > 0»
 			«generateDMatrixDeclaration»
 			«generateDMatrixSkeletonDeclarations»
+			«generateDeviceMatrixDeclaration»
 		«ENDIF»
 		
 		«val showCalls = resource.ShowCalls»
@@ -116,6 +118,7 @@ class Musket {
 		«IF resource.Matrices.size() > 0»
 			«generateDMatrixDefinition»	
 			«generateDMatrixSkeletonDefinitions»
+			«generateDeviceMatrixDefinition»
 		«ENDIF»
 		
 		«IF resource.Structs.size > 0»

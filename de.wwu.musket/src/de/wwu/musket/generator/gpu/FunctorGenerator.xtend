@@ -73,7 +73,7 @@ class FunctorGenerator {
 		«val referencedCollections = f.referencedCollections»
 		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
 			
-			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR») : «FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
+			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
 			
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
 				«FOR s : f.statement»
@@ -104,12 +104,12 @@ class FunctorGenerator {
 		function.eAllContents.filter(ObjectRef).filter[it.collectionElementRef].map[it.value as CollectionObject].toSet
 	}
 	
-	def static generateCollectionObjectConstructorArgument(CollectionObject co)'''const «co.calculateType.cppType.replace("0", co.calculateType.collectionType?.size.toString)» _«co.name»'''
+	def static generateCollectionObjectConstructorArgument(CollectionObject co)'''const «co.calculateType.cppType.replace("0", co.calculateType.collectionType?.size.toString)»& _«co.name»'''
 	def static generateCollectionObjectInitListEntry(CollectionObject co)'''«co.name»(_«co.name»)'''
 	
 	def static generateInitFunctionCall(CollectionObject co)'''«co.name».init(gpu)'''
 	
-	def static generateCollectionMember(CollectionObject co)'''«IF co.calculateType.isArray»DeviceArray«ELSE»DeviceMatrix«ENDIF» «co.name»'''
+	def static generateCollectionMember(CollectionObject co)'''mkt::Device«IF co.calculateType.isArray»Array«ELSE»Matrix«ENDIF»<«co.calculateCollectionType.cppType»> «co.name»'''
 	
 	def static generateFunction(Function f, int processId) '''
 		// generate Function
@@ -336,7 +336,7 @@ class FunctorGenerator {
 		«ELSEIF or.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 2»
-				«orName»[«or.localCollectionIndex.head.generateExpression(processId)» * «(or.value.collectionType as MatrixType).colsLocal» + «or.localCollectionIndex.drop(1).head.generateExpression(processId)»]«or?.tail.generateTail»
+				«orName».get_data_local(«or.localCollectionIndex.head.generateExpression(processId)», «or.localCollectionIndex.drop(1).head.generateExpression(processId)»)«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSEIF or.globalCollectionIndex.size == 2»
 «««					COPY
