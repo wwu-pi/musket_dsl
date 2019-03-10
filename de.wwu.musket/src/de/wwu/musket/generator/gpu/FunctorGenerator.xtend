@@ -318,7 +318,7 @@ class FunctorGenerator {
 		«IF or.value.calculateType.isArray»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 1»
-				«orName»[«or.localCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
+				«orName».get_data_local(«or.localCollectionIndex.head.generateExpression(processId)»)«or?.tail.generateTail»
 «««			GLOBAL REF
 			«ELSE»
 «««				COPY or LOC
@@ -326,7 +326,7 @@ class FunctorGenerator {
 					«orName»[«or.globalCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
 «««             COPY or LOC
 				«ELSEIF (or.value as CollectionObjectOrParam).collectionType.distributionMode == DistributionMode.COPY »
-					«orName»[«or.globalCollectionIndex.head.generateExpression(processId)»]«or?.tail.generateTail»
+					«orName».get_data_local(«or.globalCollectionIndex.head.generateExpression(processId)»)«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
 					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed

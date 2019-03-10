@@ -14,12 +14,12 @@ class GatherScatterGenerator {
 	def static generateGatherDeclarations(Resource resource) '''
 		«IF resource.Arrays.size() > 0»
 			template<typename T>
-			void gather(const mkt::DArray<T>& in, mkt::DArray<T>& out);
+			void gather(mkt::DArray<T>& in, mkt::DArray<T>& out);
 		«ENDIF»
 			
 		«IF resource.Matrices.size() > 0»
 			template<typename T>
-			void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out«IF Config.processes > 1», const MPI_Datatype& dt«ENDIF»);
+			void gather(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out«IF Config.processes > 1», const MPI_Datatype& dt«ENDIF»);
 		«ENDIF»		
 	'''
 	
@@ -43,7 +43,7 @@ class GatherScatterGenerator {
 		«val type = co.calculateCollectionType.cppType»
 		«val dtype = if (co.calculateType.array) "DArray" else "DMatrix"»
 		template<>
-		void mkt::gather<«type»>(const mkt::«dtype»<«type»>& in, mkt::«dtype»<«type»>& out«IF co.calculateType.matrix && Config.processes > 1», const MPI_Datatype& dt«ENDIF»){
+		void mkt::gather<«type»>(mkt::«dtype»<«type»>& in, mkt::«dtype»<«type»>& out«IF co.calculateType.matrix && Config.processes > 1», const MPI_Datatype& dt«ENDIF»){
 			in.update_self();
 			«IF Config.processes > 1»
 				«IF co.calculateType.array»
@@ -65,19 +65,19 @@ class GatherScatterGenerator {
 	def static generateScatterDeclarations(Resource resource) '''
 		«IF resource.Arrays.size() > 0»
 			template<typename T>
-			void scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out);
+			void scatter(mkt::DArray<T>& in, mkt::DArray<T>& out);
 		«ENDIF»
 			
 		«IF resource.Matrices.size() > 0»
 			template<typename T>
-			void scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+			void scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
 		«ENDIF»	
 	'''
 
 	def static generateScatterDefinitions(Resource resource) '''
 		«IF resource.Arrays.size() > 0»
 			template<typename T>
-			void mkt::scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out){
+			void mkt::scatter(mkt::DArray<T>& in, mkt::DArray<T>& out){
 				in.update_self();
 				«IF Config.processes > 1»
 					int offset = out.get_offset();
@@ -97,7 +97,7 @@ class GatherScatterGenerator {
 			
 		«IF resource.Matrices.size() > 0»
 			template<typename T>
-			void mkt::scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
+			void mkt::scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
 				in.update_self();
 				«IF Config.processes > 1»
 					int row_offset = out.get_row_offset();

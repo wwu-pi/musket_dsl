@@ -384,7 +384,7 @@ class SkeletonGenerator {
 	def static generateShiftPartitionsHorizontallySkeleton(SkeletonExpression se, int processId) '''		
 		«val skel = se.skeleton as ShiftPartitionsHorizontallySkeleton»
 		«generateSetValuesInFunctor(se, skel.param)»
-		mkt::shift_partitions_horizontally<«se.obj.calculateCollectionType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
+		mkt::shift_partitions_horizontally<«se.obj.calculateCollectionType.cppType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
 	'''
 	
 	/**
@@ -406,7 +406,7 @@ class SkeletonGenerator {
 	def static generateShiftPartitionsVerticallySkeleton(SkeletonExpression se, int processId) '''		
 		«val skel = se.skeleton as ShiftPartitionsVerticallySkeleton»
 		«generateSetValuesInFunctor(se, skel.param)»
-		mkt::shift_partitions_vertically<«se.obj.calculateCollectionType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
+		mkt::shift_partitions_vertically<«se.obj.calculateCollectionType.cppType», «se.getFunctorName(skel.param)»>(«se.obj.name», «se.getFunctorObjectName(skel.param)»);
 	'''
 		
 	/**
@@ -424,13 +424,13 @@ class SkeletonGenerator {
  */
 	def static  generateGatherSkeleton(SkeletonExpression se, Object output, int processId) '''
 		«IF se.obj.calculateType.array»
-			mkt::gather<«se.obj.calculateCollectionType»>(«se.obj.name», «output.name»);
+			mkt::gather<«se.obj.calculateCollectionType.cppType»>(«se.obj.name», «output.name»);
 		«ELSE»
-			mkt::gather<«se.obj.calculateCollectionType»>(«se.obj.name», «output.name», «se.obj.name»_partition_type_resized);
+			mkt::gather<«se.obj.calculateCollectionType.cppType»>(«se.obj.name», «output.name», «se.obj.name»_partition_type_resized);
 		«ENDIF»		
 	'''
 	
 	def static generateScatterSkeleton(SkeletonExpression se, Object output, int processId) '''
-		mkt::scatter<«se.obj.calculateCollectionType»>(«se.obj.name», «output.name»);
+		mkt::scatter<«se.obj.calculateCollectionType.cppType»>(«se.obj.name», «output.name»);
 	'''
 }

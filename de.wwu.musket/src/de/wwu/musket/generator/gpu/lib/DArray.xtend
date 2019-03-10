@@ -20,7 +20,7 @@ class DArray {
 		 public:
 		
 		  // CONSTRUCTORS / DESTRUCTOR
-		  DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, mkt::Distribution d = DIST);
+		  DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
 		  ~ DArray(); 
 		   
 		   void update_self();
@@ -45,6 +45,7 @@ class DArray {
 		  int get_offset() const;
 				
 		  Distribution get_distribution() const;
+		  Distribution get_device_distribution() const;
 				
 		  T* get_data();
 		  const T* get_data() const;
@@ -78,6 +79,7 @@ class DArray {
 		
 		  // checks whether data is copy distributed among all processes
 		  Distribution _dist;
+		  Distribution _device_dist;
 		
 		  std::vector<T> _data;
 		  std::array<T*, «Config.gpus»> _host_data;
@@ -87,7 +89,7 @@ class DArray {
 	
 	def static generateDArrayDefinition() '''
 		template<typename T>
-		mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, Distribution d)
+		mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, Distribution d, Distribution device_dist)
 		    : _pid(pid),
 		      _size(size),
 		      _size_local(size_local),
@@ -96,11 +98,12 @@ class DArray {
 		      _partition_pos(partition_pos),
 		      _offset(offset),
 		      _dist(d),
+		      _device_dist(device_dist),
 		      _data(size_local, init_value) {
 		    
-		    if(d == mkt::Distribution::DIST){
+		    if(device_dist == mkt::Distribution::DIST){
 		    	_size_gpu = size_local / «Config.gpus»; // assume even distribution for now
-		    }else if(d == mkt::Distribution::COPY){
+		    }else if(device_dist == mkt::Distribution::COPY){
 		    	_size_gpu = size_local;
 		    }
 		    
@@ -112,9 +115,9 @@ class DArray {
 				
 				// store pointer to device memory and host memory
 				_gpu_data[gpu] = devptr;
-				if(d == mkt::Distribution::DIST){
+				if(device_dist == mkt::Distribution::DIST){
 			    	_host_data[gpu] = _data.data() + gpu * _size_gpu;
-			    }else if(d == mkt::Distribution::COPY){
+			    }else if(device_dist == mkt::Distribution::COPY){
 			    	_host_data[gpu] = _data.data(); // all gpus have complete data, thus point to the beginning of host vector
 			    }
 				
@@ -154,7 +157,7 @@ class DArray {
 		  	#pragma omp parallel for
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
-				void acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
+				acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 				#pragma acc wait
 			}
 		}
@@ -183,14 +186,14 @@ class DArray {
 		void mkt::DArray<T>::set_local(int index, const T& v) {
 			_data[index] = v;
 			T* host_pointer = _data.data() + index;
-			if(_dist == mkt::Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				#pragma omp parallel for
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					acc_set_device_num(gpu, acc_device_not_host);
 					T* gpu_pointer = _gpu_data[gpu] + index;
 					acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
 				}
-			}else if(_dist == mkt::Distribution::DIST){
+			}else if(_device_dist == mkt::Distribution::DIST){
 				int gpu = get_gpu_by_local_index(index);
 				acc_set_device_num(gpu, acc_device_not_host);
 				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
@@ -245,6 +248,11 @@ class DArray {
 		}
 		
 		template<typename T>
+		mkt::Distribution mkt::DArray<T>::get_device_distribution() const {
+		  return _device_dist;
+		}
+		
+		template<typename T>
 		const T* mkt::DArray<T>::get_data() const {
 		  return _data.data();
 		}
@@ -261,9 +269,9 @@ class DArray {
 		
 		template<typename T>
 		int mkt::DArray<T>::get_gpu_by_local_index(int local_index) const {
-			if(_dist == mkt::Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				return 0;
-			}else if(_dist == mkt::Distribution::DIST){
+			}else if(_device_dist == mkt::Distribution::DIST){
 				return local_index / _size_gpu;
 			}
 			else{
@@ -393,7 +401,7 @@ class DArray {
 				acc_set_device_num(gpu, acc_device_not_host);
 				T* devptr = a.get_device_pointer(gpu);
 				int gpu_elements = a.get_size_gpu();
-				if(in.get_distribution() == mkt::Distribution::DIST){
+				if(a.get_distribution() == mkt::Distribution::DIST){
 					offset += gpu * gpu_elements;
 				}
 				#pragma acc parallel loop deviceptr(devptr) async(0)
@@ -411,7 +419,7 @@ class DArray {
 			T* devptr = a.get_device_pointer(gpu);				
 			int gpu_elements = a.get_size_gpu();
 			int offset = 0;
-			if(in.get_distribution() == mkt::Distribution::DIST){
+			if(a.get_distribution() == mkt::Distribution::DIST){
 				offset = gpu * gpu_elements;
 			}
 			#pragma acc parallel loop deviceptr(devptr) async(0)

@@ -70,8 +70,7 @@ class MusketFunctionCalls {
 	 * @param mfc the musket function call
 	 * @return the generated code
 	 */
-	def static generateRand(
-		MusketFunctionCall mfc) '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.toCXXIdentifier»_«mfc.params.get(1).ValueAsString.toCXXIdentifier»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
+	def static generateRand(MusketFunctionCall mfc) '''42'''
 
 	/**
 	 * Generates the code for the musket roi start function. (Region of Interest)
