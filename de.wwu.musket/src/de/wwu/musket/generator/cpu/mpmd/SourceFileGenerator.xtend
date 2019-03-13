@@ -75,7 +75,7 @@ class SourceFileGenerator {
 			«ENDFOR»
 			
 			«FOR s : resource.Structs»
-				«s.generateStructDefaultConstructor»
+				«s.generateStructDefaultConstructor(processId)»
 			«ENDFOR»
 			
 			«val fold_functions = (resource.FoldSkeletons.map[it.param.toFunction] + resource.MapFoldSkeletons.map[it.param.toFunction]).toSet»
