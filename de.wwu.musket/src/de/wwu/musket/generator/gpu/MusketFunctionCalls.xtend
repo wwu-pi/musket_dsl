@@ -7,6 +7,8 @@ import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import java.util.List
 import de.wwu.musket.musket.MusketFunctionName
+import de.wwu.musket.generator.cpu.mpmd.lib.Musket
+import de.wwu.musket.musket.PrimitiveTypeLiteral
 
 /**
  * Generates all musket function calls, that is all function that are specific for musket, such as print or rand.
@@ -29,6 +31,8 @@ class MusketFunctionCalls {
 				generatePrint(mfc, processId)
 			case RAND:
 				generateRand(mfc)
+			case SQRT:
+				generateSqrt(mfc, processId)
 			case FLOAT_MIN: '''std::numeric_limits<float>::lowest()'''
 			case FLOAT_MAX: '''std::numeric_limits<float>::max()'''
 			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''
@@ -71,6 +75,15 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generateRand(MusketFunctionCall mfc) '''42'''
+	
+	def static generateSqrt(MusketFunctionCall mfc, int processId) '''
+		«val p = mfc.params.head»
+		«val type = p.calculateType»
+		«IF type.type == PrimitiveTypeLiteral.FLOAT»
+			sqrtf(«p.generateExpression(null, processId)»)
+		«ELSE»
+			sqrt(«p.generateExpression(null, processId)»)
+		«ENDIF»'''
 
 	/**
 	 * Generates the code for the musket roi start function. (Region of Interest)
