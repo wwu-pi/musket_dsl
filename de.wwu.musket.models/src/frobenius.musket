@@ -1,9 +1,12 @@
-#config PLATFORM CPU CPU_MPMD
+#config PLATFORM GPU CPU_MPMD
 #config PROCESSES 4
-#config CORES 8
+#config GPUS 1
+#config CORES 4
 #config MODE debug
 
-matrix<double,32,32,dist> as;
+const int dim = 32;
+
+matrix<double,dim,dim,dist,dist> as;
 
 double init(int x, int y, double a){
 	a = (double) (x + y + 1);
@@ -15,9 +18,6 @@ double square(double a){
 	return a;
 }
 
-double sum(double a, double b){
-	return a + b;
-}
 
 main{
 	as.mapIndexInPlace(init());
@@ -26,7 +26,7 @@ main{
 	mkt::roi_start();
 	
 	as.mapInPlace(square());
-	double fn = as.fold(0.0, sum());
+	double fn = as.reduce(plus);
 	fn = std::sqrt(fn);
 	
 	mkt::roi_end();

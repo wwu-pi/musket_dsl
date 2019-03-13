@@ -1,8 +1,10 @@
-#config PLATFORM CPU CPU_MPMD
+#config PLATFORM GPU CPU_MPMD
 #config PROCESSES 4
-#config CORES 8
+#config CORES 4
+#config GPUS 1
 #config MODE debug
 
+const int dim = 4;
 const int steps = 5;
 
 const float EPSILON = 0.0000000001f;
@@ -19,13 +21,13 @@ struct Particle{
 	float charge;
 };
 
-array<Particle,4,dist> P;
-array<Particle,4,copy> oldP;
+array<Particle,dim,dist,dist> P;d
+array<Particle,dim,copy,copy> oldP;
 
 Particle init_particles(int i, Particle p){
-	p.x = mkt::rand(0.0f,1.0f);
-	p.y = mkt::rand(0.0f,1.0f);
-	p.z = mkt::rand(0.0f,1.0f);
+	p.x = (((i + 0.1f) / 100.0f)) % 1.0f);
+	p.y = (((i + 0.2f) / 100.0f)) % 1.0f);
+	p.z = (((i + 0.3f) / 100.0f)) % 1.0f);
 	p.vx = 0.0f;
 	p.vy = 0.0f;
 	p.vz = 0.0f;
@@ -59,7 +61,7 @@ Particle calc_force(int curIndex, Particle curParticle) {
 			dz = curParticle.z - oldP[j].z;
 
 			r2 = dx * dx + dy * dy + dz * dz;
-			r = std::sqrt(r2);
+			r = mkt::sqrt(r2);
 
 			// Quench the force if the particles are too close.
 			if (r < EPSILON){
