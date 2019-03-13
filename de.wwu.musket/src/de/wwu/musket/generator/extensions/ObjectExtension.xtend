@@ -32,6 +32,7 @@ import org.eclipse.emf.common.util.EList
 import java.util.Map
 import de.wwu.musket.musket.ReferableObject
 
+// only used by cpu generator; the others have a Util class "dataHelper"
 class ObjectExtension {
 
 	// Value

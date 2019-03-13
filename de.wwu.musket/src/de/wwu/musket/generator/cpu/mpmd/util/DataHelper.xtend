@@ -173,10 +173,19 @@ class DataHelper {
 	def static dispatch size(ArrayType a) {
 		a.size.concreteValue
 	}
-
+	
+// for future not evenly distributed container
 	def static dispatch sizeLocal(ArrayType a, int processId) {
 		switch a.distributionMode {
 			case DIST: a.size.concreteValue / Config.processes//if(a.size.concreteValue % Config.processes > processId){ (a.size.concreteValue / Config.processes) + 1} else { a.size.concreteValue / Config.processes }
+			case COPY: a.size.concreteValue
+			default: a.size.concreteValue
+		}
+	}
+	
+	def static dispatch sizeLocal(ArrayType a) {
+		switch a.distributionMode {
+			case DIST: a.size.concreteValue / Config.processes
 			case COPY: a.size.concreteValue
 			default: a.size.concreteValue
 		}
@@ -203,7 +212,18 @@ class DataHelper {
 		m.cols.concreteValue * m.rows.concreteValue
 	}
 
+// for future not evenly distributed container
 	def static dispatch sizeLocal(MatrixType m, int processId) {
+		switch m.distributionMode {
+			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes
+			case COPY: m.cols.concreteValue * m.rows.concreteValue
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
+	
+	def static dispatch sizeLocal(MatrixType m) {
 		switch m.distributionMode {
 			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes
 			case COPY: m.cols.concreteValue * m.rows.concreteValue

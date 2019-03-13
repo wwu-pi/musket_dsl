@@ -21,7 +21,6 @@ import de.wwu.musket.musket.DoubleArrayType
 import de.wwu.musket.musket.DoubleMatrixType
 import de.wwu.musket.musket.FloatMatrixType
 import de.wwu.musket.musket.PrimitiveType
-import static extension de.wwu.musket.generator.extensions.ObjectExtension.*
 import de.wwu.musket.musket.CollectionType
 import de.wwu.musket.musket.Struct
 import de.wwu.musket.musket.Skeleton
@@ -107,10 +106,11 @@ class MusketHelper {
 
 	/**
 	 * Map Musket type to a C++ constructor call
+	 * // TODO: does not really work out since the size of collections is not known here
 	 */
 	static def getCXXDefaultConstructorValue(Type t) {
 		switch (t) {
-			CollectionType: '''(«t.sizeLocal», «t.CXXPrimitiveDefaultValue»)'''
+			CollectionType: '''(0, «t.CXXPrimitiveDefaultValue»)'''
 			PrimitiveType: '''(«t.CXXPrimitiveDefaultValue»)'''
 			default: '''()'''
 		}
