@@ -289,22 +289,22 @@ class DArray {
 	
 	def static generateDArraySkeletonDeclarations() '''
 		template<typename T, typename R, typename Functor>
-		void map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
+		void map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
+		void map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f);
 		
 		template<typename T, typename R, typename Functor>
-		void map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f);
+		void map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_in_place(mkt::DArray<T>& a, const Functor f);
+		void map_in_place(mkt::DArray<T>& a, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_index_in_place(mkt::DArray<T>& a, const Functor f);
+		void map_index_in_place(mkt::DArray<T>& a, Functor f);
 		
 		template<typename T, typename Functor>
-		void map_local_index_in_place(mkt::DArray<T>& a, const Functor f);
+		void map_local_index_in_place(mkt::DArray<T>& a, Functor f);
 		
 		template<typename T, typename Functor>
 		void fold(const mkt::DArray<T>& a, T& out, const T identity, const Functor f);
@@ -327,10 +327,11 @@ class DArray {
 	
 	def static generateDArraySkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
-		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
+			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				const int gpu_elements = in.get_size_gpu();
@@ -342,11 +343,12 @@ class DArray {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
+		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 			int offset = in.get_offset();
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
@@ -361,10 +363,11 @@ class DArray {
 		}
 		
 		template<typename T, typename R, typename Functor>
-		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, const Functor f) {
-			«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
+			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				int gpu_elements = in.get_size_gpu();
@@ -380,10 +383,11 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_in_place(mkt::DArray<T>& a, const Functor f){
-		  «IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+		void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
+		  //«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
+			f.init(gpu);
 			T* devptr = a.get_device_pointer(gpu);
 			int gpu_elements = a.get_size_gpu();
 			#pragma acc parallel loop deviceptr(devptr) async(0)
@@ -394,11 +398,12 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_index_in_place(mkt::DArray<T>& a, const Functor f){
+		void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 			int offset = a.get_offset();		  
-		  	«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+		  	//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  	for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
 				T* devptr = a.get_device_pointer(gpu);
 				int gpu_elements = a.get_size_gpu();
 				if(a.get_distribution() == mkt::Distribution::DIST){
@@ -412,10 +417,11 @@ class DArray {
 		}
 		
 		template<typename T, typename Functor>
-		void mkt::map_local_index_in_place(mkt::DArray<T>& a, const Functor f){
-		  «IF Config.cores > 1»#pragma omp parallel for«ENDIF»
+		void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
+		  //«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
 		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
+			f.init(gpu);
 			T* devptr = a.get_device_pointer(gpu);				
 			int gpu_elements = a.get_size_gpu();
 			int offset = 0;
