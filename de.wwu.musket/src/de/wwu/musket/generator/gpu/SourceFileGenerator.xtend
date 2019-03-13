@@ -120,6 +120,8 @@ class SourceFileGenerator {
 		
 		#include <omp.h>
 		#include <openacc.h>
+		#include <stdlib.h>
+		#include <math.h>
 		#include <array>
 		#include <vector>
 		#include <sstream>
@@ -129,6 +131,7 @@ class SourceFileGenerator {
 		#include <memory>
 		#include <cstddef>
 		#include <type_traits>
+		
 		
 		#include "../include/musket.hpp"
 	'''
