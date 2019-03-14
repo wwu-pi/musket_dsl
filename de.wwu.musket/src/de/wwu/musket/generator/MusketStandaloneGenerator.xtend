@@ -10,6 +10,7 @@ import org.eclipse.xtext.resource.XtextResource
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.util.CancelIndicator
 import org.eclipse.xtext.validation.CheckMode
+import java.io.FileNotFoundException
 
 /**
  * Starting point for the MusketStandaloneGenerator.
@@ -31,7 +32,7 @@ class MusketStandaloneGenerator {
 		val resourceSet = injector.getInstance(XtextResourceSet)
 
 		val models = #[
-			'../de.wwu.musket.models/src/double.musket'
+//			'../de.wwu.musket.models/src/double.musket'
 //			'../de.wwu.musket.models/src/fold.musket',
 //			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
@@ -55,16 +56,16 @@ class MusketStandaloneGenerator {
 
 		]
 
-		val benchmark_names = #['frobenius', 'fss', 'matmult_float', 'nbody_float', 'high/frobenius', 'high/fss']
+		val benchmark_names = #['frobenius', 'matmult', 'nbody']
 		val nodes = #[1, 4, 16]
-		val cores = #[1, 6, 12, 18, 24]
+		val gpus = #[1, 2, 4]
 
 		var benchmark_models = newArrayList
 
 		for (name : benchmark_names) {
 			for (n : nodes) {
-				for (c : cores) {
-					benchmark_models.add('../de.wwu.musket.models/src/hlpp18/' + name + '-n-' + n + '-c-' + c +
+				for (g : gpus) {
+					benchmark_models.add('../de.wwu.musket.models/src/hlpp19/' + name + '-n-' + n + '-g-' + g +
 						'.musket')
 				}
 			}
@@ -72,25 +73,18 @@ class MusketStandaloneGenerator {
 
 		benchmark_models.addAll(models)
  		
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/' + 'nbody_float' + '-n-' + '4' + '-c-' + '24' + '.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fro.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fss.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/mat.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/nbo.musket')
- 		
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/fro.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/fss.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/mat.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/timer/nbo.musket')
- 
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/cg/fro-fused.musket')
- 		benchmark_models.add('../de.wwu.musket.models/src/hlpp18/frobenius-fused-n-4-c-24.musket')
  
 		for (String s : benchmark_models) {
 			logger.info("Generate: " + s + '.')
 			// load a resource by URI, in this case from the file system
-			val resource = resourceSet.getResource(URI.createFileURI(s), true)
-
+			val resource = try{
+				resourceSet.getResource(URI.createFileURI(s), true)
+			}catch(RuntimeException e){
+				logger.warn("File: " + s + " not found.")
+				null
+			}
+			
+			if(resource !== null){
 			// Validation
 			val validator = (resource as XtextResource).getResourceServiceProvider().getResourceValidator()
 			val issues = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl)
@@ -104,6 +98,7 @@ class MusketStandaloneGenerator {
 			fsa.setOutputPath("../src-gen/")
 			generator.doGenerate(resource, fsa)
 			logger.info("Generate: " + s + '. Done.')
+			}
 		}
 		logger.info("Musket standalone generator done.")
 	}

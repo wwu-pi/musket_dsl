@@ -21,6 +21,10 @@ class SlurmGenerator {
 		logger.info("Generate job.sh.")
 		fsa.generateFile(Config.base_path + "job.sh", JobScriptContent(resource))
 		logger.info("Generation of job.sh done.")
+		
+		logger.info("Generate job.conf.")
+		fsa.generateFile(Config.base_path + "job.conf", JobConfContent(resource))
+		logger.info("Generation of job.conf done.")
 	}
 
 	/**
@@ -31,23 +35,29 @@ class SlurmGenerator {
 	 */
 	def static JobScriptContent(Resource resource) '''
 		#!/bin/bash
-		#SBATCH --job-name «resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores»
+		#SBATCH --job-name «resource.ProjectName»-GPU-nodes-«resource.ConfigBlock.processes»-gpu-«resource.ConfigBlock.gpus»
 		#SBATCH --ntasks «resource.ConfigBlock.processes»
 		#SBATCH --nodes «resource.ConfigBlock.processes»
 		#SBATCH --ntasks-per-node 1
-		#SBATCH --partition normal
-		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-cpu-«resource.ConfigBlock.cores».out
-		#SBATCH --cpus-per-task 64
+		#SBATCH --partition gpu2
+		#SBATCH --exclusive
+		#SBATCH --output «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-gpu-«resource.ConfigBlock.gpus».out
+		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
-		#SBATCH --mail-user my@e-mail.de
-		#SBATCH --time 01:00:00
+		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
+		#SBATCH --time 00:05:00
+		#SBATCH -A p_algcpugpu
+		#SBATCH --gres gpu:4
 		
-		export OMP_NUM_THREADS=«resource.ConfigBlock.cores»
-		
-		«IF Config.processes > 1»
-			mpirun «Config.build_path»bin/«resource.ProjectName»
-		«ELSE»
-			«Config.build_path»bin/«resource.ProjectName»
-		«ENDIF»		
+		RUNS=1
+		for ((i=1;i<=RUNS;i++)); do
+		    srun --multi-prog «Config.home_path_source»«Config.base_path»job.conf
+		done
+	'''
+	
+	def static JobConfContent(Resource resource) '''
+		«FOR p : 0 ..< Config.processes»
+			«p» «Config.build_path»benchmark/bin/«resource.ProjectName»_«p»
+		«ENDFOR»
 	'''
 }
