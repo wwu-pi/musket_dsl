@@ -5,8 +5,9 @@ for benchmark in frobenius fss matmult nbody; do
     for gpu in 1 2 4; do
       DIR="${benchmark}-n-${node}-g-${gpu}/GPU"
       if [ -d "${DIR}" ]; then
-    	  chmod +x ${DIR}/build-and-submit.sh && \
-        ${DIR}/build-and-submit.sh
+        cd ${DIR} && \
+    	  chmod +x build-and-submit.sh && \
+        ./build-and-submit.sh
       fi
     done
   done
