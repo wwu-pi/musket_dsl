@@ -64,7 +64,7 @@
 				dy = ((curParticle).y - oldP[(j)].y);
 				dz = ((curParticle).z - oldP[(j)].z);
 				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
-				r = ;
+				r = std::sqrt((r2));
 				
 				if(((r) < (EPSILON))){
 				qj_by_r3 = 0.0f;

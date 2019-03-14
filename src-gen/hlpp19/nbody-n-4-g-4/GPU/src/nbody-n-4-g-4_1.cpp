@@ -78,8 +78,7 @@
 				dy = ((curParticle).y - oldP.get_data_local((j)).y);
 				dz = ((curParticle).z - oldP.get_data_local((j)).z);
 				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
-				r = sqrtf((r2))
-				;
+				r = sqrtf((r2));
 				
 				if(((r) < (EPSILON))){
 				qj_by_r3 = 0.0f;

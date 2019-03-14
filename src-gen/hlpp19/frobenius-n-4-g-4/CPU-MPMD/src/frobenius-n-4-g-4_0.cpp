@@ -82,8 +82,10 @@
 		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
-		fn = ;
-		// TODO: LogicGenerator: generateStatement(ExternalFunctionCall)
+		fn = std::sqrt((fn));
+		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
+		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		printf("Frobenius norm is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

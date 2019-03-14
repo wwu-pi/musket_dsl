@@ -121,8 +121,7 @@
 		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<double>(as);
-		fn = ;
-		// TODO: LogicGenerator: generateStatement(ExternalFunctionCall)
+		fn = std::sqrt((fn));
 		
 		
 		MPI_Finalize();
