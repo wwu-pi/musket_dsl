@@ -21,10 +21,10 @@
 	
 
 	
-	const int dim = 16384;
-	mkt::DMatrix<float> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> cs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	const int dim = 8192;
+	mkt::DMatrix<float> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> cs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
 	
 	
 
@@ -60,7 +60,7 @@
 		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs) {}
 		
 		auto operator()(int i, int j, float& Cij) const{
-			for(int k = 0; ((k) < 16384); k++){
+			for(int k = 0; ((k) < 8192); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 		}
