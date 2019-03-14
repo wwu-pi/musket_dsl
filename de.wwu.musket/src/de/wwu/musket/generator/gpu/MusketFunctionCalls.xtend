@@ -9,6 +9,9 @@ import java.util.List
 import de.wwu.musket.musket.MusketFunctionName
 import de.wwu.musket.generator.cpu.mpmd.lib.Musket
 import de.wwu.musket.musket.PrimitiveTypeLiteral
+import de.wwu.musket.musket.Function
+import de.wwu.musket.musket.Model
+import org.eclipse.emf.ecore.EObject
 
 /**
  * Generates all musket function calls, that is all function that are specific for musket, such as print or rand.
@@ -76,14 +79,29 @@ class MusketFunctionCalls {
 	 */
 	def static generateRand(MusketFunctionCall mfc) '''42'''
 	
-	def static generateSqrt(MusketFunctionCall mfc, int processId) '''
-		«val p = mfc.params.head»
-		«val type = p.calculateType»
-		«IF type.type == PrimitiveTypeLiteral.FLOAT»
-			sqrtf(«p.generateExpression(null, processId)»)
-		«ELSE»
-			sqrt(«p.generateExpression(null, processId)»)
-		«ENDIF»'''
+	def static generateSqrt(MusketFunctionCall mfc, int processId) {
+		val p = mfc.params.head
+		val type = p.calculateType
+		if(mfc.inFunction)
+			if(type.type == PrimitiveTypeLiteral.FLOAT){
+				return '''sqrtf(«p.generateExpression(null, processId)»)'''
+			}else{
+				return '''sqrt(«p.generateExpression(null, processId)»)'''
+			}
+		else{
+			return '''std::sqrt(«p.generateExpression(null, processId)»)'''
+		}
+	}
+	
+	def static boolean inFunction(EObject mfc){
+		if(mfc.eContainer instanceof Function){
+			true
+		}else if(mfc.eContainer instanceof Model || mfc.eContainer === null){
+			false
+		}else{
+			mfc.eContainer.inFunction
+		}
+	}
 
 	/**
 	 * Generates the code for the musket roi start function. (Region of Interest)
