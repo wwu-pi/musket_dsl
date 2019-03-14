@@ -64,7 +64,7 @@
 	template<>
 	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
 		double local_result = 0.0;
-		T global_result = 0.0;
+		double global_result = 0.0;
 		
 		#pragma omp parallel for reduction(+:local_result)
 		for(int gpu = 0; gpu < 4; ++gpu){
