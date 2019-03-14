@@ -306,7 +306,7 @@ void mkt::DMatrix<T>::update_devices() {
   	#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
-		void acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
+		acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 		#pragma acc wait
 	}
 }
