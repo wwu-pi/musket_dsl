@@ -111,7 +111,7 @@ class ReductionSkeletonGenerator {
 		«cppType» mkt::reduce_«ro.getName»<«cppType»>(mkt::«dataStructure»<«cppType»>& a){
 			«cppType» local_result = «getIdentity(type, ro)»;
 			«IF Config.processes > 1»
-				T global_result = «getIdentity(type, ro)»;
+				«cppType» global_result = «getIdentity(type, ro)»;
 			«ENDIF»
 			
 			«IF Config.gpus > 1»
