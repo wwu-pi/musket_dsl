@@ -223,7 +223,7 @@ class DMatrix {
 		  	#pragma omp parallel for
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
-				void acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
+				acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 				#pragma acc wait
 			}
 		}
