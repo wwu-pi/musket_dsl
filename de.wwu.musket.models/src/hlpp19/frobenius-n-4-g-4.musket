@@ -26,7 +26,7 @@ main{
 	
 	as.mapInPlace(square());
 	double fn = as.reduce(plus);
-	fn = std::sqrt(fn);
+	fn = mkt::sqrt(fn);
 	
 	mkt::roi_end();
 	
