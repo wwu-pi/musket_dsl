@@ -49,6 +49,14 @@ main{
 	as.mapIndexInPlace(initA());
 	bs.mapIndexInPlace(initB());
 	
+	as.mapInPlace(square());
+	double fna = as.reduce(plus);
+	fna = mkt::sqrt(fna);
+	
+	bs.mapInPlace(square());
+	double fnb = bs.reduce(plus);
+	fnb = mkt::sqrt(fnb);
+
 	mkt::roi_start();
 	
 	as.shiftPartitionsHorizontally(negate());
