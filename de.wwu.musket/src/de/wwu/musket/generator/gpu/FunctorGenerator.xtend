@@ -59,6 +59,7 @@ import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
 import java.util.List
 import java.util.Set
+import de.wwu.musket.musket.MusketFunctionName
 
 class FunctorGenerator {
 	
@@ -76,6 +77,10 @@ class FunctorGenerator {
 			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
 			
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
+				«IF f.containsRandCall»
+					curandState_t state;
+					curand_init(clock64(), 0, 0, &state);
+				«ENDIF»
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
@@ -99,6 +104,10 @@ class FunctorGenerator {
 	
 	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
 	def static generateMember(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
+
+	def static containsRandCall(Function function){
+		function.eAllContents.exists[it instanceof MusketFunctionCall && (it as MusketFunctionCall).value === MusketFunctionName.RAND]
+	}
 
 	def static getReferencedCollections(Function function){
 		function.eAllContents.filter(ObjectRef).filter[it.collectionElementRef].map[it.value as CollectionObject].toSet
