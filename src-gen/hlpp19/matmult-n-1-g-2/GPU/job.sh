@@ -13,6 +13,8 @@
 #SBATCH -A p_algcpugpu
 #SBATCH --gres gpu:4
 
+export OMP_NUM_THREADS=24
+
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
     srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/matmult-n-1-g-2/GPU/job.conf

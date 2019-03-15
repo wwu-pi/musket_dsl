@@ -22,9 +22,9 @@
 
 	
 	const int dim = 8192;
-	mkt::DMatrix<float> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> cs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -74,9 +74,43 @@
 		mkt::DeviceMatrix<float> as;
 		mkt::DeviceMatrix<float> bs;
 	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		
+	};
 	
 	
 	
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		
+		#pragma omp parallel for reduction(+:local_result)
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			float* devptr = a.get_device_pointer(gpu);
+			const int gpu_elements = a.get_size_gpu();
+			float gpu_result = 0.0f;
+			
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
+			for (int counter = 0; counter < gpu_elements; ++counter) {
+				#pragma acc cache(gpu_result)
+				gpu_result = gpu_result + devptr[counter];
+			}
+			local_result = local_result + gpu_result;
+		}
+		
+		return local_result;
+	}
 	
 	
 	
@@ -86,6 +120,7 @@
 				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
 				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -99,6 +134,11 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		fn = mkt::reduce_plus<float>(cs);
+		fn = std::sqrt((fn));
+		printf("Frobenius norm of cs is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

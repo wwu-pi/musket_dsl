@@ -27,9 +27,9 @@
 
 	
 	const int dim = 8192;
-	mkt::DMatrix<float> as(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 1.0f, 2, 2, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 0.001f, 2, 2, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> cs(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 0.0f, 2, 2, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> as(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 1.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 0.001f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 8192, 8192, 4096, 4096, 67108864, 16777216, 0.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -157,9 +157,39 @@
 		
 		
 	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		
+	};
 	
 	
 	
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		float global_result = 0.0f;
+		
+		float* devptr = a.get_device_pointer(0);
+		const int gpu_elements = a.get_size_gpu();
+		
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
+		for(int counter = 0; counter < gpu_elements; ++counter) {
+			#pragma acc cache(local_result)
+			local_result = local_result + devptr[counter];
+		}
+		
+		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+		return global_result;
+	}
 	
 	template<>
 	void mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, const Negate_shift_partitions_horizontally_matrix_functor& f){
@@ -348,6 +378,7 @@
 				MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
 				Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
 				Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -387,6 +418,11 @@
 		mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(bs, identity_shift_partitions_vertically_matrix_functor);
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		fn = mkt::reduce_plus<float>(cs);
+		fn = std::sqrt((fn));
+		printf("Frobenius norm of cs is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

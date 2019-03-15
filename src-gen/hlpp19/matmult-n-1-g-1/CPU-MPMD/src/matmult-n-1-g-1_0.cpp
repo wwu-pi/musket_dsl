@@ -45,6 +45,12 @@
 		}
 		
 	};
+	struct Square_map_in_place_matrix_functor{
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+		
+	};
 	
 	
 	
@@ -57,6 +63,7 @@
 				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
 				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -70,6 +77,11 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
+		fn = std::sqrt((fn));
+		printf("Frobenius norm of cs is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

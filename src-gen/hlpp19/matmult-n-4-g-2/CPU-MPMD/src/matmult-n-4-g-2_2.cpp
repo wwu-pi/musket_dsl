@@ -86,6 +86,12 @@
 		}
 		
 	};
+	struct Square_map_in_place_matrix_functor{
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+		
+	};
 	
 	
 	
@@ -264,6 +270,7 @@
 				MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
 				Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
 				Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -300,6 +307,10 @@
 		}
 		mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(as, identity_shift_partitions_horizontally_matrix_functor);
 		mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(bs, identity_shift_partitions_vertically_matrix_functor);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
+		fn = std::sqrt((fn));
 		
 		
 		MPI_Finalize();

@@ -30,8 +30,8 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 500000, 125000, Particle{}, 2, 0, 0, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY);
+	mkt::DArray<Particle> P(0, 500000, 125000, Particle{}, 2, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
