@@ -49,6 +49,8 @@ class SlurmGenerator {
 		#SBATCH -A p_algcpugpu
 		#SBATCH --gres gpu:4
 		
+		export OMP_NUM_THREADS=24
+		
 		RUNS=1
 		for ((i=1;i<=RUNS;i++)); do
 		    srun --multi-prog «Config.home_path_source»«Config.base_path»job.conf
