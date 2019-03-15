@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(frobenius-n-1-g-1 VERSION 1.0.0 LANGUAGES CXX)
+project(frobenius-n-1-g-1 VERSION 1.0.0 LANGUAGES CXX CUDA)
 
 # required macros
 SET( CMAKE_CXX_FLAGS_DEV "-g -O0 -Minfo=accel" CACHE STRING "Flags used by the C++ compiler during DEV builds." FORCE )
@@ -7,8 +7,9 @@ SET( CMAKE_CXX_FLAGS_TEST "-gopt -fast -ta:tesla:cc60,pinned,nollvm -O4 -Minfo=a
 SET( CMAKE_CXX_FLAGS_VTUNE "-gopt -fast -O4 -w" CACHE STRING "Flags used by the C++ compiler during VTUNE builds." FORCE )
 SET( CMAKE_CXX_FLAGS_BENCHMARK "-fast -O4 -ta:tesla:cc60,pinned,nollvm -w" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
 SET( CMAKE_CXX_FLAGS_BENCHMARKPALMA "-fast -O4 -tp -ta:tesla:cc35,pinned -w" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Palma." FORCE )
-SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-fast -O4 -tp=haswell -ta:tesla:cc35,pinned,nollvm -w" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Taurus." FORCE )
-		
+SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-fast -O4 -tp=haswell -ta:tesla:cc35,pinned,nollvm -w --c++14" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Taurus." FORCE )
+SET( CMAKE_CUDA_FLAGS_BENCHMARKTAURUS "--std=c++14 -arch=compute_35 -code=sm_35")
+	
 # output path for binaries and libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
