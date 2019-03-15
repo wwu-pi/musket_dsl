@@ -39,6 +39,12 @@ float dotProduct(int i, int j, float Cij){
 	return Cij;
 }
 
+float square(float a){
+	a = a * a;
+	return a;
+}
+
+
 main{
 	as.mapIndexInPlace(initA());
 	bs.mapIndexInPlace(initB());
@@ -58,4 +64,10 @@ main{
 	bs.shiftPartitionsVertically(identity());
 	
 	mkt::roi_end();
+
+	cs.mapInPlace(square());
+	double fn = cs.reduce(plus);
+	fn = mkt::sqrt(fn);
+		
+	mkt::print("Frobenius norm of cs is %.5f.\n", fn);
 }
