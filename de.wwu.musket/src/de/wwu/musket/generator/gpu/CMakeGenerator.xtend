@@ -66,16 +66,15 @@ class CMakeGenerator {
 		find_package(OpenMP REQUIRED)
 		
 		find_package(OpenACC REQUIRED)
-		
-		find_package(CUDA REQUIRED)
+	
 		
 		«FOR processId : 0 ..< Config.processes»
 			add_executable(«resource.ProjectName»_«processId» ${PROJECT_SOURCE_DIR}/src/«resource.ProjectName»_«processId»«Config.source_extension»)
 			target_compile_features(«resource.ProjectName»_«processId» PRIVATE cxx_std_14)
-			target_include_directories(«resource.ProjectName»_«processId» PRIVATE ${PROJECT_SOURCE_DIR}/include«IF Config.processes > 1» ${MPI_CXX_INCLUDE_DIRS}«ENDIF» ${CUDA_INCLUDE_DIRS})
+			target_include_directories(«resource.ProjectName»_«processId» PRIVATE ${PROJECT_SOURCE_DIR}/include«IF Config.processes > 1» ${MPI_CXX_INCLUDE_DIRS}«ENDIF» ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 			target_compile_definitions(«resource.ProjectName»_«processId» PRIVATE«IF Config.processes > 1» ${MPI_CXX_COMPILE_DEFINITIONS}«ENDIF»)
 			target_compile_options(«resource.ProjectName»_«processId» PRIVATE«IF Config.processes > 1» ${MPI_CXX_COMPILE_OPTIONS}«ENDIF» ${OpenMP_CXX_FLAGS} ${OpenACC_CXX_FLAGS})
-			target_link_libraries(«resource.ProjectName»_«processId» PRIVATE«IF Config.processes > 1» ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES}«ENDIF» ${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES} ${OpenACC_CXX_FLAGS} ${CUDA_LIBRARIES} ${CUDA_cudart_static_LIBRARY} ${CUDA_cudadevrt_LIBRARY} ${CUDA_curand_LIBRARY})
+			target_link_libraries(«resource.ProjectName»_«processId» PRIVATE«IF Config.processes > 1» ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES}«ENDIF» ${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES} ${OpenACC_CXX_FLAGS})
 		«ENDFOR»
 	'''
 }
