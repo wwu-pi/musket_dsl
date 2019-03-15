@@ -61,6 +61,19 @@
 		
 		
 	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		
+	};
 	struct Negate_shift_partitions_horizontally_matrix_functor{
 		
 		Negate_shift_partitions_horizontally_matrix_functor() {}
@@ -158,22 +171,43 @@
 		
 		
 	};
-	struct Square_map_in_place_matrix_functor{
+	
+	
+	
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		float global_result = 0.0f;
 		
-		Square_map_in_place_matrix_functor() {}
+		float* devptr = a.get_device_pointer(0);
+		const int gpu_elements = a.get_size_gpu();
 		
-		auto operator()(float& a) const{
-			a = ((a) * (a));
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
+		for(int counter = 0; counter < gpu_elements; ++counter) {
+			#pragma acc cache(local_result)
+			local_result = local_result + devptr[counter];
 		}
-	
-		void init(int gpu){
+		
+		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+		return global_result;
+	}
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		float global_result = 0.0f;
+		
+		float* devptr = a.get_device_pointer(0);
+		const int gpu_elements = a.get_size_gpu();
+		
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
+		for(int counter = 0; counter < gpu_elements; ++counter) {
+			#pragma acc cache(local_result)
+			local_result = local_result + devptr[counter];
 		}
 		
-		
-	};
-	
-	
-	
+		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+		return global_result;
+	}
 	template<>
 	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
 		float local_result = 0.0f;
@@ -371,6 +405,7 @@
 		
 				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 				Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
 				Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
 				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
@@ -378,7 +413,6 @@
 				MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
 				Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
 				Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -406,6 +440,14 @@
 		
 		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
 		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
+		double fna = 0.0;
+		fna = mkt::reduce_plus<float>(as);
+		fna = std::sqrt((fna));
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(bs, square_map_in_place_matrix_functor);
+		double fnb = 0.0;
+		fnb = mkt::reduce_plus<float>(bs);
+		fnb = std::sqrt((fnb));
 		mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(as, negate_shift_partitions_horizontally_matrix_functor);
 		mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(bs, negate_shift_partitions_vertically_matrix_functor);
 		for(int i = 0; ((i) < 2); ++i){
