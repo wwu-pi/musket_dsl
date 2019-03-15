@@ -25,9 +25,9 @@ array<Particle,dim,dist,dist> P;
 array<Particle,dim,copy,copy> oldP;
 
 Particle init_particles(int i, Particle p){
-	p.x = (((i + 0.1f) / 100.0f)) % 1.0f);
-	p.y = (((i + 0.2f) / 100.0f)) % 1.0f);
-	p.z = (((i + 0.3f) / 100.0f)) % 1.0f);
+	p.x = mkt::rand(0.0f, 1.0f);
+	p.y = mkt::rand(0.0f, 1.0f);
+	p.z = mkt::rand(0.0f, 1.0f);
 	p.vx = 0.0f;
 	p.vy = 0.0f;
 	p.vz = 0.0f;
