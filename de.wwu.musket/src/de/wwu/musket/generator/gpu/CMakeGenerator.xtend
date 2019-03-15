@@ -41,7 +41,7 @@ class CMakeGenerator {
 	 */
 	def static CMakeListstxtContent(Resource resource) '''
 		cmake_minimum_required(VERSION 3.10)
-		project(«resource.ProjectName» VERSION 1.0.0 LANGUAGES CXX CUDA)
+		project(«resource.ProjectName» VERSION 1.0.0 LANGUAGES CXX)
 		
 		# required macros
 		SET( CMAKE_CXX_FLAGS_DEV "-g -O0 -Minfo=accel" CACHE STRING "Flags used by the C++ compiler during DEV builds." FORCE )
