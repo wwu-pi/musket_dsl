@@ -48,6 +48,16 @@ main{
 	as.mapIndexInPlace(initA());
 	bs.mapIndexInPlace(initB());
 	
+	as.mapInPlace(square());
+	double fna = as.reduce(plus);
+	fna = mkt::sqrt(fna);
+	
+	bs.mapInPlace(square());
+	double fnb = bs.reduce(plus);
+	fnb = mkt::sqrt(fnb);
+	
+	mkt::print("Frobenius norm of as is %.5f and of bs is %.5f.\n", fna, fnb);
+	
 	mkt::roi_start();
 	
 	as.shiftPartitionsHorizontally(negate());

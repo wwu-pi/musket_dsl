@@ -56,6 +56,19 @@
 		
 		
 	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a) const{
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		
+	};
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		
 		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs) {}
@@ -75,22 +88,51 @@
 		mkt::DeviceMatrix<float> as;
 		mkt::DeviceMatrix<float> bs;
 	};
-	struct Square_map_in_place_matrix_functor{
+	
+	
+	
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
 		
-		Square_map_in_place_matrix_functor() {}
-		
-		auto operator()(float& a) const{
-			a = ((a) * (a));
+		#pragma omp parallel for reduction(+:local_result)
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			float* devptr = a.get_device_pointer(gpu);
+			const int gpu_elements = a.get_size_gpu();
+			float gpu_result = 0.0f;
+			
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
+			for (int counter = 0; counter < gpu_elements; ++counter) {
+				#pragma acc cache(gpu_result)
+				gpu_result = gpu_result + devptr[counter];
+			}
+			local_result = local_result + gpu_result;
 		}
-	
-		void init(int gpu){
+		
+		return local_result;
+	}
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		
+		#pragma omp parallel for reduction(+:local_result)
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			float* devptr = a.get_device_pointer(gpu);
+			const int gpu_elements = a.get_size_gpu();
+			float gpu_result = 0.0f;
+			
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
+			for (int counter = 0; counter < gpu_elements; ++counter) {
+				#pragma acc cache(gpu_result)
+				gpu_result = gpu_result + devptr[counter];
+			}
+			local_result = local_result + gpu_result;
 		}
 		
-		
-	};
-	
-	
-	
+		return local_result;
+	}
 	template<>
 	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
 		float local_result = 0.0f;
@@ -120,8 +162,8 @@
 		
 				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
-				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
 				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
 		
 		
 		
@@ -129,6 +171,15 @@
 		
 		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
 		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
+		double fna = 0.0;
+		fna = mkt::reduce_plus<float>(as);
+		fna = std::sqrt((fna));
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(bs, square_map_in_place_matrix_functor);
+		double fnb = 0.0;
+		fnb = mkt::reduce_plus<float>(bs);
+		fnb = std::sqrt((fnb));
+		printf("Frobenius norm of as is %.5f and of bs is %.5f.\n",(fna),(fnb));
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < 1); ++i){
 			mkt::map_local_index_in_place<float, DotProduct_map_local_index_in_place_matrix_functor>(cs, dotProduct_map_local_index_in_place_matrix_functor);
