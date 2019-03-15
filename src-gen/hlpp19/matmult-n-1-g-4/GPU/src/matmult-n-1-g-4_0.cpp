@@ -12,7 +12,8 @@
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
-	
+	#include <cuda.h>
+	#include <openacc_curand.h>
 	
 	#include "../include/musket.hpp"
 	#include "../include/matmult-n-1-g-4_0.hpp"

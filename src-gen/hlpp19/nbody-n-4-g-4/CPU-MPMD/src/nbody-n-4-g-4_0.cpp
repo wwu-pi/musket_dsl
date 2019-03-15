@@ -19,6 +19,8 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
+	std::vector<std::mt19937> random_engines;
+	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
 
 	
@@ -35,9 +37,9 @@
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		auto operator()(int i, Particle& p) const{
-			p.x = ((((i) + 0.1f) / 100.0f) % 1.0f);
-			p.y = ((((i) + 0.2f) / 100.0f) % 1.0f);
-			p.z = ((((i) + 0.3f) / 100.0f) % 1.0f);
+			p.x = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
+			p.y = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
+			p.z = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
@@ -113,7 +115,16 @@
 				Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 				Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{};
 		
+		random_engines.reserve(24);
+		std::random_device rd;
+		for(size_t counter = 0; counter < 24; ++counter){
+			random_engines.push_back(std::mt19937(rd()));
+		}
 		
+		rand_dist_float_0_0f_1_0f.reserve(24);
+		for(size_t counter = 0; counter < 24; ++counter){
+			rand_dist_float_0_0f_1_0f.push_back(std::uniform_real_distribution<float>(0.0f, 1.0f));
+		}
 		
 				
 			MPI_Datatype Particle_mpi_type_temp;
