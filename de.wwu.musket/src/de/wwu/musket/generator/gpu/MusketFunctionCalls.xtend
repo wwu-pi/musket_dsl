@@ -80,9 +80,10 @@ class MusketFunctionCalls {
 	def static generateRand(MusketFunctionCall mfc, int processId){
 		val lower = mfc.params.get(0)
 		val higher = mfc.params.get(1)
-		val type = lower.calculateType
+		val cpptype = lower.calculateType.cppType
 		if(mfc.inFunction)
-			return '''(curand_uniform(&state) * («higher.generateExpression(null, processId)» - «lower.generateExpression(null, processId)» + 0.999999) + «lower.generateExpression(null, processId)»)'''
+			//return '''(curand_uniform(&state) * («higher.generateExpression(null, processId)» - «lower.generateExpression(null, processId)» + 0.999999) + «lower.generateExpression(null, processId)»)'''
+			return '''get_random_«cpptype»(«lower.generateExpression(null, processId)», «higher.generateExpression(null, processId)»)'''
 		else{
 			return '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.toCXXIdentifier»_«mfc.params.get(1).ValueAsString.toCXXIdentifier»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
 		}

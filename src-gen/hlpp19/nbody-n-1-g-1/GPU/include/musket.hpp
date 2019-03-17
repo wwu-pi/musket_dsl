@@ -447,7 +447,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 		if(a.get_distribution() == mkt::Distribution::DIST){
 			offset += gpu * gpu_elements;
 		}
-		#pragma acc parallel loop deviceptr(devptr) async(0)
+		#pragma acc parallel loop deviceptr(devptr) async(0)// present(rns, rns_index) async(0)
 	  	for (int i = 0; i < gpu_elements; ++i) {
 	    	f(i + offset, devptr[i]);
 	  	}

@@ -25,6 +25,35 @@ class RngGenerator {
 			std::vector<std::mt19937> «Config.var_rng_array»;
 	'''
 	
+	def static generateRandomDeviceVariables() '''
+			std::array<float, «Config.number_of_random_numbers»> «Config.var_rns_array»;			
+			size_t «Config.var_rns_index» = 0;
+	'''
+	
+	def static generateRandomDeviceVariablesInit(int cores, Mode mode, int processId) '''
+		std::mt19937 d_rng_gen(rd());
+		std::uniform_real_distribution<float> d_rng_dis(0.0f, 1.0f);
+		for(int random_number = 0; random_number < «Config.number_of_random_numbers»; random_number++){
+			«Config.var_rns_array»[random_number] = d_rng_dis(d_rng_gen);
+		}
+		
+		#pragma omp parallel for
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			#pragma acc enter data copyin(«Config.var_rns_array»)
+			#pragma acc enter data copyin(«Config.var_rns_index»)
+		}
+	'''
+	
+	def static generateRandomDeviceVariablesFree() '''
+		#pragma omp parallel for
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			#pragma acc exit data delete(«Config.var_rns_array»)
+			#pragma acc exit data delete(«Config.var_rns_index»)
+		}
+	'''
+	
 	def static generateRandomEnginesArrayInit(int cores, Mode mode, int processId) '''			
 		«Config.var_rng_array».reserve(«cores»);
 		«IF mode == Mode.RELEASE»			
@@ -119,4 +148,41 @@ class RngGenerator {
 		}
 		result
 	}
+	
+	
+	def static generateGetRandomDeviceFunctions() '''
+		#pragma acc routine seq nohost // present(«Config.var_rns_index», «Config.var_rns_array»)
+		int get_random_int(int lower, int higher){
+			size_t t_rng_index = 0;
+			#pragma acc atomic capture
+			t_rng_index = «Config.var_rns_index»++;
+			
+			t_rng_index = t_rng_index % «Config.number_of_random_numbers»;
+			
+			return static_cast<int>(«Config.var_rns_array»[t_rng_index] * (higher - lower + 0.999999) + lower);
+		}
+		
+		#pragma acc routine seq nohost
+		float get_random_float(float lower, float higher){
+			size_t t_rng_index = 0;
+			#pragma acc atomic capture
+			t_rng_index = «Config.var_rns_index»++;
+			
+			t_rng_index = t_rng_index % «Config.number_of_random_numbers»;
+			
+			return «Config.var_rns_array»[t_rng_index] * (higher - lower + 0.999999) + lower;
+		}
+		
+		#pragma acc routine seq nohost
+		double get_random_double(double lower, double higher){
+			size_t t_rng_index = 0;
+			#pragma acc atomic capture
+			t_rng_index = «Config.var_rns_index»++;
+			
+			t_rng_index = t_rng_index % «Config.number_of_random_numbers»;
+			
+			return static_cast<double>(«Config.var_rns_array»[t_rng_index] * (higher - lower + 0.999999) + lower);
+		}
+	'''
+
 }

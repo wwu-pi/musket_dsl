@@ -13,3 +13,5 @@ struct Particle{
 	//Particle();
 };
 		
+// extern float* rns;			
+// extern size_t rns_index;

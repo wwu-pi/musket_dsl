@@ -64,6 +64,9 @@ class Config {
 	public static final String tmp_shift_buffer = "tmp_shift_buffer"
 
 	public static final String var_rng_array = "random_engines"
+	public static final String var_rns_array = "rns"
+	public static final String var_rns_index = "rns_index"
+	public static final int number_of_random_numbers = 100000
 
 	// project config
 	public static int processes;

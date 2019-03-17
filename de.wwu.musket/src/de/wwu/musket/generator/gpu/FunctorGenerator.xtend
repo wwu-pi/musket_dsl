@@ -77,10 +77,10 @@ class FunctorGenerator {
 			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
 			
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
-				«IF f.containsRandCall»
-					curandState_t state;
-					curand_init(clock64(), 0, 0, &state);
-				«ENDIF»
+«««				«IF f.containsRandCall»
+«««					curandState_t state;
+«««					curand_init(clock64(), 0, 0, &state);
+«««				«ENDIF»
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
@@ -90,6 +90,9 @@ class FunctorGenerator {
 				«FOR co : referencedCollections»
 					«co.generateInitFunctionCall»;
 				«ENDFOR»
+				«IF f.containsRandCall»
+					_rns = _rns_pointers[gpu];
+				«ENDIF»
 			}
 			
 			«FOR p : f.params.take(freeParameter)»
@@ -99,6 +102,13 @@ class FunctorGenerator {
 			«FOR co : referencedCollections»
 				«co.generateCollectionMember»;
 			«ENDFOR»
+			
+			«IF f.containsRandCall»
+				float* _rns;
+				std::array<float*, 1> _rns_pointers;
+				size_t _rns_index;
+			«ENDIF»
+
 		};
 	'''
 	

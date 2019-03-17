@@ -70,6 +70,9 @@ class SourceFileGenerator {
 			«generateGlobalConstants(processId)»
 			«generateGlobalVariables(resource, processId)»
 		
+			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
+				«generateGetRandomDeviceFunctions()»
+			«ENDIF»
 			
 			«FOR d : resource.Data»
 				«d.generateObjectDefinition(processId)»
@@ -158,6 +161,7 @@ class SourceFileGenerator {
 		
 		«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 			«generateRandomEnginesArray(resource.ConfigBlock.cores, resource.ConfigBlock.mode)»
+			«generateRandomDeviceVariables»
 		«ENDIF»
 		«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
 		«generateDistributionArrays(rcs, resource.ConfigBlock.cores)»
@@ -245,11 +249,12 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
-		«««			functor instantiation
+«««			functor instantiation
 			«generateFunctorInstantiations(resource, processId)»
 			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 				«generateRandomEnginesArrayInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
+				«generateRandomDeviceVariablesInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
 			«ENDIF»
 			
 			«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
@@ -286,7 +291,7 @@ class SourceFileGenerator {
 				printf("Processes: %i\n", «IF Config.processes > 1»«Config.var_mpi_procs»«ELSE»«Config.processes»«ENDIF»);
 			«ENDIF»
 			
-			«generateFinalization»
+			«generateFinalization(resource)»
 			}
 	'''
 
@@ -311,7 +316,10 @@ class SourceFileGenerator {
 	/**
 	 * Generates boilerplate code, which is required for finalization.
 	 */
-	def static generateFinalization() '''
+	def static generateFinalization(Resource resource) '''
+		«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
+			«generateRandomDeviceVariablesFree()»
+		«ENDIF»
 		«IF Config.processes > 1»
 			MPI_Finalize();
 		«ENDIF»
