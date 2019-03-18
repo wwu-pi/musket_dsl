@@ -46,7 +46,7 @@ import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
 import de.wwu.musket.musket.Variable
 
-import static extension de.wwu.musket.generator.cpu.CollectionFunctionsGenerator.*
+import static extension de.wwu.musket.generator.gpu.CollectionFunctionsGenerator.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.generator.gpu.ExternalFunctionCallGenerator.*
 import static extension de.wwu.musket.generator.gpu.MusketFunctionCalls.*
@@ -66,21 +66,38 @@ class FunctorGenerator {
 	static final Logger logger = LogManager.getLogger(FunctorGenerator)
 	
 	def static generateFunctorInstantiation(SkeletonExpression se, SkeletonParameterInput spi, int processId) '''
-		«val referencedCollections = spi.toFunction.referencedCollections»
-		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»};
+		«val f = spi.toFunction»
+		«val referencedCollections = f.referencedCollections»
+		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«IF f.containsRandCall»«Config.var_rns_pointers»«ENDIF»};
 	'''
 
 	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
 		«val referencedCollections = f.referencedCollections»
 		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
 			
-			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR» {}
+			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«generateConstructorParameter(f)»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«co.generateCollectionObjectInitListEntry»«ENDFOR»{
+				«IF f.containsRandCall»
+					for(int gpu = 0; gpu < 1; gpu++){
+					 	_rns_pointers[gpu] = rns_pointers[gpu];
+					}
+					_rns_index = 0;
+				«ENDIF»
+			}
 			
-			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR») const{
-«««				«IF f.containsRandCall»
-«««					curandState_t state;
-«««					curand_init(clock64(), 0, 0, &state);
-«««				«ENDIF»
+			~«f.name.toFirstUpper»_«skelName»_«coName»_functor() {}
+			
+			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
+				«IF f.containsRandCall»
+					size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
+					local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
+					local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
+					local_rns_index = (local_rns_index + 0x165667b1) + (local_rns_index << 5);
+					local_rns_index = (local_rns_index + 0xd3a2646c) ^ (local_rns_index << 9);
+					local_rns_index = (local_rns_index + 0xfd7046c5) + (local_rns_index << 3);
+					local_rns_index = (local_rns_index ^ 0xb55a4f09) ^ (local_rns_index >> 16);
+					local_rns_index = local_rns_index % 100000;
+					_rns_index++;
+				«ENDIF»
 				«FOR s : f.statement»
 					«s.generateFunctionStatement(processId)»
 				«ENDFOR»
@@ -92,7 +109,17 @@ class FunctorGenerator {
 				«ENDFOR»
 				«IF f.containsRandCall»
 					_rns = _rns_pointers[gpu];
+					std::random_device rd{};
+					std::mt19937 d_rng_gen(rd());
+					std::uniform_int_distribution<> d_rng_dis(0, «Config.number_of_random_numbers»);
+					_rns_index = d_rng_dis(d_rng_gen);
 				«ENDIF»
+			}
+			
+			void set_id(int gang, int worker, int vector){
+				_gang = gang;
+				_worker = worker;
+				_vector = vector;
 			}
 			
 			«FOR p : f.params.take(freeParameter)»
@@ -105,12 +132,17 @@ class FunctorGenerator {
 			
 			«IF f.containsRandCall»
 				float* _rns;
-				std::array<float*, 1> _rns_pointers;
+				std::array<float*, «Config.gpus»> _rns_pointers;
 				size_t _rns_index;
 			«ENDIF»
-
+			
+			int _gang;
+			int _worker;
+			int _vector;
 		};
 	'''
+	
+	def static generateConstructorParameter(Function f)'''«val referencedCollections = f.referencedCollections»«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«IF f.containsRandCall»std::array<float*, «Config.gpus»> «Config.var_rns_pointers»«ENDIF»'''
 	
 	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
 	def static generateMember(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
@@ -309,7 +341,7 @@ class FunctorGenerator {
 			StringVal: '''"«expression.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"''' // this is necessary so that the line break remains as \n in the generated code
 			BoolVal: '''«expression.value»'''
 			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(null, processId)»'''
-			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
+			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall(processId)»'''
 			PostIncrement: '''«expression.value.generateObjectRef()»++'''
 			PostDecrement: '''«expression.value.generateObjectRef()»--'''
 			PreIncrement: '''++«expression.value.generateObjectRef()»'''

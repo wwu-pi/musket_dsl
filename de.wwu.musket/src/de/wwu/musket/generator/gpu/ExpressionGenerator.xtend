@@ -33,7 +33,7 @@ import static extension de.wwu.musket.generator.gpu.MusketFunctionCalls.*
 import static extension de.wwu.musket.generator.extensions.StringExtension.*
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
-import static extension de.wwu.musket.generator.cpu.CollectionFunctionsGenerator.*
+import static extension de.wwu.musket.generator.gpu.CollectionFunctionsGenerator.*
 import de.wwu.musket.musket.StringVal
 import de.wwu.musket.musket.BoolVal
 import static extension de.wwu.musket.generator.gpu.util.DataHelper.*
@@ -86,7 +86,7 @@ class ExpressionGenerator {
 			StringVal: '''"«expression.value.replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t")»"''' // this is necessary so that the line break remains as \n in the generated code
 			BoolVal: '''«expression.value»'''
 			ExternalFunctionCall: '''«expression.generateExternalFunctionCall(param_map, processId)»'''
-			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall»'''
+			CollectionFunctionCall: '''«expression.generateCollectionFunctionCall(processId)»'''
 			PostIncrement: '''«expression.value.generateObjectRef(param_map)»++'''
 			PostDecrement: '''«expression.value.generateObjectRef(param_map)»--'''
 			PreIncrement: '''++«expression.value.generateObjectRef(param_map)»'''

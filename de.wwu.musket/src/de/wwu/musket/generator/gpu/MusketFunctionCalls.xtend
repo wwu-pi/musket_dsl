@@ -83,7 +83,8 @@ class MusketFunctionCalls {
 		val cpptype = lower.calculateType.cppType
 		if(mfc.inFunction)
 			//return '''(curand_uniform(&state) * («higher.generateExpression(null, processId)» - «lower.generateExpression(null, processId)» + 0.999999) + «lower.generateExpression(null, processId)»)'''
-			return '''get_random_«cpptype»(«lower.generateExpression(null, processId)», «higher.generateExpression(null, processId)»)'''
+			//return '''get_random_«cpptype»(«lower.generateExpression(null, processId)», «higher.generateExpression(null, processId)»)'''
+			return '''static_cast<«cpptype»>(_rns[local_rns_index++] * («higher.generateExpression(null, processId)» - «lower.generateExpression(null, processId)» + 0.999999) + «lower.generateExpression(null, processId)»)'''
 		else{
 			return '''rand_dist_«mfc.params.head.calculateType.cppType»_«mfc.params.head.ValueAsString.toCXXIdentifier»_«mfc.params.get(1).ValueAsString.toCXXIdentifier»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»](«Config.var_rng_array»[«IF Config.cores > 1»omp_get_thread_num()«ELSE»0«ENDIF»])'''
 		}

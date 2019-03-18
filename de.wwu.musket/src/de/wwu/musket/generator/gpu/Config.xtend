@@ -66,6 +66,7 @@ class Config {
 	public static final String var_rng_array = "random_engines"
 	public static final String var_rns_array = "rns"
 	public static final String var_rns_index = "rns_index"
+	public static final String var_rns_pointers = "rns_pointers"
 	public static final int number_of_random_numbers = 100000
 
 	// project config

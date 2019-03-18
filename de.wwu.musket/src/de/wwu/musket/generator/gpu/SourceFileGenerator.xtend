@@ -69,11 +69,7 @@ class SourceFileGenerator {
 			
 			«generateGlobalConstants(processId)»
 			«generateGlobalVariables(resource, processId)»
-		
-			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
-				«generateGetRandomDeviceFunctions()»
-			«ENDIF»
-			
+					
 			«FOR d : resource.Data»
 				«d.generateObjectDefinition(processId)»
 			«ENDFOR»
@@ -249,13 +245,13 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
-«««			functor instantiation
-			«generateFunctorInstantiations(resource, processId)»
-			
 			«IF resource.MusketFunctionCalls.exists[it.value == MusketFunctionName.RAND]»
 				«generateRandomEnginesArrayInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
 				«generateRandomDeviceVariablesInit(resource.ConfigBlock.cores, resource.ConfigBlock.mode, processId)»
 			«ENDIF»
+			
+«««			functor instantiation
+			«generateFunctorInstantiations(resource, processId)»
 			
 			«val rcs = resource.MusketFunctionCalls.filter[it.value == MusketFunctionName.RAND].toList»
 			«generateDistributionArraysInit(rcs, resource.ConfigBlock.cores)»
