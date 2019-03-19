@@ -330,40 +330,6 @@
 		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 		return global_result;
 	}
-	template<>
-	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
-		float local_result = 0.0f;
-		float global_result = 0.0f;
-		
-		float* devptr = a.get_device_pointer(0);
-		const int gpu_elements = a.get_size_gpu();
-		
-		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
-			#pragma acc cache(local_result)
-			local_result = local_result + devptr[counter];
-		}
-		
-		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-		return global_result;
-	}
-	template<>
-	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
-		float local_result = 0.0f;
-		float global_result = 0.0f;
-		
-		float* devptr = a.get_device_pointer(0);
-		const int gpu_elements = a.get_size_gpu();
-		
-		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
-			#pragma acc cache(local_result)
-			local_result = local_result + devptr[counter];
-		}
-		
-		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-		return global_result;
-	}
 	
 	template<>
 	void mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, const Negate_shift_partitions_horizontally_matrix_functor& f){

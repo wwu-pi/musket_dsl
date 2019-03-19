@@ -167,48 +167,6 @@
 		
 		return local_result;
 	}
-	template<>
-	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
-		float local_result = 0.0f;
-		
-		#pragma omp parallel for reduction(+:local_result)
-		for(int gpu = 0; gpu < 2; ++gpu){
-			acc_set_device_num(gpu, acc_device_not_host);
-			float* devptr = a.get_device_pointer(gpu);
-			const int gpu_elements = a.get_size_gpu();
-			float gpu_result = 0.0f;
-			
-			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
-			for (int counter = 0; counter < gpu_elements; ++counter) {
-				#pragma acc cache(gpu_result)
-				gpu_result = gpu_result + devptr[counter];
-			}
-			local_result = local_result + gpu_result;
-		}
-		
-		return local_result;
-	}
-	template<>
-	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
-		float local_result = 0.0f;
-		
-		#pragma omp parallel for reduction(+:local_result)
-		for(int gpu = 0; gpu < 2; ++gpu){
-			acc_set_device_num(gpu, acc_device_not_host);
-			float* devptr = a.get_device_pointer(gpu);
-			const int gpu_elements = a.get_size_gpu();
-			float gpu_result = 0.0f;
-			
-			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
-			for (int counter = 0; counter < gpu_elements; ++counter) {
-				#pragma acc cache(gpu_result)
-				gpu_result = gpu_result + devptr[counter];
-			}
-			local_result = local_result + gpu_result;
-		}
-		
-		return local_result;
-	}
 	
 	
 	
