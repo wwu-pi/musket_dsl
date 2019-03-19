@@ -50,13 +50,13 @@
 	};
 	struct Negate_shift_partitions_horizontally_matrix_functor{
 		auto operator()(int a) const{
-			return (a);
+			return -((a));
 		}
 		
 	};
 	struct Negate_shift_partitions_vertically_matrix_functor{
 		auto operator()(int a) const{
-			return (a);
+			return -((a));
 		}
 		
 	};

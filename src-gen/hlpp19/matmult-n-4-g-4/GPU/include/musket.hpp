@@ -219,10 +219,10 @@ void gather(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
 template<typename T>
 void scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
 template<typename T, typename Functor>
-void shift_partitions_horizontally(mkt::DMatrix<T>& m, const Functor& f);
+void shift_partitions_horizontally(mkt::DMatrix<T>& m, Functor& f);
 
 template<typename T, typename Functor>
-void shift_partitions_vertically(mkt::DMatrix<T>& m, const Functor& f);
+void shift_partitions_vertically(mkt::DMatrix<T>& m, Functor& f);
 
 template<typename T>
 T reduce_plus(mkt::DMatrix<T>& m);

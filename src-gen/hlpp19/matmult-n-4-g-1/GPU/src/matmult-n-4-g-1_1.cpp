@@ -123,7 +123,7 @@
 		~Negate_shift_partitions_horizontally_matrix_functor() {}
 		
 		auto operator()(int a){
-			return (a);
+			return -((a));
 		}
 	
 		void init(int gpu){
@@ -150,7 +150,7 @@
 		~Negate_shift_partitions_vertically_matrix_functor() {}
 		
 		auto operator()(int a){
-			return (a);
+			return -((a));
 		}
 	
 		void init(int gpu){
@@ -332,7 +332,7 @@
 	}
 	
 	template<>
-	void mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, const Negate_shift_partitions_horizontally_matrix_functor& f){
+	void mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, Negate_shift_partitions_horizontally_matrix_functor& f){
 		int steps = f(m.get_partition_x_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
@@ -358,7 +358,7 @@
 		}
 	}
 	template<>
-	void mkt::shift_partitions_horizontally<float, MinusOne_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, const MinusOne_shift_partitions_horizontally_matrix_functor& f){
+	void mkt::shift_partitions_horizontally<float, MinusOne_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, MinusOne_shift_partitions_horizontally_matrix_functor& f){
 		int steps = f(m.get_partition_x_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
@@ -384,7 +384,7 @@
 		}
 	}
 	template<>
-	void mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, const Identity_shift_partitions_horizontally_matrix_functor& f){
+	void mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, Identity_shift_partitions_horizontally_matrix_functor& f){
 		int steps = f(m.get_partition_x_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
@@ -411,7 +411,7 @@
 	}
 	
 	template<>
-	void mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, const Negate_shift_partitions_vertically_matrix_functor& f){
+	void mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, Negate_shift_partitions_vertically_matrix_functor& f){
 		int steps = f(m.get_partition_y_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
@@ -439,7 +439,7 @@
 		}
 	}
 	template<>
-	void mkt::shift_partitions_vertically<float, MinusOne_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, const MinusOne_shift_partitions_vertically_matrix_functor& f){
+	void mkt::shift_partitions_vertically<float, MinusOne_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, MinusOne_shift_partitions_vertically_matrix_functor& f){
 		int steps = f(m.get_partition_y_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
@@ -467,7 +467,7 @@
 		}
 	}
 	template<>
-	void mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, const Identity_shift_partitions_vertically_matrix_functor& f){
+	void mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, Identity_shift_partitions_vertically_matrix_functor& f){
 		int steps = f(m.get_partition_y_pos());
 		
 		int partitions_in_row = m.get_partitions_in_row();
