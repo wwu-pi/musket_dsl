@@ -122,22 +122,25 @@ class ReductionSkeletonGenerator {
 					const int gpu_elements = a.get_size_gpu();
 					«cppType» gpu_result = «getIdentity(type, ro)»;
 					
-					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result)
+					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
 					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
 						#pragma acc cache(gpu_result)
 						gpu_result = gpu_result + devptr[«Config.var_loop_counter»];
 					}
+					acc_wait(0);
 					local_result = local_result + gpu_result;
 				}
 			«ELSE»
+				acc_set_device_num(0, acc_device_not_host);
 				«cppType»* devptr = a.get_device_pointer(0);
 				const int gpu_elements = a.get_size_gpu();
 				
-				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result)
+				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
 				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
 					#pragma acc cache(local_result)
 					local_result = local_result + devptr[«Config.var_loop_counter»];
 				}
+				acc_wait(0);
 			«ENDIF»
 			
 			«IF Config.processes > 1»
