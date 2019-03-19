@@ -35,12 +35,12 @@ class ShiftSkeletonGenerator {
 
 	def static generateShiftHorizontallySkeletonsFunctionDeclarations() '''
 		template<typename T, typename Functor>
-		void shift_partitions_horizontally(mkt::DMatrix<T>& m, const Functor& f);
+		void shift_partitions_horizontally(mkt::DMatrix<T>& m, Functor& f);
 	'''
 
 	def static generateShiftVerticallySkeletonsFunctionDeclarations() '''		
 		template<typename T, typename Functor>
-		void shift_partitions_vertically(mkt::DMatrix<T>& m, const Functor& f);
+		void shift_partitions_vertically(mkt::DMatrix<T>& m, Functor& f);
 	'''
 	
 	def static generateShiftHorizontallyFunctionDefinitions(Resource resource) {
@@ -78,7 +78,7 @@ class ShiftSkeletonGenerator {
 		«val mpitype = co.calculateCollectionType.MPIType»
 		«val functorName = getFunctorName(se, se.skeleton.param)»
 		template<>
-		void mkt::shift_partitions_horizontally<«type», «functorName»>(mkt::DMatrix<«type»>& m, const «functorName»& f){
+		void mkt::shift_partitions_horizontally<«type», «functorName»>(mkt::DMatrix<«type»>& m, «functorName»& f){
 			int steps = f(m.get_partition_x_pos());
 			
 			int partitions_in_row = m.get_partitions_in_row();
@@ -110,7 +110,7 @@ class ShiftSkeletonGenerator {
 		«val mpitype = co.calculateCollectionType.MPIType»
 		«val functorName = getFunctorName(se, se.skeleton.param)»
 		template<>
-		void mkt::shift_partitions_vertically<«type», «functorName»>(mkt::DMatrix<«type»>& m, const «functorName»& f){
+		void mkt::shift_partitions_vertically<«type», «functorName»>(mkt::DMatrix<«type»>& m, «functorName»& f){
 			int steps = f(m.get_partition_y_pos());
 			
 			int partitions_in_row = m.get_partitions_in_row();
