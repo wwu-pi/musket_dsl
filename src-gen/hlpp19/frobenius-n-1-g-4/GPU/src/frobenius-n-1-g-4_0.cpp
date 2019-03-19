@@ -20,8 +20,7 @@
 	
 	
 	
-
-	
+			
 	const int dim = 32768;
 	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
@@ -30,29 +29,57 @@
 	
 	struct Init_map_index_in_place_matrix_functor{
 		
-		Init_map_index_in_place_matrix_functor() {}
+		Init_map_index_in_place_matrix_functor(){
+		}
 		
-		auto operator()(int x, int y, double& a) const{
+		~Init_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int x, int y, double& a){
 			a = static_cast<double>((((x) + (y)) + 1));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Square_map_in_place_matrix_functor{
 		
-		Square_map_in_place_matrix_functor() {}
+		Square_map_in_place_matrix_functor(){
+		}
 		
-		auto operator()(double& a) const{
+		~Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(double& a){
 			a = ((a) * (a));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -84,9 +111,9 @@
 	int main(int argc, char** argv) {
 		
 		
-				Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
+		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
+		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 				

@@ -25,8 +25,7 @@
 	int mpi_world_size = 0;
 	
 	
-
-	
+			
 	const int dim = 8192;
 	mkt::DMatrix<float> as(2, 8192, 8192, 4096, 4096, 67108864, 16777216, 1.0f, 2, 2, 1, 0, 4096, 0, mkt::DIST, mkt::DIST);
 	mkt::DMatrix<float> bs(2, 8192, 8192, 4096, 4096, 67108864, 16777216, 0.001f, 2, 2, 1, 0, 4096, 0, mkt::DIST, mkt::COPY);
@@ -37,74 +36,147 @@
 	
 	struct InitA_map_index_in_place_matrix_functor{
 		
-		InitA_map_index_in_place_matrix_functor() {}
+		InitA_map_index_in_place_matrix_functor(){
+		}
 		
-		auto operator()(int a, int b, float& x) const{
+		~InitA_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int a, int b, float& x){
 			x = ((static_cast<float>((a)) * 4) + (b));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct InitB_map_index_in_place_matrix_functor{
 		
-		InitB_map_index_in_place_matrix_functor() {}
+		InitB_map_index_in_place_matrix_functor(){
+		}
 		
-		auto operator()(int a, int b, float& x) const{
+		~InitB_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int a, int b, float& x){
 			x = ((static_cast<float>(16) + ((a) * 4)) + (b));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Square_map_in_place_matrix_functor{
 		
-		Square_map_in_place_matrix_functor() {}
+		Square_map_in_place_matrix_functor(){
+		}
 		
-		auto operator()(float& a) const{
+		~Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a){
 			a = ((a) * (a));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Negate_shift_partitions_horizontally_matrix_functor{
 		
-		Negate_shift_partitions_horizontally_matrix_functor() {}
+		Negate_shift_partitions_horizontally_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~Negate_shift_partitions_horizontally_matrix_functor() {}
+		
+		auto operator()(int a){
 			return (a);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Negate_shift_partitions_vertically_matrix_functor{
 		
-		Negate_shift_partitions_vertically_matrix_functor() {}
+		Negate_shift_partitions_vertically_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~Negate_shift_partitions_vertically_matrix_functor() {}
+		
+		auto operator()(int a){
 			return (a);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		
-		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs) {}
+		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs){
+		}
 		
-		auto operator()(int i, int j, float& Cij) const{
+		~DotProduct_map_local_index_in_place_matrix_functor() {}
+		
+		auto operator()(int i, int j, float& Cij){
 			for(int k = 0; ((k) < 4096); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
@@ -115,61 +187,128 @@
 			bs.init(gpu);
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
 		
 		mkt::DeviceMatrix<float> as;
 		mkt::DeviceMatrix<float> bs;
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct MinusOne_shift_partitions_horizontally_matrix_functor{
 		
-		MinusOne_shift_partitions_horizontally_matrix_functor() {}
+		MinusOne_shift_partitions_horizontally_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~MinusOne_shift_partitions_horizontally_matrix_functor() {}
+		
+		auto operator()(int a){
 			return -(1);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct MinusOne_shift_partitions_vertically_matrix_functor{
 		
-		MinusOne_shift_partitions_vertically_matrix_functor() {}
+		MinusOne_shift_partitions_vertically_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~MinusOne_shift_partitions_vertically_matrix_functor() {}
+		
+		auto operator()(int a){
 			return -(1);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Identity_shift_partitions_horizontally_matrix_functor{
 		
-		Identity_shift_partitions_horizontally_matrix_functor() {}
+		Identity_shift_partitions_horizontally_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~Identity_shift_partitions_horizontally_matrix_functor() {}
+		
+		auto operator()(int a){
 			return (a);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Identity_shift_partitions_vertically_matrix_functor{
 		
-		Identity_shift_partitions_vertically_matrix_functor() {}
+		Identity_shift_partitions_vertically_matrix_functor(){
+		}
 		
-		auto operator()(int a) const{
+		~Identity_shift_partitions_vertically_matrix_functor() {}
+		
+		auto operator()(int a){
 			return (a);
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -421,17 +560,17 @@
 		
 		
 		
-				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
-				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
-				Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
-				Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
-				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
-				MinusOne_shift_partitions_horizontally_matrix_functor minusOne_shift_partitions_horizontally_matrix_functor{};
-				MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
-				Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
-				Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
 		
+		InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
+		InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
+		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+		Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
+		Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
+		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
+		MinusOne_shift_partitions_horizontally_matrix_functor minusOne_shift_partitions_horizontally_matrix_functor{};
+		MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
+		Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
+		Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
 		
 		
 				

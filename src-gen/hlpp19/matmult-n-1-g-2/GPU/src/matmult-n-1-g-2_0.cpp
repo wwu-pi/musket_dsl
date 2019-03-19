@@ -20,8 +20,7 @@
 	
 	
 	
-
-	
+			
 	const int dim = 8192;
 	mkt::DMatrix<float> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	mkt::DMatrix<float> bs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
@@ -32,48 +31,93 @@
 	
 	struct InitA_map_index_in_place_matrix_functor{
 		
-		InitA_map_index_in_place_matrix_functor() {}
+		InitA_map_index_in_place_matrix_functor(){
+		}
 		
-		auto operator()(int a, int b, float& x) const{
+		~InitA_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int a, int b, float& x){
 			x = ((static_cast<float>((a)) * 4) + (b));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct InitB_map_index_in_place_matrix_functor{
 		
-		InitB_map_index_in_place_matrix_functor() {}
+		InitB_map_index_in_place_matrix_functor(){
+		}
 		
-		auto operator()(int a, int b, float& x) const{
+		~InitB_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int a, int b, float& x){
 			x = ((static_cast<float>(16) + ((a) * 4)) + (b));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Square_map_in_place_matrix_functor{
 		
-		Square_map_in_place_matrix_functor() {}
+		Square_map_in_place_matrix_functor(){
+		}
 		
-		auto operator()(float& a) const{
+		~Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a){
 			a = ((a) * (a));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		
-		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs) {}
+		DotProduct_map_local_index_in_place_matrix_functor(const mkt::DMatrix<float>& _as, const mkt::DMatrix<float>& _bs) : as(_as), bs(_bs){
+		}
 		
-		auto operator()(int i, int j, float& Cij) const{
+		~DotProduct_map_local_index_in_place_matrix_functor() {}
+		
+		auto operator()(int i, int j, float& Cij){
 			for(int k = 0; ((k) < 8192); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
@@ -84,9 +128,20 @@
 			bs.init(gpu);
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
 		
 		mkt::DeviceMatrix<float> as;
 		mkt::DeviceMatrix<float> bs;
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -160,11 +215,11 @@
 	int main(int argc, char** argv) {
 		
 		
-				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
-				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
-				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
 		
+		InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
+		InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
+		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
 		
 		
 				

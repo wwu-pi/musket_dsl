@@ -25,10 +25,11 @@
 	int mpi_world_size = 0;
 	
 	std::vector<std::mt19937> random_engines;
+	std::array<float*, 2> rns_pointers;
+	std::array<float, 100000> rns;	
 	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
-
-	
+			
 	const int dim = 500000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
@@ -42,14 +43,28 @@
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
-		Init_particles_map_index_in_place_array_functor() {}
+		Init_particles_map_index_in_place_array_functor(std::array<float*, 2> rns_pointers){
+			for(int gpu = 0; gpu < 1; gpu++){
+			 	_rns_pointers[gpu] = rns_pointers[gpu];
+			}
+			_rns_index = 0;
+		}
 		
-		auto operator()(int i, Particle& p) const{
-			curandState_t state;
-			curand_init(clock64(), 0, 0, &state);
-			p.x = (curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.y = (curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.z = (curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+		~Init_particles_map_index_in_place_array_functor() {}
+		
+		auto operator()(int i, Particle& p){
+			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
+			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
+			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
+			local_rns_index = (local_rns_index + 0x165667b1) + (local_rns_index << 5);
+			local_rns_index = (local_rns_index + 0xd3a2646c) ^ (local_rns_index << 9);
+			local_rns_index = (local_rns_index + 0xfd7046c5) + (local_rns_index << 3);
+			local_rns_index = (local_rns_index ^ 0xb55a4f09) ^ (local_rns_index >> 16);
+			local_rns_index = local_rns_index % 100000;
+			_rns_index++;
+			p.x = static_cast<float>(_rns[local_rns_index++] * (1.0f - 0.0f + 0.999999) + 0.0f);
+			p.y = static_cast<float>(_rns[local_rns_index++] * (1.0f - 0.0f + 0.999999) + 0.0f);
+			p.z = static_cast<float>(_rns[local_rns_index++] * (1.0f - 0.0f + 0.999999) + 0.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
@@ -58,15 +73,37 @@
 		}
 	
 		void init(int gpu){
+			_rns = _rns_pointers[gpu];
+			std::random_device rd{};
+			std::mt19937 d_rng_gen(rd());
+			std::uniform_int_distribution<> d_rng_dis(0, 100000);
+			_rns_index = d_rng_dis(d_rng_gen);
+		}
+		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
 		}
 		
 		
+		
+		float* _rns;
+		std::array<float*, 2> _rns_pointers;
+		size_t _rns_index;
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Calc_force_map_index_in_place_array_functor{
 		
-		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP) {}
+		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){
+		}
 		
-		auto operator()(int curIndex, Particle& curParticle) const{
+		~Calc_force_map_index_in_place_array_functor() {}
+		
+		auto operator()(int curIndex, Particle& curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
@@ -112,8 +149,19 @@
 			oldP.init(gpu);
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
 		
 		mkt::DeviceArray<Particle> oldP;
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -134,14 +182,27 @@
 		
 		
 		
-				Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
-				Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
-		
 		random_engines.reserve(24);
 		std::random_device rd;
 		for(size_t counter = 0; counter < 24; ++counter){
 			random_engines.push_back(std::mt19937(rd()));
 		}
+		std::mt19937 d_rng_gen(rd());
+		std::uniform_real_distribution<float> d_rng_dis(0.0f, 1.0f);
+		for(int random_number = 0; random_number < 100000; random_number++){
+			rns[random_number] = d_rng_dis(d_rng_gen);
+		}
+		
+		#pragma omp parallel for
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			float* devptr = static_cast<float*>(acc_malloc(100000 * sizeof(float)));
+			rns_pointers[gpu] = devptr;
+			acc_memcpy_to_device(devptr, rns.data(), 100000 * sizeof(float));
+		}
+		
+		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{rns_pointers};
+		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
 		rand_dist_float_0_0f_1_0f.reserve(24);
 		for(size_t counter = 0; counter < 24; ++counter){
@@ -168,6 +229,11 @@
 		}
 		
 		
+		#pragma omp parallel for
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_free(rns_pointers[gpu]);
+		}
 		MPI_Finalize();
 		return EXIT_SUCCESS;
 		}
