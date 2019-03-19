@@ -91,7 +91,7 @@ class ReductionSkeletonGenerator {
 			val mktType = se.obj.calculateCollectionType
 			val type = mktType.cppType
 			val operator = (se.skeleton.param as ReductionOperation)
-			val operatorName = operator.name
+			val operatorName = operator.name.toString
 			val pair = type -> operatorName
 			if(!typeOperatorPairs.contains(pair)){
 				if(resource.Arrays.size() > 0)
