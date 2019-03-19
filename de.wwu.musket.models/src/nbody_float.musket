@@ -1,10 +1,10 @@
 #config PLATFORM GPU CPU_MPMD
-#config PROCESSES 4
-#config CORES 24
-#config GPUS 4
+#config PROCESSES 1
+#config CORES 4
+#config GPUS 1
 #config MODE release
 
-const int dim = 500000;
+const int dim = 128;
 const int steps = 5;
 
 const float EPSILON = 0.0000000001f;

@@ -207,8 +207,6 @@ class DeviceMatrix {
   std::array<T*, 1> _gpu_data;
 };
 
-template<typename T>
-void print(const std::string& name, const mkt::DMatrix<T>& a);
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -304,7 +302,7 @@ void mkt::DMatrix<T>::update_devices() {
   	#pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
-		void acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
+		acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
 		#pragma acc wait
 	}
 }
@@ -557,8 +555,9 @@ void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		const int gpu_elements = in.get_size_gpu();
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(in_devptr[i]);
 		}
 	}
@@ -579,12 +578,13 @@ void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) 
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		
-		if(in.get_distribution() == mkt::Distribution::DIST){
+		if(in.get_device_distribution() == mkt::Distribution::DIST){
 			row_offset += gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			int row_index = row_offset + (i / columns_local);
 			int column_index = column_offset + (i % columns_local);
 			out_devptr[i] = f(row_index, column_index, in_devptr[i]);
@@ -607,12 +607,13 @@ void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Funct
 		R* out_devptr = out.get_device_pointer(gpu);
 		
 		int row_offset = 0;
-		if(in.get_distribution() == mkt::Distribution::DIST){
+		if(in.get_device_distribution() == mkt::Distribution::DIST){
 			row_offset = gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			int row_index = row_offset + (i / columns_local);
 			int column_index = i % columns_local;
 			out_devptr[i] = f(row_index, column_index, in_devptr[i]);
@@ -628,8 +629,9 @@ void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
 		f.init(gpu);
 		T* devptr = m.get_device_pointer(gpu);
 		const int gpu_elements = m.get_size_gpu();
-		#pragma acc parallel loop deviceptr(devptr) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			f(devptr[i]);
 		}
 	}
@@ -649,12 +651,13 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		f.init(gpu);
 		T* devptr = m.get_device_pointer(gpu);
 		
-		if(m.get_distribution() == mkt::Distribution::DIST){
+		if(m.get_device_distribution() == mkt::Distribution::DIST){
 			row_offset += gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(devptr) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			int row_index = row_offset + (i / columns_local);
 			int column_index = column_offset + (i % columns_local);
 			f(row_index, column_index, devptr[i]);
@@ -677,12 +680,13 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		T* devptr = m.get_device_pointer(gpu);
 
 		int row_offset = 0;
-		if(m.get_distribution() == mkt::Distribution::DIST){
+		if(m.get_device_distribution() == mkt::Distribution::DIST){
 			row_offset = gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(devptr) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			int row_index = row_offset + (i / columns_local);
 			int column_index = i % columns_local;
 			f(row_index, column_index, devptr[i]);
@@ -766,22 +770,6 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 	}
 }
 
-template<typename T>
-void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
-  std::ostringstream stream;
-  stream << name << ": " << std::endl;
-  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
-  	stream << "[";
-  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
-  	  mkt::print<T>(stream, m.get_local_host_data(i, j));
-  	  stream << "; ";
-  	}
-  	mkt::print<T>(stream, m.get_local_host_data(i, m.get_number_of_columns_local() - 1));
-  	stream << "]" << std::endl;
-  }		  
-  stream << std::endl;
-  printf("%s", stream.str().c_str());
-}
 
 
 template<>

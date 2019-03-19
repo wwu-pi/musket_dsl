@@ -1,6 +1,8 @@
 	
 	#include <omp.h>
 	#include <openacc.h>
+	#include <stdlib.h>
+	#include <math.h>
 	#include <array>
 	#include <vector>
 	#include <sstream>
@@ -10,30 +12,74 @@
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
+	//#include <cuda.h>
+	//#include <openacc_curand.h>
 	
 	#include "../include/musket.hpp"
 	#include "../include/frobenius_0.hpp"
 	
 	
 	
-
-	
-	mkt::DMatrix<double> as(0, 32, 32, 32, 32, 1024, 1024, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST);
+			
+	const int dim = 2048;
+	mkt::DMatrix<double> as(0, 2048, 2048, 2048, 2048, 4194304, 4194304, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
 	
 	struct Init_map_index_in_place_matrix_functor{
-		auto operator()(int x, int y, double& a) const{
+		
+		Init_map_index_in_place_matrix_functor(){
+		}
+		
+		~Init_map_index_in_place_matrix_functor() {}
+		
+		auto operator()(int x, int y, double& a){
 			a = static_cast<double>((((x) + (y)) + 1));
 		}
-		
-	};
-	struct Square_map_in_place_matrix_functor{
-		auto operator()(double& a) const{
-			a = ((a) * (a));
+	
+		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
+	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor(){
+		}
+		
+		~Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(double& a){
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -42,14 +88,16 @@
 	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
 		double local_result = 0.0;
 		
+		acc_set_device_num(0, acc_device_not_host);
 		double* devptr = a.get_device_pointer(0);
 		const int gpu_elements = a.get_size_gpu();
 		
-		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 		for(int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result)
 			local_result = local_result + devptr[counter];
 		}
+		acc_wait(0);
 		
 		return local_result;
 	}
@@ -59,20 +107,19 @@
 	int main(int argc, char** argv) {
 		
 		
-				Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
+		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
+		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 				
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
-		as.update_self();
-		mkt::print("as", as);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<double>(as);
+		printf("fn: %.5f\n",(fn));
 		fn = std::sqrt((fn));
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();

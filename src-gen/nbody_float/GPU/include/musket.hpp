@@ -151,8 +151,6 @@ class DeviceArray {
   };
 
 
-template<typename T>
-void print(const std::string& name, const mkt::DArray<T>& a);				
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -375,8 +373,9 @@ void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		const int gpu_elements = in.get_size_gpu();
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(in_devptr[i]);
 		}
 	}
@@ -392,11 +391,12 @@ void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		int gpu_elements = in.get_size_gpu();
-		if(in.get_distribution() == mkt::Distribution::DIST){
+		if(in.get_device_distribution() == mkt::Distribution::DIST){
 			offset += gpu * gpu_elements;
 		}				
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(i + offset, in_devptr[i]);
 		}
 	}
@@ -412,11 +412,12 @@ void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor
 		R* out_devptr = out.get_device_pointer(gpu);
 		int gpu_elements = in.get_size_gpu();
 		int offset = 0;
-		if(in.get_distribution() == mkt::Distribution::DIST){
+		if(in.get_device_distribution() == mkt::Distribution::DIST){
 			offset = gpu * gpu_elements;
 		}
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
+			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(i + offset, in_devptr[i]);
 		}
 	}
@@ -430,8 +431,9 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 	f.init(gpu);
 	T* devptr = a.get_device_pointer(gpu);
 	int gpu_elements = a.get_size_gpu();
-	#pragma acc parallel loop deviceptr(devptr) async(0)
+	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
   	for (int i = 0; i < gpu_elements; ++i) {
+  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
     	f(i, devptr[i]);
   	}
   }
@@ -446,11 +448,12 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 		f.init(gpu);
 		T* devptr = a.get_device_pointer(gpu);
 		int gpu_elements = a.get_size_gpu();
-		if(a.get_distribution() == mkt::Distribution::DIST){
+		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			offset += gpu * gpu_elements;
 		}
-		#pragma acc parallel loop deviceptr(devptr) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 	  	for (int i = 0; i < gpu_elements; ++i) {
+	  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 	    	f(i + offset, devptr[i]);
 	  	}
   	}
@@ -465,11 +468,12 @@ void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
 	T* devptr = a.get_device_pointer(gpu);				
 	int gpu_elements = a.get_size_gpu();
 	int offset = 0;
-	if(a.get_distribution() == mkt::Distribution::DIST){
+	if(a.get_device_distribution() == mkt::Distribution::DIST){
 		offset = gpu * gpu_elements;
 	}
-	#pragma acc parallel loop deviceptr(devptr) async(0)
+	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
   	for (int i = 0; i < gpu_elements; ++i) {
+  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
     	f(i + offset, devptr[i]);
   	}
   }
@@ -559,18 +563,6 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 	}
 }
 
-template<typename T>
-void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
-  std::ostringstream stream;
-  stream << name << ": " << std::endl << "[";
-  for (int i = 0; i < a.get_size() - 1; ++i) {
-  	mkt::print<T>(stream, a[i]);
-  	stream << "; ";
-  }
-  mkt::print<T>(stream, a[a.get_size() - 1]);
-  stream << "]" << std::endl << std::endl;
-  printf("%s", stream.str().c_str());
-}
 
 
 template<>

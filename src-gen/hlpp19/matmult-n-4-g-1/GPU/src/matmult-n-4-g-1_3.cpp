@@ -318,14 +318,16 @@
 		float local_result = 0.0f;
 		float global_result = 0.0f;
 		
+		acc_set_device_num(0, acc_device_not_host);
 		float* devptr = a.get_device_pointer(0);
 		const int gpu_elements = a.get_size_gpu();
 		
-		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result)
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 		for(int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result)
 			local_result = local_result + devptr[counter];
 		}
+		acc_wait(0);
 		
 		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 		return global_result;

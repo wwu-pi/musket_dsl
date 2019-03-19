@@ -1,4 +1,3 @@
 #pragma once
 
-
-extern std::vector<double> as;
+extern mkt::DMatrix<double> as;

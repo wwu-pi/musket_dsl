@@ -34,15 +34,15 @@ class MusketStandaloneGenerator {
 		val models = #[
 //			'../de.wwu.musket.models/src/double.musket'
 //			'../de.wwu.musket.models/src/fold.musket',
-//			'../de.wwu.musket.models/src/frobenius.musket',
+			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
 //			'../de.wwu.musket.models/src/fss.musket',
 //			'../de.wwu.musket.models/src/fss-test.musket'
 //			'../de.wwu.musket.models/src/matmult.musket',
-//			'../de.wwu.musket.models/src/matmult_float.musket',
+			'../de.wwu.musket.models/src/matmult_float.musket',
 //			'../de.wwu.musket.models/src/matmult_float_transposed.musket',
 //			'../de.wwu.musket.models/src/nbody.musket',
-//			'../de.wwu.musket.models/src/nbody_float.musket',
+			'../de.wwu.musket.models/src/nbody_float.musket'
 //			'../de.wwu.musket.models/src/plus-row.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map-function-array-matrix.musket',

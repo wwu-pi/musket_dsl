@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source_folder=${PWD} && \
+
 # remove files and create folder
-rm -rf -- ~/musket-build/nbody_float/GPU/build/ && \
-mkdir ~/musket-build/nbody_float/GPU/build/ && \
+mkdir -p /home/fwrede/musket-build/nbody_float/GPU/out/ && \
+rm -rf -- /home/fwrede/musket-build/nbody_float/GPU/build/benchmark && \
+mkdir -p /home/fwrede/musket-build/nbody_float/GPU/build/benchmark && \
 
 # run cmake
-cd ~/musket-build/nbody_float/GPU/build/ && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark -D CMAKE_CXX_COMPILER=pgc++ ../ && \
+cd /home/fwrede/musket-build/nbody_float/GPU/build/benchmark && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-make nbody_float && \
-cd .. && \
-mkdir -p ~/musket-build/nbody_float/GPU/out/ && \
+make nbody_float_0 && \
+cd ${source_folder} && \
+
 sbatch job.sh

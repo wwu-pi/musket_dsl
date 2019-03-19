@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source_folder=${PWD} && \
+
 # remove files and create folder
-rm -rf -- ~/musket-build/matmult_float/CPU-MPMD/build/ && \
-mkdir ~/musket-build/matmult_float/CPU-MPMD/build/ && \
+mkdir -p /home/fwrede/musket-build/matmult_float/CPU-MPMD/out/ && \
+rm -rf -- /home/fwrede/musket-build/matmult_float/CPU-MPMD/build/benchmark && \
+mkdir -p /home/fwrede/musket-build/matmult_float/CPU-MPMD/build/benchmark && \
 
 # run cmake
-cd ~/musket-build/matmult_float/CPU-MPMD/build/ && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark ../ && \
+cd /home/fwrede/musket-build/matmult_float/CPU-MPMD/build/benchmark && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-make matmult_float && \
-cd .. && \
-mkdir -p ~/musket-build/matmult_float/CPU-MPMD/out/ && \
+make matmult_float_0 && \
+cd ${source_folder} && \
+
 sbatch job.sh

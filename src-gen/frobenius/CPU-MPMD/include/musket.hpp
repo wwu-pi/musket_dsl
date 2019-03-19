@@ -140,8 +140,6 @@ void map_fold(const mkt::DMatrix<T>& m, T& out, const MapFunctor& f_map, const R
 template<typename T, typename R, typename MapFunctor, typename FoldFunctor>
 void map_fold_copy(const mkt::DMatrix<T>& m, T& out, const MapFunctor& f_map, const R& identity, const FoldFunctor& f_fold);
 
-template<typename T>
-void print(const std::string& name, const mkt::DMatrix<T>& a);
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -398,22 +396,6 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 	}
 }
 
-template<typename T>
-void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
-  std::ostringstream stream;
-  stream << name << ": " << std::endl;
-  for (int i = 0; i < m.get_number_of_rows_local(); ++i) {
-  	stream << "[";
-  	for (int j = 0; j < m.get_number_of_columns_local() - 1; ++j) {
-  	  mkt::print<T>(stream, m.get_local(i, j));
-  	  stream << "; ";
-  	}
-  	mkt::print<T>(stream, m.get_local(i, m.get_number_of_columns_local() - 1));
-  	stream << "]" << std::endl;
-  }		  
-  stream << std::endl;
-  printf("%s", stream.str().c_str());
-}
 
 
 template<>

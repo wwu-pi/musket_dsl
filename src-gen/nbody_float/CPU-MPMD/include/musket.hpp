@@ -95,8 +95,6 @@ template<typename T, typename R, typename I, typename MapFunctor, typename FoldF
 void map_fold_copy(const mkt::DArray<T>& a, mkt::DArray<R>& out, const MapFunctor& f_map, const I& identity, const FoldFunctor& f_fold);
 
 
-template<typename T>
-void print(const std::string& name, const mkt::DArray<T>& a);				
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -263,18 +261,6 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 	}
 }
 
-template<typename T>
-void mkt::print(const std::string& name, const mkt::DArray<T>& a) {
-  std::ostringstream stream;
-  stream << name << ": " << std::endl << "[";
-  for (int i = 0; i < a.get_size() - 1; ++i) {
-  	mkt::print<T>(stream, a.get_local(i));
-  	stream << "; ";
-  }
-  mkt::print<T>(stream, a.get_local(a.get_size() - 1));
-  stream << "]" << std::endl << std::endl;
-  printf("%s", stream.str().c_str());
-}
 
 
 template<>

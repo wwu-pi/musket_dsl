@@ -2,8 +2,6 @@
 	#include <omp.h>
 	#include <openacc.h>
 	#include <stdlib.h>
-	// #include "../include/openacc_curand.h"
-	#include "curand.h"
 	#include <math.h>
 	#include <array>
 	#include <vector>
@@ -14,35 +12,37 @@
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
-	
+	//#include <cuda.h>
+	//#include <openacc_curand.h>
 	
 	#include "../include/musket.hpp"
 	#include "../include/nbody_float_0.hpp"
 	
 	
 	
-
-	
+			
+	const int dim = 128;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 4, 4, Particle{}, 1, 0, 0, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 4, 4, Particle{}, 1, 0, 0, mkt::COPY);
-
+	mkt::DArray<Particle> P(0, 128, 128, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 128, 128, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
+	
 
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
-		Init_particles_map_index_in_place_array_functor() {}
+		Init_particles_map_index_in_place_array_functor(){
+		}
+		
+		~Init_particles_map_index_in_place_array_functor() {}
 		
 		auto operator()(int i, Particle& p){
-			
-			curandGenerateUniform(rng, &p.x, 1);
-			//p.x = curand_uniform(&state);
-			p.y = 42;
-			p.z = 42;
+			p.x = ((((i) + 0.1f) / 100.0f) % 1.0f);
+			p.y = ((((i) + 0.2f) / 100.0f) % 1.0f);
+			p.z = ((((i) + 0.3f) / 100.0f) % 1.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
@@ -51,22 +51,33 @@
 		}
 	
 		void init(int gpu){
-			curandCreateGenerator(&rng, CURAND_RNG_PSEUDO_DEFAULT);
-			// curand_init(0, 0, 0, &state);
 		}
-
-		curandGenerator_t rng;
-		//curandState_t state;
+		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	struct Calc_force_map_index_in_place_array_functor{
 		
-		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP) {}
+		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){
+		}
 		
-		auto operator()(int curIndex, Particle& curParticle) {
+		~Calc_force_map_index_in_place_array_functor() {}
+		
+		auto operator()(int curIndex, Particle& curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 4); j++){
+			for(int j = 0; ((j) < 128); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
@@ -79,8 +90,7 @@
 				dy = ((curParticle).y - oldP.get_data_local((j)).y);
 				dz = ((curParticle).z - oldP.get_data_local((j)).z);
 				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
-				r = sqrtf((r2))
-				;
+				r = sqrtf((r2));
 				
 				if(((r) < (EPSILON))){
 				qj_by_r3 = 0.0f;
@@ -109,8 +119,19 @@
 			oldP.init(gpu);
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
 		
 		mkt::DeviceArray<Particle> oldP;
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
 	
 	
@@ -121,20 +142,15 @@
 	int main(int argc, char** argv) {
 		
 		
-	
-
-				Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
-				Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
+		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
+		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
 		
 				
 		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
-		printf("Initial Particle System:\n");
-		oldP.update_self();
-		mkt::print("oldP", oldP);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
@@ -142,9 +158,6 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
-		printf("Final Particle System:\n");
-		oldP.update_self();
-		mkt::print("oldP", oldP);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

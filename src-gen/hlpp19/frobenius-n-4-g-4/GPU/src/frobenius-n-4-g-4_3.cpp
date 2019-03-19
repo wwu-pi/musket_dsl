@@ -101,11 +101,12 @@
 			const int gpu_elements = a.get_size_gpu();
 			double gpu_result = 0.0;
 			
-			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result)
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result) async(0)
 			for (int counter = 0; counter < gpu_elements; ++counter) {
 				#pragma acc cache(gpu_result)
 				gpu_result = gpu_result + devptr[counter];
 			}
+			acc_wait(0);
 			local_result = local_result + gpu_result;
 		}
 		

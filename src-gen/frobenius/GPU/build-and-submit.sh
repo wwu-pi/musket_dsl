@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source_folder=${PWD} && \
+
 # remove files and create folder
-rm -rf -- ~/musket-build/frobenius/GPU/build/ && \
-mkdir ~/musket-build/frobenius/GPU/build/ && \
+mkdir -p /home/fwrede/musket-build/frobenius/GPU/out/ && \
+rm -rf -- /home/fwrede/musket-build/frobenius/GPU/build/benchmark && \
+mkdir -p /home/fwrede/musket-build/frobenius/GPU/build/benchmark && \
 
 # run cmake
-cd ~/musket-build/frobenius/GPU/build/ && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark -D CMAKE_CXX_COMPILER=pgc++ ../ && \
+cd /home/fwrede/musket-build/frobenius/GPU/build/benchmark && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-make frobenius && \
-cd .. && \
-mkdir -p ~/musket-build/frobenius/GPU/out/ && \
+make frobenius_0 && \
+cd ${source_folder} && \
+
 sbatch job.sh

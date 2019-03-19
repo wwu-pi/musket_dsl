@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source_folder=${PWD} && \
+
 # remove files and create folder
-rm -rf -- ~/musket-build/matmult_float/GPU/build/ && \
-mkdir ~/musket-build/matmult_float/GPU/build/ && \
+mkdir -p /home/fwrede/musket-build/matmult_float/GPU/out/ && \
+rm -rf -- /home/fwrede/musket-build/matmult_float/GPU/build/benchmark && \
+mkdir -p /home/fwrede/musket-build/matmult_float/GPU/build/benchmark && \
 
 # run cmake
-cd ~/musket-build/matmult_float/GPU/build/ && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark -D CMAKE_CXX_COMPILER=pgc++ ../ && \
+cd /home/fwrede/musket-build/matmult_float/GPU/build/benchmark && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-make matmult_float && \
-cd .. && \
-mkdir -p ~/musket-build/matmult_float/GPU/out/ && \
+make matmult_float_0 && \
+cd ${source_folder} && \
+
 sbatch job.sh
