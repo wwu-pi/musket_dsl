@@ -20,7 +20,7 @@ float initB(int a, int b, float x){
 }
 
 int negate(int a){
-	return a;
+	return -a;
 }
 
 int identity(int a){
