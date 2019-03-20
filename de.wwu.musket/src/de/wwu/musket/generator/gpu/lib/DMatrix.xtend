@@ -173,6 +173,7 @@ class DMatrix {
 		    	_rows_gpu = number_of_rows_local / «Config.gpus»;
 		    }else if(device_dist == mkt::Distribution::COPY){
 		    	_size_gpu = size_local;
+		    	_rows_gpu = number_of_rows_local;
 		    }
 		    
 		    #pragma omp parallel for
