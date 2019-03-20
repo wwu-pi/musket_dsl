@@ -191,6 +191,7 @@ class TypeHelper {
 		
 		switch exp.value {			
 			case RAND: return exp.params?.head?.calculateType
+			case SQRT: return exp.params?.head?.calculateType
 			case DOUBLE_MIN: return MusketType.DOUBLE
 			case DOUBLE_MAX: return MusketType.DOUBLE
 			case FLOAT_MIN: return MusketType.FLOAT
