@@ -26,8 +26,8 @@
 	
 	
 			
-	const int dim = 32768;
-	mkt::DMatrix<double> as(0, 32768, 32768, 16384, 16384, 1073741824, 268435456, 0.0, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 16384;
+	mkt::DMatrix<double> as(0, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.0, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -134,8 +134,8 @@
 			
 			
 			MPI_Datatype as_partition_type;
-			MPI_Type_vector(16384, 16384, 32768, MPI_DOUBLE, &as_partition_type);
-			MPI_Type_create_resized(as_partition_type, 0, sizeof(double) * 16384, &as_partition_type_resized);
+			MPI_Type_vector(8192, 8192, 16384, MPI_DOUBLE, &as_partition_type);
+			MPI_Type_create_resized(as_partition_type, 0, sizeof(double) * 8192, &as_partition_type_resized);
 			MPI_Type_free(&as_partition_type);
 			MPI_Type_commit(&as_partition_type_resized);
 		

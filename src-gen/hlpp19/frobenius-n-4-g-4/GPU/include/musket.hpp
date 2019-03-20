@@ -798,7 +798,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 template<>
 void mkt::gather<double>(mkt::DMatrix<double>& in, mkt::DMatrix<double>& out, const MPI_Datatype& dt){
 	in.update_self();
-	MPI_Allgatherv(in.get_data(), 268435456, MPI_DOUBLE, out.get_data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 32768, 32769}).data(), dt, MPI_COMM_WORLD);
+	MPI_Allgatherv(in.get_data(), 67108864, MPI_DOUBLE, out.get_data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 16384, 16385}).data(), dt, MPI_COMM_WORLD);
 	out.update_devices();
 }
 	
