@@ -273,8 +273,11 @@ mkt::DMatrix<T>::DMatrix(int pid, int number_of_rows, int number_of_columns, int
 	if(device_dist == mkt::Distribution::DIST){
     	_size_gpu = size_local / 2; // assume even distribution for now
     	_rows_gpu = number_of_rows_local / 2;
+				printf("device dist: dist, _size_gpu: %i, _rows_gpu: %i\n", _size_gpu, _rows_gpu);
     }else if(device_dist == mkt::Distribution::COPY){
     	_size_gpu = size_local;
+			_rows_gpu = number_of_rows_local;
+			printf("device dist: copy, _size_gpu: %i, _rows_gpu: %i\n", _size_gpu, _rows_gpu);
     }
     
     #pragma omp parallel for
@@ -652,6 +655,7 @@ void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
 		f.init(gpu);
 		T* devptr = m.get_device_pointer(gpu);
 		const int gpu_elements = m.get_size_gpu();
+		printf("map_in_place gpu_elements: %i\n", gpu_elements);
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
@@ -676,7 +680,10 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		
 		if(m.get_device_distribution() == mkt::Distribution::DIST){
 			row_offset += gpu * rows_on_gpu;
+			printf("map_index_in_place dist: gpu: %i; row_offset:%i;\n", gpu, row_offset);
 		}
+
+		printf("map_index_in_place: gpu: %i; row_offset:%i; column_offset: %i, columns_local: %i, gpu_elements: %i, rows_on_gpu: %i\n", gpu, row_offset,column_offset, gpu_elements, rows_on_gpu);
 		
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
