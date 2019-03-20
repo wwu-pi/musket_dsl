@@ -1,4 +1,3 @@
-	#include <mpi.h>
 	
 	#include <omp.h>
 	#include <openacc.h>
@@ -19,15 +18,11 @@
 	#include "../include/musket.hpp"
 	#include "../include/frobenius-n-1-g-2_0.hpp"
 	
-	const size_t number_of_processes = 4;
-	const size_t process_id = 0;
-	int mpi_rank = -1;
-	int mpi_world_size = 0;
 	
 	
 			
 	const int dim = 16384;
-	mkt::DMatrix<double> as(0, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.0, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<double> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -92,7 +87,6 @@
 	template<>
 	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
 		double local_result = 0.0;
-		double global_result = 0.0;
 		
 		#pragma omp parallel for reduction(+:local_result)
 		for(int gpu = 0; gpu < 2; ++gpu){
@@ -110,25 +104,13 @@
 			local_result = local_result + gpu_result;
 		}
 		
-		MPI_Allreduce(&local_result, &global_result, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-		return global_result;
+		return local_result;
 	}
 	
 	
 	
 	int main(int argc, char** argv) {
-		MPI_Init(&argc, &argv);
 		
-		MPI_Comm_size(MPI_COMM_WORLD, &mpi_world_size);
-		MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-		
-		if(mpi_world_size != number_of_processes || mpi_rank != process_id){
-			MPI_Finalize();
-			return EXIT_FAILURE;
-		}			
-		
-		
-		printf("Run Frobenius-n-1-g-2\n\n");
 		
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
@@ -136,16 +118,6 @@
 		
 		
 				
-			
-			
-			MPI_Datatype as_partition_type;
-			MPI_Type_vector(8192, 8192, 16384, MPI_DOUBLE, &as_partition_type);
-			MPI_Type_create_resized(as_partition_type, 0, sizeof(double) * 8192, &as_partition_type_resized);
-			MPI_Type_free(&as_partition_type);
-			MPI_Type_commit(&as_partition_type_resized);
-		
-			
-		
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
@@ -159,8 +131,7 @@
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());
-		printf("Processes: %i\n", mpi_world_size);
+		printf("Processes: %i\n", 1);
 		
-		MPI_Finalize();
 		return EXIT_SUCCESS;
 		}

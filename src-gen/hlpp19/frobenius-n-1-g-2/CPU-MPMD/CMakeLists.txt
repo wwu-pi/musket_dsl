@@ -15,25 +15,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 # packages
-find_package(MPI REQUIRED)
-### this is a cmake bug: MPI link flags are preceeded by two whitespaces, which leads to one leading whitespace, which is now an error according to policy CMP0004.
-string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
 
 find_package(OpenMP REQUIRED)
 
 add_executable(frobenius-n-1-g-2_0 ${PROJECT_SOURCE_DIR}/src/frobenius-n-1-g-2_0.cpp)
-target_include_directories(frobenius-n-1-g-2_0 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(frobenius-n-1-g-2_0 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(frobenius-n-1-g-2_0 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(frobenius-n-1-g-2_1 ${PROJECT_SOURCE_DIR}/src/frobenius-n-1-g-2_1.cpp)
-target_include_directories(frobenius-n-1-g-2_1 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(frobenius-n-1-g-2_1 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(frobenius-n-1-g-2_1 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(frobenius-n-1-g-2_2 ${PROJECT_SOURCE_DIR}/src/frobenius-n-1-g-2_2.cpp)
-target_include_directories(frobenius-n-1-g-2_2 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(frobenius-n-1-g-2_2 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(frobenius-n-1-g-2_2 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(frobenius-n-1-g-2_3 ${PROJECT_SOURCE_DIR}/src/frobenius-n-1-g-2_3.cpp)
-target_include_directories(frobenius-n-1-g-2_3 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(frobenius-n-1-g-2_3 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(frobenius-n-1-g-2_3 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
+target_include_directories(frobenius-n-1-g-2_0 PRIVATE ${PROJECT_SOURCE_DIR}/include/)
+target_compile_options(frobenius-n-1-g-2_0 PRIVATE ${OpenMP_CXX_FLAGS})
+target_link_libraries(frobenius-n-1-g-2_0 PRIVATE ${OpenMP_CXX_FLAGS})

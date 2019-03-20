@@ -1,5 +1,5 @@
 #config PLATFORM GPU CPU_MPMD
-#config PROCESSES 4
+#config PROCESSES 1
 #config GPUS 2
 #config CORES 24
 #config MODE release

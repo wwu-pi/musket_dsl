@@ -147,7 +147,7 @@ void print(std::ostringstream& stream, const T& a);
 
 	
 template<typename T>
-void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
+void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
 	
 template<typename T>
 void scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
@@ -399,19 +399,17 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 
 template<>
-void mkt::gather<double>(const mkt::DMatrix<double>& in, mkt::DMatrix<double>& out, const MPI_Datatype& dt){
-	MPI_Allgatherv(in.get_data(), 67108864, MPI_DOUBLE, out.get_data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 16384, 16385}).data(), dt, MPI_COMM_WORLD);
+void mkt::gather<double>(const mkt::DMatrix<double>& in, mkt::DMatrix<double>& out){
+	#pragma omp parallel for  simd
+	for(int counter = 0; counter < in.get_size(); ++counter){
+	  out[counter] = in[counter];
+	}
 }
 	
 template<typename T>
 void mkt::scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
-	int row_offset = out.get_row_offset();
-	int column_offset = out.get_column_offset();
-	#pragma omp parallel for
-	for(int i = 0; i < out.get_number_of_rows_local(); ++i){
-	  #pragma omp simd
-	  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
-	    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
-	  }
+	#pragma omp parallel for  simd
+	for(int counter = 0; counter < in.get_size(); ++counter){
+	  out.set_local(counter, in.get_local(counter));
 	}
 }
