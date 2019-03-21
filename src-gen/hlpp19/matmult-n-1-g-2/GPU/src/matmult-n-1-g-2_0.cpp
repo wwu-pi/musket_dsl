@@ -127,9 +127,17 @@
 		
 				
 		
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < 1); ++i){
 			mkt::map_local_index_in_place<float, DotProduct_map_local_index_in_place_matrix_functor>(cs, dotProduct_map_local_index_in_place_matrix_functor);
+		}
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();

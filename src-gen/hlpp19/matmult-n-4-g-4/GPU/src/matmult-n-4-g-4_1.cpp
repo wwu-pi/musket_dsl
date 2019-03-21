@@ -494,6 +494,10 @@
 			
 		
 		
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(as, negate_shift_partitions_horizontally_matrix_functor);
 		mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(bs, negate_shift_partitions_vertically_matrix_functor);
 		for(int i = 0; ((i) < 2); ++i){
@@ -503,6 +507,10 @@
 		}
 		mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(as, identity_shift_partitions_horizontally_matrix_functor);
 		mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(bs, identity_shift_partitions_vertically_matrix_functor);
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<float>(cs);

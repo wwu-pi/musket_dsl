@@ -148,11 +148,19 @@
 		
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<double>(as);
 		fn = std::sqrt((fn));
+		for(int gpu = 0; gpu < 2; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 		printf("Frobenius norm is %.5f.\n",(fn));

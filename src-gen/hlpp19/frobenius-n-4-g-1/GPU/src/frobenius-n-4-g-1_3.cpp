@@ -142,10 +142,18 @@
 		
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
+		for(int gpu = 0; gpu < 1; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<double>(as);
 		fn = std::sqrt((fn));
+		for(int gpu = 0; gpu < 1; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		
 		
 		MPI_Finalize();

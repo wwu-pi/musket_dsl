@@ -198,10 +198,18 @@
 		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 			mkt::gather<Particle>(P, oldP);
+		}
+		for(int gpu = 0; gpu < 4; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();

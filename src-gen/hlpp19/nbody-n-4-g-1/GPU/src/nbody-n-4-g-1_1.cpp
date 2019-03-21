@@ -223,9 +223,17 @@
 		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
+		for(int gpu = 0; gpu < 1; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 			mkt::gather<Particle>(P, oldP);
+		}
+		for(int gpu = 0; gpu < 1; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
 		}
 		
 		
