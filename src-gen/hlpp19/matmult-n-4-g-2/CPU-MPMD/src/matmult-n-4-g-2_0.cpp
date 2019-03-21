@@ -30,24 +30,6 @@
 	
 
 	
-	struct InitA_map_index_in_place_matrix_functor{
-		auto operator()(int a, int b, float& x) const{
-			x = ((static_cast<float>((a)) * 4) + (b));
-		}
-		
-	};
-	struct InitB_map_index_in_place_matrix_functor{
-		auto operator()(int a, int b, float& x) const{
-			x = ((static_cast<float>(16) + ((a) * 4)) + (b));
-		}
-		
-	};
-	struct Square_map_in_place_matrix_functor{
-		auto operator()(float& a) const{
-			a = ((a) * (a));
-		}
-		
-	};
 	struct Negate_shift_partitions_horizontally_matrix_functor{
 		auto operator()(int a) const{
 			return -((a));
@@ -89,6 +71,12 @@
 	struct Identity_shift_partitions_vertically_matrix_functor{
 		auto operator()(int a) const{
 			return (a);
+		}
+		
+	};
+	struct Square_map_in_place_matrix_functor{
+		auto operator()(float& a) const{
+			a = ((a) * (a));
 		}
 		
 	};
@@ -262,9 +250,6 @@
 		
 		printf("Run Matmult-n-4-g-2\n\n");
 		
-				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
-				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 				Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
 				Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
 				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{};
@@ -272,6 +257,7 @@
 				MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
 				Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
 				Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -297,16 +283,6 @@
 			
 		
 		
-		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
-		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
-		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
-		double fna = 0.0;
-		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
-		fna = std::sqrt((fna));
-		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(bs, square_map_in_place_matrix_functor);
-		double fnb = 0.0;
-		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
-		fnb = std::sqrt((fnb));
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(as, negate_shift_partitions_horizontally_matrix_functor);
 		mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(bs, negate_shift_partitions_vertically_matrix_functor);
