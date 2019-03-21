@@ -678,8 +678,10 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		f.init(gpu);
 		T* devptr = m.get_device_pointer(gpu);
 		
+		int gpu_row_offset = row_offset;
+
 		if(m.get_device_distribution() == mkt::Distribution::DIST){
-			gpu_row_offset = row_offset + (gpu * rows_on_gpu);
+			gpu_row_offset += (gpu * rows_on_gpu);
 			printf("map_index_in_place dist: gpu: %i; row_offset:%i;\n", gpu, row_offset);
 		}
 		printf("map_index_in_place: gpu: %i; row_offset:%i; gpu_row_offset: %i;  column_offset: %i, columns_local: %i, gpu_elements: %i, rows_on_gpu: %i\n", gpu, row_offset, gpu_row_offset,column_offset, gpu_elements, rows_on_gpu);
