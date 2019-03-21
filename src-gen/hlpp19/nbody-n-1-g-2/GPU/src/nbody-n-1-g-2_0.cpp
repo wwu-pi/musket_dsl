@@ -167,6 +167,8 @@
 	
 	int main(int argc, char** argv) {
 		
+		std::array<float*, 2> rns_pointers;
+		std::array<float, 1000> rns;
 		
 		random_engines.reserve(24);
 		std::random_device rd;
@@ -179,8 +181,7 @@
 			rns[random_number] = d_rng_dis(d_rng_gen);
 		}
 		
-		std::array<float*, 2> rns_pointers;
-		std::array<float, 1000> rns;
+		
 
 		
 		for(int gpu = 0; gpu < 2; ++gpu){
