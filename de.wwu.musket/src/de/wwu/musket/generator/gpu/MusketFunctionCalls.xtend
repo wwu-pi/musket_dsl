@@ -169,6 +169,10 @@ class MusketFunctionCalls {
 	'''
 	
 	def static generateTimerStart(MusketFunctionCall mfc, int processId) '''
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_elapsed = 0.0;
@@ -177,6 +181,10 @@ class MusketFunctionCalls {
 	'''
 	
 	def static generateTimerStop(MusketFunctionCall mfc, int processId) '''
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_end = std::chrono::high_resolution_clock::now();
