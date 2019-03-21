@@ -169,7 +169,7 @@
 		
 		std::array<float*, 2> rns_pointers;
 		std::array<float, 1000> rns;
-		
+
 		random_engines.reserve(24);
 		std::random_device rd;
 		for(size_t counter = 0; counter < 24; ++counter){
@@ -189,8 +189,11 @@
 			float* devptr = static_cast<float*>(acc_malloc(1000 * sizeof(float)));
 			rns_pointers[gpu] = devptr;
 			acc_memcpy_to_device(devptr, rns.data(), 1000 * sizeof(float));
+			printf("gpu: %i, devptr: %p\n", gpu, static_cast<void*>(devptr));
 		}
 		
+		printf("rns_pointers[0]: %p, rns_pointers[1]: %p\n", static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]));
+
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{rns_pointers};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
