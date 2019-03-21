@@ -73,7 +73,7 @@
 			std::uniform_int_distribution<> d_rng_dis(0, 1000);
 			_rns_index = d_rng_dis(d_rng_gen);
 
-			printf("init: gpu: %i, _rns: %p, _rns[0]: %p, _rns[1]: %p, _rns_index: %zu\n", gpu, static_cast<void*>(_rns), static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]), _rns_index)
+			printf("init: gpu: %i, _rns: %p, _rns[0]: %p, _rns[1]: %p, _rns_index: %zu\n", gpu, static_cast<void*>(_rns), static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]), _rns_index);
 		}
 		
 		void set_id(int gang, int worker, int vector){
