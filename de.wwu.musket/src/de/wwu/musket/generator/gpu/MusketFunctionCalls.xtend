@@ -125,6 +125,10 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generateRoiStart(MusketFunctionCall mfc, int processId) '''
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		«IF processId == 0»
 			std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		«ENDIF»
@@ -140,6 +144,10 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	 def static generateRoiEnd(MusketFunctionCall mfc, int processId) '''
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		«IF processId == 0»
 			std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 			double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
@@ -193,6 +201,10 @@ class MusketFunctionCalls {
 	'''
 	
 	def static generateTimerResume(MusketFunctionCall mfc, int processId) '''
+		for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+			acc_set_device_num(gpu, acc_device_not_host);
+			acc_wait_all();
+		}
 		«val name = mfc.params.head.generateExpression(null, processId).toCXXIdentifier»
 		«IF processId == 0»
 			«name»_start = std::chrono::high_resolution_clock::now();
