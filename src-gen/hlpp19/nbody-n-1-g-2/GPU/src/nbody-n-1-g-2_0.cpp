@@ -20,8 +20,7 @@
 	
 	
 	std::vector<std::mt19937> random_engines;
-	std::array<float*, 2> rns_pointers;
-	std::array<float, 1000> rns;	
+		
 	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
 			
@@ -73,6 +72,8 @@
 			std::mt19937 d_rng_gen(rd());
 			std::uniform_int_distribution<> d_rng_dis(0, 1000);
 			_rns_index = d_rng_dis(d_rng_gen);
+
+			printf("init: gpu: %i, _rns: %p, _rns[0]: %p, _rns[1]: %p, _rns_index: %zu\n", gpu, static_cast<void*>(_rns), static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]), _rns_index)
 		}
 		
 		void set_id(int gang, int worker, int vector){
@@ -178,7 +179,10 @@
 			rns[random_number] = d_rng_dis(d_rng_gen);
 		}
 		
-		#pragma omp parallel for
+		std::array<float*, 2> rns_pointers;
+		std::array<float, 1000> rns;
+
+		
 		for(int gpu = 0; gpu < 2; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			float* devptr = static_cast<float*>(acc_malloc(1000 * sizeof(float)));
