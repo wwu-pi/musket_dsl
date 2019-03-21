@@ -101,9 +101,7 @@
 				gpu_result = gpu_result + devptr[counter];
 			}
 			acc_wait(0);
-			printf("thread: %i, gpu: %i, local result: %.5f, gpu_result: %.5f;\n", omp_get_thread_num(), gpu, local_result, gpu_result);
 			local_result = local_result + gpu_result;
-			printf("thread: %i, local result: %.5f\n", omp_get_thread_num(),local_result);
 		}
 		
 		return local_result;

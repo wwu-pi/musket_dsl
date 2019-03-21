@@ -384,53 +384,61 @@ void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 template<typename T, typename R, typename Functor>
 void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 	int offset = in.get_offset();
+	int gpu_elements = in.get_size_gpu();
+	
 	//#pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
-		int gpu_elements = in.get_size_gpu();
+		
+		int gpu_offset = offset;
 		if(in.get_device_distribution() == mkt::Distribution::DIST){
-			offset += gpu * gpu_elements;
-		}				
+			gpu_offset += gpu * gpu_elements;
+		}
+		
 		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			out_devptr[i] = f(i + offset, in_devptr[i]);
+			out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
 		}
 	}
 }
 
 template<typename T, typename R, typename Functor>
 void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
+	int gpu_elements = in.get_size_gpu();
+	
 	//#pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
-		int gpu_elements = in.get_size_gpu();
-		int offset = 0;
+		
+		int gpu_offset = 0;
 		if(in.get_device_distribution() == mkt::Distribution::DIST){
-			offset = gpu * gpu_elements;
+			gpu_offset = gpu * gpu_elements;
 		}
 		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			out_devptr[i] = f(i + offset, in_devptr[i]);
+			out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
 		}
 	}
 }
 
 template<typename T, typename Functor>
 void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
+	int gpu_elements = a.get_size_gpu();
+	
   //#pragma omp parallel for
   for(int gpu = 0; gpu < 1; ++gpu){
 	acc_set_device_num(gpu, acc_device_not_host);
 	f.init(gpu);
 	T* devptr = a.get_device_pointer(gpu);
-	int gpu_elements = a.get_size_gpu();
+	
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
   	for (int i = 0; i < gpu_elements; ++i) {
   		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
@@ -441,40 +449,45 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 
 template<typename T, typename Functor>
 void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
-	int offset = a.get_offset();		  
+	int offset = a.get_offset();
+	int gpu_elements = a.get_size_gpu();
+			  
   	//#pragma omp parallel for
   	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
 		T* devptr = a.get_device_pointer(gpu);
-		int gpu_elements = a.get_size_gpu();
+		
+		int gpu_offset = offset;
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
-			offset += gpu * gpu_elements;
+			gpu_offset += gpu * gpu_elements;
 		}
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 	  	for (int i = 0; i < gpu_elements; ++i) {
 	  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-	    	f(i + offset, devptr[i]);
+	    	f(i + gpu_offset, devptr[i]);
 	  	}
   	}
 }
 
 template<typename T, typename Functor>
 void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
+	int gpu_elements = a.get_size_gpu();
+	
   //#pragma omp parallel for
   for(int gpu = 0; gpu < 1; ++gpu){
 	acc_set_device_num(gpu, acc_device_not_host);
 	f.init(gpu);
 	T* devptr = a.get_device_pointer(gpu);				
-	int gpu_elements = a.get_size_gpu();
-	int offset = 0;
+	
+	int gpu_offset = 0;
 	if(a.get_device_distribution() == mkt::Distribution::DIST){
-		offset = gpu * gpu_elements;
+		gpu_offset = gpu * gpu_elements;
 	}
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
   	for (int i = 0; i < gpu_elements; ++i) {
   		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-    	f(i + offset, devptr[i]);
+    	f(i + gpu_offset, devptr[i]);
   	}
   }
 }
