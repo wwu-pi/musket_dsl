@@ -19,12 +19,12 @@
 	
 
 	
-	const int dim = 500000;
+	const int dim = 250000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY);
+	mkt::DArray<Particle> P(0, 250000, 250000, Particle{}, 1, 0, 0, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 250000, 250000, Particle{}, 1, 0, 0, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -48,7 +48,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 500000); j++){
+			for(int j = 0; ((j) < 250000); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;

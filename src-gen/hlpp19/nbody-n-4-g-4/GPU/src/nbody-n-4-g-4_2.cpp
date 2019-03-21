@@ -30,12 +30,12 @@
 	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
 			
-	const int dim = 500000;
+	const int dim = 250000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(2, 500000, 125000, Particle{}, 2, 2, 250000, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(2, 500000, 500000, Particle{}, 1, 2, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<Particle> P(2, 250000, 62500, Particle{}, 2, 2, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(2, 250000, 250000, Particle{}, 1, 2, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -107,7 +107,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 500000); j++){
+			for(int j = 0; ((j) < 250000); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
