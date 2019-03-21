@@ -77,7 +77,7 @@ class FunctorGenerator {
 			
 			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«generateConstructorParameter(f)»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«co.generateCollectionObjectInitListEntry»«ENDFOR»{
 				«IF f.containsRandCall»
-					for(int gpu = 0; gpu < 1; gpu++){
+					for(int gpu = 0; gpu < «Config.gpus»; gpu++){
 					 	_rns_pointers[gpu] = rns_pointers[gpu];
 					}
 					_rns_index = 0;
@@ -95,7 +95,7 @@ class FunctorGenerator {
 					local_rns_index = (local_rns_index + 0xd3a2646c) ^ (local_rns_index << 9);
 					local_rns_index = (local_rns_index + 0xfd7046c5) + (local_rns_index << 3);
 					local_rns_index = (local_rns_index ^ 0xb55a4f09) ^ (local_rns_index >> 16);
-					local_rns_index = local_rns_index % 100000;
+					local_rns_index = local_rns_index % «Config.number_of_random_numbers»;
 					_rns_index++;
 				«ENDIF»
 				«FOR s : f.statement»
