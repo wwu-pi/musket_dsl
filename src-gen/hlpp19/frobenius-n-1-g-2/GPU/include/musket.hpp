@@ -679,16 +679,16 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		T* devptr = m.get_device_pointer(gpu);
 		
 		if(m.get_device_distribution() == mkt::Distribution::DIST){
-			row_offset += gpu * rows_on_gpu;
+			gpu_row_offset = row_offset + (gpu * rows_on_gpu);
 			printf("map_index_in_place dist: gpu: %i; row_offset:%i;\n", gpu, row_offset);
 		}
 
-		printf("map_index_in_place: gpu: %i; row_offset:%i; column_offset: %i, columns_local: %i, gpu_elements: %i, rows_on_gpu: %i\n", gpu, row_offset,column_offset, gpu_elements, rows_on_gpu);
+		printf("map_index_in_place: gpu: %i; row_offset:%i; gpu_row_offset: %i;  column_offset: %i, columns_local: %i, gpu_elements: %i, rows_on_gpu: %i\n", gpu, row_offset, gpu_row_offset,column_offset, gpu_elements, rows_on_gpu);
 		
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		for (int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			int row_index = row_offset + (i / columns_local);
+			int row_index = gpu_row_offset + (i / columns_local);
 			int column_index = column_offset + (i % columns_local);
 			f(row_index, column_index, devptr[i]);
 		}
