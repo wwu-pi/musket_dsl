@@ -192,7 +192,7 @@
 			printf("gpu: %i, devptr: %p\n", gpu, static_cast<void*>(devptr));
 		}
 		
-		printf("rns_pointers[0]: %p, rns_pointers[1]: %p\n", static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]));
+		printf("rns_pointers[0]: %p, rns_pointers[1]: %p\n", static_cast<void*>(rns_pointers[0]), static_cast<void*>(rns_pointers[1]));
 
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{rns_pointers};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
