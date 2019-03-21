@@ -535,15 +535,18 @@ class DMatrix {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
+				int gpu_row_offset = row_offset;
+				int gpu_column_offset = column_offset;
+				
 				if(in.get_device_distribution() == mkt::Distribution::DIST){
-					row_offset += gpu * rows_on_gpu;
+					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = row_offset + (i / columns_local);
-					int column_index = column_offset + (i % columns_local);
+					int row_index = gpu_row_offset + (i / columns_local);
+					int column_index = gpu_column_offset + (i % columns_local);
 					out_devptr[i] = f(row_index, column_index, in_devptr[i]);
 				}
 			}
@@ -563,15 +566,15 @@ class DMatrix {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
-				int row_offset = 0;
+				int gpu_row_offset = 0;
 				if(in.get_device_distribution() == mkt::Distribution::DIST){
-					row_offset = gpu * rows_on_gpu;
+					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = row_offset + (i / columns_local);
+					int row_index = gpu_row_offset + (i / columns_local);
 					int column_index = i % columns_local;
 					out_devptr[i] = f(row_index, column_index, in_devptr[i]);
 				}
@@ -608,15 +611,18 @@ class DMatrix {
 				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 				
+				int gpu_row_offset = row_offset;
+				int gpu_column_offset = column_offset;
+				
 				if(m.get_device_distribution() == mkt::Distribution::DIST){
-					row_offset += gpu * rows_on_gpu;
+					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = row_offset + (i / columns_local);
-					int column_index = column_offset + (i % columns_local);
+					int row_index = gpu_row_offset + (i / columns_local);
+					int column_index = gpu_column_offset + (i % columns_local);
 					f(row_index, column_index, devptr[i]);
 				}
 			}
@@ -636,15 +642,15 @@ class DMatrix {
 				
 				T* devptr = m.get_device_pointer(gpu);
 
-				int row_offset = 0;
+				int gpu_row_offset = 0;
 				if(m.get_device_distribution() == mkt::Distribution::DIST){
-					row_offset = gpu * rows_on_gpu;
+					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 				for (int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = row_offset + (i / columns_local);
+					int row_index = gpu_row_offset + (i / columns_local);
 					int column_index = i % columns_local;
 					f(row_index, column_index, devptr[i]);
 				}
