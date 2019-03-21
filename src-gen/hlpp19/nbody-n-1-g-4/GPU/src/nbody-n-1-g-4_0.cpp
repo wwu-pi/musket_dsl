@@ -39,7 +39,7 @@
 	struct Init_particles_map_index_in_place_array_functor{
 		
 		Init_particles_map_index_in_place_array_functor(std::array<float*, 4> rns_pointers){
-			for(int gpu = 0; gpu < 1; gpu++){
+			for(int gpu = 0; gpu < 4; gpu++){
 			 	_rns_pointers[gpu] = rns_pointers[gpu];
 			}
 			_rns_index = 0;

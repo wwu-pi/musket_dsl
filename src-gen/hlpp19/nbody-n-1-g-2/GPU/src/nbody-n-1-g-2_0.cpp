@@ -20,7 +20,8 @@
 	
 	
 	std::vector<std::mt19937> random_engines;
-		
+	std::array<float*, 2> rns_pointers;
+	std::array<float, 100000> rns;	
 	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
 			
@@ -38,7 +39,7 @@
 	struct Init_particles_map_index_in_place_array_functor{
 		
 		Init_particles_map_index_in_place_array_functor(std::array<float*, 2> rns_pointers){
-			for(int gpu = 0; gpu < 1; gpu++){
+			for(int gpu = 0; gpu < 2; gpu++){
 			 	_rns_pointers[gpu] = rns_pointers[gpu];
 			}
 			_rns_index = 0;
@@ -54,7 +55,7 @@
 			local_rns_index = (local_rns_index + 0xd3a2646c) ^ (local_rns_index << 9);
 			local_rns_index = (local_rns_index + 0xfd7046c5) + (local_rns_index << 3);
 			local_rns_index = (local_rns_index ^ 0xb55a4f09) ^ (local_rns_index >> 16);
-			local_rns_index = local_rns_index % 1000;
+			local_rns_index = local_rns_index % 100000;
 			_rns_index++;
 			p.x = static_cast<float>(_rns[local_rns_index++] * (1.0f - 0.0f + 0.999999) + 0.0f);
 			p.y = static_cast<float>(_rns[local_rns_index++] * (1.0f - 0.0f + 0.999999) + 0.0f);
@@ -70,10 +71,8 @@
 			_rns = _rns_pointers[gpu];
 			std::random_device rd{};
 			std::mt19937 d_rng_gen(rd());
-			std::uniform_int_distribution<> d_rng_dis(0, 1000);
+			std::uniform_int_distribution<> d_rng_dis(0, 100000);
 			_rns_index = d_rng_dis(d_rng_gen);
-
-			printf("init: gpu: %i, _rns: %p, _rns[0]: %p, _rns[1]: %p, _rns_index: %zu\n", gpu, static_cast<void*>(_rns), static_cast<void*>(_rns_pointers[0]), static_cast<void*>(_rns_pointers[1]), _rns_index);
 		}
 		
 		void set_id(int gang, int worker, int vector){
@@ -167,9 +166,7 @@
 	
 	int main(int argc, char** argv) {
 		
-		std::array<float*, 2> rns_pointers;
-		std::array<float, 1000> rns;
-
+		
 		random_engines.reserve(24);
 		std::random_device rd;
 		for(size_t counter = 0; counter < 24; ++counter){
@@ -177,23 +174,18 @@
 		}
 		std::mt19937 d_rng_gen(rd());
 		std::uniform_real_distribution<float> d_rng_dis(0.0f, 1.0f);
-		for(int random_number = 0; random_number < 1000; random_number++){
+		for(int random_number = 0; random_number < 100000; random_number++){
 			rns[random_number] = d_rng_dis(d_rng_gen);
 		}
 		
-		
-
-		
+		#pragma omp parallel for
 		for(int gpu = 0; gpu < 2; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
-			float* devptr = static_cast<float*>(acc_malloc(1000 * sizeof(float)));
+			float* devptr = static_cast<float*>(acc_malloc(100000 * sizeof(float)));
 			rns_pointers[gpu] = devptr;
-			acc_memcpy_to_device(devptr, rns.data(), 1000 * sizeof(float));
-			printf("gpu: %i, devptr: %p\n", gpu, static_cast<void*>(devptr));
+			acc_memcpy_to_device(devptr, rns.data(), 100000 * sizeof(float));
 		}
 		
-		printf("rns_pointers[0]: %p, rns_pointers[1]: %p\n", static_cast<void*>(rns_pointers[0]), static_cast<void*>(rns_pointers[1]));
-
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{rns_pointers};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
