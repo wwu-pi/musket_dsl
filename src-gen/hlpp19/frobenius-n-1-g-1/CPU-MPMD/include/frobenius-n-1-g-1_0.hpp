@@ -1,3 +1,3 @@
 #pragma once
 
-extern mkt::DMatrix<float> as;
+extern mkt::DMatrix<double> as;

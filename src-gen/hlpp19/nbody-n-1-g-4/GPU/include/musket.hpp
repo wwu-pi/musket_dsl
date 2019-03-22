@@ -166,6 +166,7 @@ void scatter(mkt::DArray<T>& in, mkt::DArray<T>& out);
 
 
 
+
 } // namespace mkt
 
 template<typename T>

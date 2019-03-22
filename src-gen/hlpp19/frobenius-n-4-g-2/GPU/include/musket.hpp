@@ -220,29 +220,18 @@ template<typename T>
 void scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
 
 
-template<typename T>
-T reduce_plus(mkt::DMatrix<T>& m);
 
-template<typename T>
-T reduce_multiply(mkt::DMatrix<T>& m);
+template<typename T, typename R, typename Functor>
+R map_reduce_plus(mkt::DMatrix<T>& m, Functor f);
+
+template<typename T, typename R, typename Functor>
+R map_reduce_multiply(mkt::DMatrix<T>& m, Functor f);
 		
-template<typename T>
-T reduce_max(mkt::DMatrix<T>& m);
+template<typename T, typename R, typename Functor>
+R map_reduce_max(mkt::DMatrix<T>& m, Functor f);
 				
-template<typename T>
-T reduce_min(mkt::DMatrix<T>& m);
-
-template<typename T>
-T reduce_plus_copy(mkt::DMatrix<T>& m);
-
-template<typename T>
-T reduce_multiply_copy(mkt::DMatrix<T>& m);
-		
-template<typename T>
-T reduce_max_copy(mkt::DMatrix<T>& m);
-				
-template<typename T>
-T reduce_min_copy(mkt::DMatrix<T>& m);
+template<typename T, typename R, typename Functor>
+R map_reduce_min(mkt::DMatrix<T>& m, Functor f);
 
 
 } // namespace mkt

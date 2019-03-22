@@ -232,17 +232,6 @@ T reduce_max(mkt::DMatrix<T>& m);
 template<typename T>
 T reduce_min(mkt::DMatrix<T>& m);
 
-template<typename T>
-T reduce_plus_copy(mkt::DMatrix<T>& m);
-
-template<typename T>
-T reduce_multiply_copy(mkt::DMatrix<T>& m);
-		
-template<typename T>
-T reduce_max_copy(mkt::DMatrix<T>& m);
-				
-template<typename T>
-T reduce_min_copy(mkt::DMatrix<T>& m);
 
 
 } // namespace mkt

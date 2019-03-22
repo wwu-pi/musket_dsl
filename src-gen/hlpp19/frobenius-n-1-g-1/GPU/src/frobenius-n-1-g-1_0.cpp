@@ -21,8 +21,8 @@
 	
 	
 			
-	const int dim = 32768;
-	mkt::DMatrix<float> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 16384;
+	mkt::DMatrix<double> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -34,8 +34,8 @@
 		
 		~Init_map_index_in_place_matrix_functor() {}
 		
-		auto operator()(int x, int y, float& a){
-			a = static_cast<float>((((x) + (y)) + 1));
+		auto operator()(int x, int y, double& a){
+			a = static_cast<double>((((x) + (y)) + 1));
 		}
 	
 		void init(int gpu){
@@ -54,15 +54,16 @@
 		int _worker;
 		int _vector;
 	};
-	struct Square_map_in_place_matrix_functor{
+	struct Square_map_reduce_matrix_functor{
 		
-		Square_map_in_place_matrix_functor(){
+		Square_map_reduce_matrix_functor(){
 		}
 		
-		~Square_map_in_place_matrix_functor() {}
+		~Square_map_reduce_matrix_functor() {}
 		
-		auto operator()(float& a){
+		auto operator()(double a){
 			a = ((a) * (a));
+			return (a);
 		}
 	
 		void init(int gpu){
@@ -81,21 +82,23 @@
 		int _worker;
 		int _vector;
 	};
+	
 	
 	
 	
 	template<>
-	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
-		float local_result = 0.0f;
+	double mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(mkt::DMatrix<double>& a, Square_map_reduce_matrix_functor f){
+		double local_result = 0.0;
 		
 		acc_set_device_num(0, acc_device_not_host);
-		float* devptr = a.get_device_pointer(0);
+		double* devptr = a.get_device_pointer(0);
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 		for(int counter = 0; counter < gpu_elements; ++counter) {
-			#pragma acc cache(local_result)
-			local_result = local_result + devptr[counter];
+			#pragma acc cache(local_result, devptr[0:gpu_elements])
+			double map_result = f(devptr[counter]);
+			local_result = local_result + map_result;
 		}
 		acc_wait(0);
 		
@@ -109,20 +112,19 @@
 		
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+		Square_map_reduce_matrix_functor square_map_reduce_matrix_functor{};
 		
 		
 				
 		
-		mkt::map_index_in_place<float, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
+		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
-		float fn = 0.0f;
-		fn = mkt::reduce_plus<float>(as);
+		double fn = 0.0;
+		fn = mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(as, square_map_reduce_matrix_functor);
 		fn = std::sqrt((fn));
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);

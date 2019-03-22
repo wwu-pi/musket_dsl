@@ -54,15 +54,16 @@
 		int _worker;
 		int _vector;
 	};
-	struct Square_map_in_place_matrix_functor{
+	struct Square_map_reduce_matrix_functor{
 		
-		Square_map_in_place_matrix_functor(){
+		Square_map_reduce_matrix_functor(){
 		}
 		
-		~Square_map_in_place_matrix_functor() {}
+		~Square_map_reduce_matrix_functor() {}
 		
-		auto operator()(double& a){
+		auto operator()(double a){
 			a = ((a) * (a));
+			return (a);
 		}
 	
 		void init(int gpu){
@@ -84,24 +85,42 @@
 	
 	
 	
+	
 	template<>
-	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
+	double mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(mkt::DMatrix<double>& a, Square_map_reduce_matrix_functor f){
 		double local_result = 0.0;
 		
-		#pragma omp parallel for reduction(+:local_result)
-		for(int gpu = 0; gpu < 4; ++gpu){
-			acc_set_device_num(gpu, acc_device_not_host);
-			double* devptr = a.get_device_pointer(gpu);
+		//#pragma omp parallel for reduction(+:local_result)
+		if(a.get_device_distribution() == mkt::Distribution::DIST){
+			for(int gpu = 0; gpu < 4; ++gpu){
+				acc_set_device_num(gpu, acc_device_not_host);
+				f.init(gpu);
+				double* devptr = a.get_device_pointer(gpu);
+				const int gpu_elements = a.get_size_gpu();
+				double gpu_result = 0.0;
+				
+				#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result) async(0)
+				for (int counter = 0; counter < gpu_elements; ++counter) {
+					#pragma acc cache(gpu_result, devptr[0:gpu_elements])
+					double map_result = f(devptr[counter]);
+					gpu_result = gpu_result + map_result;
+				}
+				acc_wait(0);
+				local_result = local_result + gpu_result;
+			}
+		}else if(a.get_device_distribution() == mkt::Distribution::COPY){
+			acc_set_device_num(0, acc_device_not_host);
+			f.init(0);
+			double* devptr = a.get_device_pointer(0);
 			const int gpu_elements = a.get_size_gpu();
-			double gpu_result = 0.0;
 			
-			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result) async(0)
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 			for (int counter = 0; counter < gpu_elements; ++counter) {
-				#pragma acc cache(gpu_result)
-				gpu_result = gpu_result + devptr[counter];
+				#pragma acc cache(local_result, devptr[0:gpu_elements])
+				double map_result = f(devptr[counter]);
+				local_result = local_result + map_result;
 			}
 			acc_wait(0);
-			local_result = local_result + gpu_result;
 		}
 		
 		return local_result;
@@ -114,7 +133,7 @@
 		
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+		Square_map_reduce_matrix_functor square_map_reduce_matrix_functor{};
 		
 		
 				
@@ -125,9 +144,8 @@
 			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
-		fn = mkt::reduce_plus<double>(as);
+		fn = mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(as, square_map_reduce_matrix_functor);
 		fn = std::sqrt((fn));
 		for(int gpu = 0; gpu < 4; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);

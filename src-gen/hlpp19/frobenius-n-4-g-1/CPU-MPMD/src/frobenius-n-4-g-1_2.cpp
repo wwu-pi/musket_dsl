@@ -34,12 +34,6 @@
 		}
 		
 	};
-	struct Square_map_in_place_matrix_functor{
-		auto operator()(double& a) const{
-			a = ((a) * (a));
-		}
-		
-	};
 	
 	
 	
@@ -60,7 +54,6 @@
 		
 		
 				Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -77,7 +70,6 @@
 		
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
 		fn = std::sqrt((fn));

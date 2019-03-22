@@ -259,29 +259,47 @@
 	
 	
 	
+	
 	template<>
 	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
 		float local_result = 0.0f;
 		float global_result = 0.0f;
 		
 		#pragma omp parallel for reduction(+:local_result)
-		for(int gpu = 0; gpu < 2; ++gpu){
-			acc_set_device_num(gpu, acc_device_not_host);
-			float* devptr = a.get_device_pointer(gpu);
+		if(a.get_device_distribution() == mkt::Distribution::DIST){
+			for(int gpu = 0; gpu < 2; ++gpu){
+				acc_set_device_num(gpu, acc_device_not_host);
+				float* devptr = a.get_device_pointer(gpu);
+				const int gpu_elements = a.get_size_gpu();
+				float gpu_result = 0.0f;
+				
+				#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result) async(0)
+				for (int counter = 0; counter < gpu_elements; ++counter) {
+					#pragma acc cache(gpu_result)
+					gpu_result = gpu_result + devptr[counter];
+				}
+				acc_wait(0);
+				local_result = local_result + gpu_result;
+			}
+		}else if(a.get_device_distribution() == mkt::Distribution::COPY){
+			acc_set_device_num(0, acc_device_not_host);
+			float* devptr = a.get_device_pointer(0);
 			const int gpu_elements = a.get_size_gpu();
-			float gpu_result = 0.0f;
 			
-			#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(+:gpu_result) async(0)
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 			for (int counter = 0; counter < gpu_elements; ++counter) {
-				#pragma acc cache(gpu_result)
-				gpu_result = gpu_result + devptr[counter];
+				#pragma acc cache(local_result)
+				local_result = local_result + devptr[counter];
 			}
 			acc_wait(0);
-			local_result = local_result + gpu_result;
 		}
 		
-		MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-		return global_result;
+		if(a.get_distribution() == mkt::Distribution::DIST){
+			MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+			return global_result;
+		}else if(a.get_distribution() == mkt::Distribution::COPY){
+			return local_result;
+		}
 	}
 	
 	template<>
