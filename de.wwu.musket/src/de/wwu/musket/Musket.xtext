@@ -359,7 +359,7 @@ SkeletonExpression:
 Skeleton:
 	MapSkeletonVariants |
 	FoldSkeletonVariants | 
-	{ReductionSkeleton} 'reduce' '(' param=SkeletonParameterInput ')' |
+	ReductionSkeletonVariants |
 	ZipSkeletonVariants |
 	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
 	{ScatterSkeleton} 'scatter' '(' param=SkeletonParameterInput? ')' |
@@ -380,6 +380,11 @@ FoldSkeletonVariants:
 	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=Expression ',' param=SkeletonParameterInput ')' |
 	{FoldLocalSkeleton} 'foldLocal' '(' identity=Expression ',' param=SkeletonParameterInput ')' |
 	{MapFoldSkeleton} 'mapFold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' mapFunction=SkeletonParameterInput ','  identity=Expression ',' param=SkeletonParameterInput ')'
+;
+
+ReductionSkeletonVariants:
+	{ReductionSkeleton} 'reduce' '(' param=SkeletonParameterInput ')' |
+	{MapReductionSkeleton} 'mapReduce' '(' mapFunction=SkeletonParameterInput ',' param=SkeletonParameterInput ')'
 ;
 
 ZipSkeletonVariants:

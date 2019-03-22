@@ -37,6 +37,7 @@ import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.SkeletonParameterInput
 import de.wwu.musket.musket.MapFoldSkeleton
+import de.wwu.musket.musket.MapReductionSkeleton
 
 /** 
  * Generates the source file of the project.
@@ -94,7 +95,9 @@ class SourceFileGenerator {
 			
 			«generateFoldFunctionDefinitions(resource, processId)»
 			«generateMapFoldFunctionDefinitions(resource, processId)»
+			
 			«generateReductionSkeletonFunctionDefinitions(resource)»
+			«generateMapReductionSkeletonFunctionDefinitions(resource)»
 			
 			«IF resource.ShiftPartitionsHorizontallySkeletons.size() > 0  && Config.processes > 1»
 				«generateShiftHorizontallyFunctionDefinitions(resource)»
@@ -200,6 +203,20 @@ class SourceFileGenerator {
 				}
 			}
 		}
+		
+		//special treatment for mapReduction sekelton
+		for (skeletonExpression : resource.SkeletonExpressions.filter[it.skeleton instanceof MapReductionSkeleton]) {
+			val skel = skeletonExpression.skeleton
+			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
+			val mapFunction = (skel as MapReductionSkeleton).mapFunction.toFunction
+			if (!generated.contains(skelContainerName -> mapFunction.name)) {
+				generated.add(skelContainerName -> mapFunction.name)
+				result +=
+					FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
+						skeletonExpression.obj.collectionContainerName.toString,
+						skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+			}
+		}
 		return result
 	}
 
@@ -222,11 +239,21 @@ class SourceFileGenerator {
 
 				if (skel instanceof MapFoldSkeleton) {
 					val mfunc = (skel as MapFoldSkeleton).mapFunction.toFunction
-					if (!generated.contains(skelContainerName -> mfunc)) {
+					if (!generated.contains(skelContainerName -> mfunc.name)) {
 						generated.add(skelContainerName -> mfunc.name)
 						result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
 					}
 				}
+			}
+		}
+		//special treatment for mapReduction sekelton
+		for (skeletonExpression : resource.SkeletonExpressions.filter[it.skeleton instanceof MapReductionSkeleton]) {
+			val skel = skeletonExpression.skeleton as MapReductionSkeleton
+			val skelContainerName = skel.skeletonName.toString + "_" + skeletonExpression.obj.collectionContainerName.toString
+			val mfunc = (skel as MapReductionSkeleton).mapFunction.toFunction
+			if (!generated.contains(skelContainerName -> mfunc.name)) {
+				generated.add(skelContainerName -> mfunc.name)
+				result += generateFunctorInstantiation(skeletonExpression, skel.mapFunction, processId)
 			}
 		}
 		return result

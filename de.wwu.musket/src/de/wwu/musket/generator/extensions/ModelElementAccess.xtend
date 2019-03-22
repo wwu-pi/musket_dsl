@@ -21,6 +21,7 @@ import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ReductionSkeleton
+import de.wwu.musket.musket.MapReductionSkeleton
 
 /**
  * Helper methods to access certain elements of the model faster.
@@ -102,6 +103,10 @@ class ModelElementAccess {
 	
 	def static ReductionSkeletons(Resource resource) {
 		resource.allContents.filter(ReductionSkeleton).toIterable
+	}
+	
+	def static MapReductionSkeletons(Resource resource) {
+		resource.allContents.filter(MapReductionSkeleton).toIterable
 	}
 	
 	def static SkeletonExpressions(Resource resource) {

@@ -29,6 +29,7 @@ import de.wwu.musket.musket.PlusReduction
 import de.wwu.musket.musket.MultiplyReduction
 import de.wwu.musket.musket.MaxReduction
 import de.wwu.musket.musket.MinReduction
+import de.wwu.musket.musket.MapReductionSkeleton
 
 class ReductionSkeletonGenerator {
 
@@ -44,18 +45,20 @@ class ReductionSkeletonGenerator {
 						
 		template<typename T>
 		T reduce_min(mkt::DArray<T>& a);
+	'''
+	
+	def static generateMapReductionSkeletonArrayFunctionDeclarations() '''
+		template<typename T, typename R, typename Functor>
+		R map_reduce_plus(mkt::DArray<T>& a, Functor f);
 		
-		template<typename T>
-		T reduce_plus_copy(mkt::DArray<T>& a);
-		
-		template<typename T>
-		T reduce_multiply_copy(mkt::DArray<T>& a);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_multiply(mkt::DArray<T>& a, Functor f);
 				
-		template<typename T>
-		T reduce_max_copy(mkt::DArray<T>& a);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_max(mkt::DArray<T>& a, Functor f);
 						
-		template<typename T>
-		T reduce_min_copy(mkt::DArray<T>& a);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_min(mkt::DArray<T>& a, Functor f);
 	'''
 	
 	def static generateReductionSkeletonMatrixFunctionDeclarations() '''
@@ -70,18 +73,20 @@ class ReductionSkeletonGenerator {
 						
 		template<typename T>
 		T reduce_min(mkt::DMatrix<T>& m);
+	'''
+	
+def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
+		template<typename T, typename R, typename Functor>
+		R map_reduce_plus(mkt::DMatrix<T>& m, Functor f);
 		
-		template<typename T>
-		T reduce_plus_copy(mkt::DMatrix<T>& m);
-		
-		template<typename T>
-		T reduce_multiply_copy(mkt::DMatrix<T>& m);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_multiply(mkt::DMatrix<T>& m, Functor f);
 				
-		template<typename T>
-		T reduce_max_copy(mkt::DMatrix<T>& m);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_max(mkt::DMatrix<T>& m, Functor f);
 						
-		template<typename T>
-		T reduce_min_copy(mkt::DMatrix<T>& m);
+		template<typename T, typename R, typename Functor>
+		R map_reduce_min(mkt::DMatrix<T>& m, Functor f);
 	'''
 	
 	def static generateReductionSkeletonFunctionDefinitions(Resource resource) {
@@ -104,6 +109,29 @@ class ReductionSkeletonGenerator {
 		return result
 	}
 	
+	def static generateMapReductionSkeletonFunctionDefinitions(Resource resource) {
+		var result = ''''''
+		var typeOperatorPairs = newArrayList
+		for(se : resource.SkeletonExpressions.filter[it.skeleton instanceof MapReductionSkeleton]){
+			val in_type = se.obj.calculateCollectionType
+			val out_type = (se.skeleton as MapReductionSkeleton).mapFunction.calculateType
+			val inCPPtype = in_type.cppType
+			val outCPPtype = out_type.cppType
+			val functorName = se.getFunctorName((se.skeleton as MapReductionSkeleton).mapFunction)
+			val operator = (se.skeleton.param as ReductionOperation)
+			val operatorName = operator.name.toString
+			val pair = inCPPtype -> outCPPtype -> functorName -> operatorName
+			if(!typeOperatorPairs.contains(pair)){
+				if(resource.Arrays.size() > 0)
+					result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "DArray")
+				if(resource.Matrices.size() > 0)
+					result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "DMatrix")
+				typeOperatorPairs.add(pair)
+			}			
+		}
+		return result
+	}
+	
 	def static generateReductionSkeletonFunctionDefinition(MusketType type, ReductionOperation ro, String dataStructure) '''
 		«val cppType = type.cppType»
 		«val mpiType = type.MPIType»
@@ -116,19 +144,32 @@ class ReductionSkeletonGenerator {
 			
 			«IF Config.gpus > 1»
 				«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
-				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-					acc_set_device_num(gpu, acc_device_not_host);
-					«cppType»* devptr = a.get_device_pointer(gpu);
+				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+						acc_set_device_num(gpu, acc_device_not_host);
+						«cppType»* devptr = a.get_device_pointer(gpu);
+						const int gpu_elements = a.get_size_gpu();
+						«cppType» gpu_result = «getIdentity(type, ro)»;
+						
+						#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
+						for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+							#pragma acc cache(gpu_result)
+							gpu_result = «generateReductionOperation("gpu_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
+						}
+						acc_wait(0);
+						local_result = «generateReductionOperation("local_result", "gpu_result" , ro)»;
+					}
+				}else if(a.get_device_distribution() == mkt::Distribution::COPY){
+					acc_set_device_num(0, acc_device_not_host);
+					«cppType»* devptr = a.get_device_pointer(0);
 					const int gpu_elements = a.get_size_gpu();
-					«cppType» gpu_result = «getIdentity(type, ro)»;
 					
-					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
+					#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
 					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-						#pragma acc cache(gpu_result)
-						gpu_result = gpu_result + devptr[«Config.var_loop_counter»];
+						#pragma acc cache(local_result)
+						local_result = «generateReductionOperation("local_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
 					}
 					acc_wait(0);
-					local_result = local_result + gpu_result;
 				}
 			«ELSE»
 				acc_set_device_num(0, acc_device_not_host);
@@ -137,20 +178,105 @@ class ReductionSkeletonGenerator {
 				
 				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
 				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-					#pragma acc cache(local_result)
-					local_result = local_result + devptr[«Config.var_loop_counter»];
+					#pragma acc cache(local_result)					
+					local_result = «generateReductionOperation("local_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
 				}
 				acc_wait(0);
 			«ENDIF»
 			
 			«IF Config.processes > 1»
-				MPI_Allreduce(&local_result, &global_result, 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
-				return global_result;
+				if(a.get_distribution() == mkt::Distribution::DIST){
+					MPI_Allreduce(&local_result, &global_result, 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+					return global_result;
+				}else if(a.get_distribution() == mkt::Distribution::COPY){
+					return local_result;
+				}
 			«ELSE»
 				return local_result;
 			«ENDIF»
 		}
 	'''
+	
+	def static generateMapReductionSkeletonFunctionDefinition(MusketType input_type, MusketType output_type, ReductionOperation ro, String functorType, String dataStructure) '''
+		«val in_cppType = input_type.cppType»
+		«val out_cppType = output_type.cppType»
+		«val mpiType = output_type.MPIType»
+		template<>
+		«out_cppType» mkt::map_reduce_«ro.getName»<«in_cppType», «out_cppType», «functorType»>(mkt::«dataStructure»<«in_cppType»>& a, «functorType» f){
+			«out_cppType» local_result = «getIdentity(output_type, ro)»;
+			«IF Config.processes > 1»
+				«out_cppType» global_result = «getIdentity(output_type, ro)»;
+			«ENDIF»
+			
+			«IF Config.gpus > 1»
+				//«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
+				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+						acc_set_device_num(gpu, acc_device_not_host);
+						f.init(gpu);
+						«in_cppType»* devptr = a.get_device_pointer(gpu);
+						const int gpu_elements = a.get_size_gpu();
+						«out_cppType» gpu_result = «getIdentity(output_type, ro)»;
+						
+						#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
+						for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+							#pragma acc cache(gpu_result, devptr[0:gpu_elements])
+							«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
+							gpu_result = «generateReductionOperation("gpu_result", "map_result", ro)»;
+						}
+						acc_wait(0);
+						local_result = «generateReductionOperation("local_result", "gpu_result", ro)»;
+					}
+				}else if(a.get_device_distribution() == mkt::Distribution::COPY){
+					acc_set_device_num(0, acc_device_not_host);
+					f.init(0);
+					«in_cppType»* devptr = a.get_device_pointer(0);
+					const int gpu_elements = a.get_size_gpu();
+					
+					#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
+					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+						#pragma acc cache(local_result, devptr[0:gpu_elements])
+						«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
+						local_result = «generateReductionOperation("local_result", "map_result", ro)»;
+					}
+					acc_wait(0);
+				}
+			«ELSE»
+				acc_set_device_num(0, acc_device_not_host);
+				«in_cppType»* devptr = a.get_device_pointer(0);
+				const int gpu_elements = a.get_size_gpu();
+				
+				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
+				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+					#pragma acc cache(local_result, devptr[0:gpu_elements])
+					«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
+					local_result = «generateReductionOperation("local_result", "map_result", ro)»;
+				}
+				acc_wait(0);
+			«ENDIF»
+			
+			«IF Config.processes > 1»
+				if(a.get_distribution() == mkt::Distribution::DIST){
+					MPI_Allreduce(&local_result, &global_result, 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+					return global_result;
+				}else if(a.get_distribution() == mkt::Distribution::COPY){
+					return local_result;
+				}				
+			«ELSE»
+				return local_result;
+			«ENDIF»
+		}
+	'''
+	
+	def static generateReductionOperation(String result, String input, ReductionOperation ro){
+		switch ro{
+			PlusReduction: '''«result» + «input»'''
+			MultiplyReduction: '''«result» * «input»'''
+			MaxReduction: '''«result» > «input» ? «result» : «input»'''
+			MinReduction: '''«result» < «input» ? «result» : «input»'''
+			default: ''''''
+		}
+	}
 	
 	def static getIdentity(MusketType type, ReductionOperation ro) {
 		if(type.type.literal == 'int' && ro instanceof PlusReduction)

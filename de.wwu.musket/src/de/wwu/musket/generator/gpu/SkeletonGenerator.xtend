@@ -47,6 +47,7 @@ import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.SkeletonParameterInput
 import de.wwu.musket.musket.ReductionSkeleton
 import de.wwu.musket.musket.ReductionOperation
+import de.wwu.musket.musket.MapReductionSkeleton
 
 /**
  * Generates the skeleton calls.
@@ -76,6 +77,7 @@ class SkeletonGenerator {
 			FoldLocalSkeleton: '''// TODO: FoldLocalSkeleton''' // this is future work
 			MapFoldSkeleton: generateMapFoldSkeleton(s, s.obj, target, processId)
 			ReductionSkeleton: generateReductionSkeleton(s, s.obj, target, processId)
+			MapReductionSkeleton: generateMapReductionSkeleton(s, s.obj, target, processId)
 			ZipSkeleton:  generateZipSkeleton(s, (target as CollectionObject).name, processId)
 			ZipInPlaceSkeleton:  generateZipInPlaceSkeleton(s, processId)
 			ZipIndexSkeleton: generateZipIndexSkeleton(s, s.obj.type, (target as CollectionObject).name, processId)		
@@ -336,7 +338,13 @@ class SkeletonGenerator {
 
 	def static generateReductionSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
 		«val skel = s.skeleton as ReductionSkeleton»
-		«target.name» = mkt::reduce_«(skel.param as ReductionOperation).getName»«IF co.type.distributionMode == DistributionMode.COPY»_copy«ENDIF»<«co.calculateCollectionType.cppType»>(«co.name»);
+		«target.name» = mkt::reduce_«(skel.param as ReductionOperation).getName»<«co.calculateCollectionType.cppType»>(«co.name»);
+	'''
+
+	def static generateMapReductionSkeleton(SkeletonExpression s, CollectionObject co, Object target, int processId) '''
+		«val skel = s.skeleton as MapReductionSkeleton»
+		«generateSetValuesInFunctor(s, skel.mapFunction)»
+		«target.name» = mkt::map_reduce_«(skel.param as ReductionOperation).getName»<«co.calculateCollectionType.cppType», «skel.mapFunction.calculateType.cppType», «s.getFunctorName(skel.mapFunction)»>(«co.name», «s.getFunctorObjectName(skel.mapFunction)»);
 	'''
 
 

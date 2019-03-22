@@ -109,6 +109,15 @@ class Musket {
 			«ENDIF»
 		«ENDIF»
 		
+		«IF resource.MapReductionSkeletons.size() > 0»			
+			«IF resource.Arrays.size() > 0»
+				«generateMapReductionSkeletonArrayFunctionDeclarations»
+			«ENDIF»
+			«IF resource.Matrices.size() > 0»
+				«generateMapReductionSkeletonMatrixFunctionDeclarations»
+			«ENDIF»
+		«ENDIF»
+		
 		
 		} // namespace mkt
 		

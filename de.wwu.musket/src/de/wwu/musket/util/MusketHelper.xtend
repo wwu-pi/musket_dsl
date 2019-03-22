@@ -48,6 +48,7 @@ import de.wwu.musket.musket.SkeletonExpression
 import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.MusketType.*
 import static extension de.wwu.musket.util.TypeHelper.*
+import de.wwu.musket.musket.MapReductionSkeleton
 
 class MusketHelper {
 	/**
@@ -156,6 +157,7 @@ class MusketHelper {
 			FoldSkeleton: '''fold'''
 			FoldLocalSkeleton: '''fold_local'''
 			MapFoldSkeleton: '''map_fold'''
+			MapReductionSkeleton: '''map_reduce'''
 			ZipSkeleton:  '''zip'''
 			ZipInPlaceSkeleton:  '''zip_in_place'''
 			ZipIndexSkeleton: '''zip_index'''	
@@ -181,6 +183,7 @@ class MusketHelper {
 			FoldSkeleton: 2
 			FoldLocalSkeleton: -1
 			MapFoldSkeleton: if((se.skeleton as MapFoldSkeleton).mapFunction.functionName == f.name) 1 else 2
+			MapReductionSkeleton: if((se.skeleton as MapReductionSkeleton).mapFunction.functionName == f.name) 1 else 2
 			ZipSkeleton: 2
 			ZipInPlaceSkeleton:  2
 			ZipIndexSkeleton: if (se.obj.calculateType.isArray) 3 else 4
