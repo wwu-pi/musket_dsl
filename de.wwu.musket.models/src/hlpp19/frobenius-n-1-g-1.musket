@@ -6,14 +6,14 @@
 
 const int dim = 32768;
 
-matrix<double,dim,dim,dist,dist> as;
+matrix<float,dim,dim,dist,dist> as;
 
-double init(int x, int y, double a){
-	a = (double) (x + y + 1);
+float init(int x, int y, float a){
+	a = (float) (x + y + 1);
 	return a;
 }
 
-double square(double a){
+float square(float a){
 	a = a * a;
 	return a;
 }
@@ -25,7 +25,7 @@ main{
 	mkt::roi_start();
 	
 	as.mapInPlace(square());
-	double fn = as.reduce(plus);
+	float fn = as.reduce(plus);
 	fn = mkt::sqrt(fn);
 	
 	mkt::roi_end();

@@ -22,7 +22,7 @@
 	
 			
 	const int dim = 32768;
-	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -34,8 +34,8 @@
 		
 		~Init_map_index_in_place_matrix_functor() {}
 		
-		auto operator()(int x, int y, double& a){
-			a = static_cast<double>((((x) + (y)) + 1));
+		auto operator()(int x, int y, float& a){
+			a = static_cast<float>((((x) + (y)) + 1));
 		}
 	
 		void init(int gpu){
@@ -61,7 +61,7 @@
 		
 		~Square_map_in_place_matrix_functor() {}
 		
-		auto operator()(double& a){
+		auto operator()(float& a){
 			a = ((a) * (a));
 		}
 	
@@ -85,11 +85,11 @@
 	
 	
 	template<>
-	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
-		double local_result = 0.0;
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
 		
 		acc_set_device_num(0, acc_device_not_host);
-		double* devptr = a.get_device_pointer(0);
+		float* devptr = a.get_device_pointer(0);
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
@@ -114,15 +114,15 @@
 		
 				
 		
-		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
+		mkt::map_index_in_place<float, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
-		double fn = 0.0;
-		fn = mkt::reduce_plus<double>(as);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
+		float fn = 0.0f;
+		fn = mkt::reduce_plus<float>(as);
 		fn = std::sqrt((fn));
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);

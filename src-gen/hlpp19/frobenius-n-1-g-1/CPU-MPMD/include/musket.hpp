@@ -399,7 +399,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 
 template<>
-void mkt::gather<double>(const mkt::DMatrix<double>& in, mkt::DMatrix<double>& out){
+void mkt::gather<float>(const mkt::DMatrix<float>& in, mkt::DMatrix<float>& out){
 	#pragma omp parallel for  simd
 	for(int counter = 0; counter < in.get_size(); ++counter){
 	  out[counter] = in[counter];

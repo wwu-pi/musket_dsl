@@ -18,19 +18,19 @@
 
 	
 	const int dim = 32768;
-	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
 	
 	
 
 	
 	struct Init_map_index_in_place_matrix_functor{
-		auto operator()(int x, int y, double& a) const{
-			a = static_cast<double>((((x) + (y)) + 1));
+		auto operator()(int x, int y, float& a) const{
+			a = static_cast<float>((((x) + (y)) + 1));
 		}
 		
 	};
 	struct Square_map_in_place_matrix_functor{
-		auto operator()(double& a) const{
+		auto operator()(float& a) const{
 			a = ((a) * (a));
 		}
 		
@@ -51,10 +51,10 @@
 		
 				
 		
-		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
+		mkt::map_index_in_place<float, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
-		double fn = 0.0;
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
+		float fn = 0.0f;
 		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
 		fn = std::sqrt((fn));
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
