@@ -24,8 +24,7 @@ main{
 	
 	mkt::roi_start();
 	
-	as.mapInPlace(square());
-	double fn = as.reduce(plus);
+	double fn = as.mapReduce(square(), plus);
 	fn = mkt::sqrt(fn);
 	
 	mkt::roi_end();

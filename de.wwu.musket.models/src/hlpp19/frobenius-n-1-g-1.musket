@@ -4,16 +4,16 @@
 #config CORES 24
 #config MODE release
 
-const int dim = 32768;
+const int dim = 16384;
 
-matrix<float,dim,dim,dist,dist> as;
+matrix<double,dim,dim,dist,dist> as;
 
-float init(int x, int y, float a){
-	a = (float) (x + y + 1);
+double init(int x, int y, double a){
+	a = (double) (x + y + 1);
 	return a;
 }
 
-float square(float a){
+double square(double a){
 	a = a * a;
 	return a;
 }
@@ -24,8 +24,7 @@ main{
 	
 	mkt::roi_start();
 	
-	as.mapInPlace(square());
-	float fn = as.reduce(plus);
+	double fn = as.mapReduce(square(), plus);
 	fn = mkt::sqrt(fn);
 	
 	mkt::roi_end();
