@@ -21,8 +21,11 @@ class DArray {
 		
 		  // CONSTRUCTORS / DESTRUCTOR
 		  DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
-		  ~ DArray(); 
-		   
+		  ~ DArray();
+		  
+		  template<std::size_t N> 
+		  void operator=(const std::array<T, N>& a);
+		  
 		   void update_self();
 		   void update_devices();
 		   void map_pointer();
@@ -140,6 +143,17 @@ class DArray {
 				acc_free(_gpu_data[gpu]);
 			}
 		}
+				
+		template<typename T>
+		template<std::size_t N>
+		void mkt::DArray<T>::operator=(const std::array<T, N>& a) {
+		  acc_wait(0);
+		  #pragma omp parallel for
+		  for(size_t element = 0; element < _size_local; ++element){
+			data[element] = a[element];
+		  }
+		  update_devices();
+		}	
 				
 		template<typename T>
 		void mkt::DArray<T>::update_self() {
