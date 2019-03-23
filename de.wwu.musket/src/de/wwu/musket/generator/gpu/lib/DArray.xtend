@@ -418,7 +418,7 @@ class DArray {
 			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 		  	for (int i = 0; i < gpu_elements; ++i) {
 		  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-		    	f(i, devptr[i]);
+		    	f(devptr[i]);
 		  	}
 		  }
 		}
