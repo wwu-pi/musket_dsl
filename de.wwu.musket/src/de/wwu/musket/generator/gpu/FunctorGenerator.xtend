@@ -68,14 +68,14 @@ class FunctorGenerator {
 	def static generateFunctorInstantiation(SkeletonExpression se, SkeletonParameterInput spi, int processId) '''
 		«val f = spi.toFunction»
 		«val referencedCollections = f.referencedCollections»
-		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«IF f.containsRandCall»«Config.var_rns_pointers»«ENDIF»};
+		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty», «ENDIF»«IF f.containsRandCall»«Config.var_rns_pointers»«ENDIF»};
 	'''
 
 	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
 		«val referencedCollections = f.referencedCollections»
 		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
 			
-			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«generateConstructorParameter(f)»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«co.generateCollectionObjectInitListEntry»«ENDFOR»{
+			«f.name.toFirstUpper»_«skelName»_«coName»_functor(«generateConstructorParameter(f)»)«FOR co : referencedCollections BEFORE " : " SEPARATOR ", "»«co.generateCollectionObjectInitListEntry»«ENDFOR»{
 				«IF f.containsRandCall»
 					for(int gpu = 0; gpu < «Config.gpus»; gpu++){
 					 	_rns_pointers[gpu] = rns_pointers[gpu];
@@ -142,7 +142,7 @@ class FunctorGenerator {
 		};
 	'''
 	
-	def static generateConstructorParameter(Function f)'''«val referencedCollections = f.referencedCollections»«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty»«ENDIF»«IF f.containsRandCall»std::array<float*, «Config.gpus»> «Config.var_rns_pointers»«ENDIF»'''
+	def static generateConstructorParameter(Function f)'''«val referencedCollections = f.referencedCollections»«FOR co : referencedCollections SEPARATOR ", "»«co.generateCollectionObjectConstructorArgument»«ENDFOR»«IF f.containsRandCall && !referencedCollections.empty», «ENDIF»«IF f.containsRandCall»std::array<float*, «Config.gpus»> «Config.var_rns_pointers»«ENDIF»'''
 	
 	def static generateParameter(de.wwu.musket.musket.Parameter p)'''«IF p.const»const «ENDIF»«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)»«IF p.reference»&«ENDIF» «p.name»'''
 	def static generateMember(de.wwu.musket.musket.Parameter p)'''«p.calculateType.cppType.replace("0", p.calculateType.collectionType?.size.toString)» «p.name»'''
