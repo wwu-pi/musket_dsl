@@ -203,69 +203,174 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		«val mpiType = output_type.MPIType»
 		template<>
 		«out_cppType» mkt::map_reduce_«ro.getName»<«in_cppType», «out_cppType», «functorType»>(mkt::«dataStructure»<«in_cppType»>& a, «functorType» f){
-			«out_cppType» local_result = «getIdentity(output_type, ro)»;
-			«IF Config.processes > 1»
-				«out_cppType» global_result = «getIdentity(output_type, ro)»;
+			«IF output_type.array»
+				«generateMapReductionArray(input_type, output_type, ro)»
+			«ELSEIF output_type.struct»
+				«generateMapReductionStruct()»
+			«ELSE»
+				«generateMapReductionScalar(input_type, output_type, ro)»
 			«ENDIF»
-			
-			«IF Config.gpus > 1»
-				//«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
-				if(a.get_device_distribution() == mkt::Distribution::DIST){
-					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-						acc_set_device_num(gpu, acc_device_not_host);
-						f.init(gpu);
-						«in_cppType»* devptr = a.get_device_pointer(gpu);
-						const int gpu_elements = a.get_size_gpu();
-						«out_cppType» gpu_result = «getIdentity(output_type, ro)»;
-						
-						#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
-						for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-							#pragma acc cache(gpu_result, devptr[0:gpu_elements])
-							«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
-							gpu_result = «generateReductionOperation("gpu_result", "map_result", ro)»;
-						}
-						acc_wait(0);
-						local_result = «generateReductionOperation("local_result", "gpu_result", ro)»;
-					}
-				}else if(a.get_device_distribution() == mkt::Distribution::COPY){
-					acc_set_device_num(0, acc_device_not_host);
-					f.init(0);
-					«in_cppType»* devptr = a.get_device_pointer(0);
+		}
+	'''
+	
+	def static generateMapReductionScalar(MusketType input_type, MusketType output_type, ReductionOperation ro)'''
+		«val in_cppType = input_type.cppType»
+		«val out_cppType = output_type.cppType»
+		«val mpiType = output_type.MPIType»
+		«out_cppType» local_result = «getIdentity(output_type, ro)»;
+		«IF Config.processes > 1»
+			«out_cppType» global_result = «getIdentity(output_type, ro)»;
+		«ENDIF»
+		
+		«IF Config.gpus > 1»
+			//«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
+			if(a.get_device_distribution() == mkt::Distribution::DIST){
+				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+					acc_set_device_num(gpu, acc_device_not_host);
+					f.init(gpu);
+					«in_cppType»* devptr = a.get_device_pointer(gpu);
 					const int gpu_elements = a.get_size_gpu();
+					«out_cppType» gpu_result = «getIdentity(output_type, ro)»;
 					
-					#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
+					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
 					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-						#pragma acc cache(local_result, devptr[0:gpu_elements])
+						#pragma acc cache(gpu_result, devptr[0:gpu_elements])
 						«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
-						local_result = «generateReductionOperation("local_result", "map_result", ro)»;
+						gpu_result = «generateReductionOperation("gpu_result", "map_result", ro)»;
 					}
 					acc_wait(0);
+					local_result = «generateReductionOperation("local_result", "gpu_result", ro)»;
 				}
-			«ELSE»
+			}else if(a.get_device_distribution() == mkt::Distribution::COPY){
 				acc_set_device_num(0, acc_device_not_host);
+				f.init(0);
 				«in_cppType»* devptr = a.get_device_pointer(0);
 				const int gpu_elements = a.get_size_gpu();
 				
 				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
-				for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+				for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
 					#pragma acc cache(local_result, devptr[0:gpu_elements])
 					«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
 					local_result = «generateReductionOperation("local_result", "map_result", ro)»;
 				}
 				acc_wait(0);
-			«ENDIF»
+			}
+		«ELSE»
+			acc_set_device_num(0, acc_device_not_host);
+			«in_cppType»* devptr = a.get_device_pointer(0);
+			f.init(0);
+			const int gpu_elements = a.get_size_gpu();
 			
-			«IF Config.processes > 1»
-				if(a.get_distribution() == mkt::Distribution::DIST){
-					MPI_Allreduce(&local_result, &global_result, 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
-					return global_result;
-				}else if(a.get_distribution() == mkt::Distribution::COPY){
-					return local_result;
-				}				
-			«ELSE»
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
+			for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
+				#pragma acc cache(local_result, devptr[0:gpu_elements])
+				«out_cppType» map_result = f(devptr[«Config.var_loop_counter»]);
+				local_result = «generateReductionOperation("local_result", "map_result", ro)»;
+			}
+			acc_wait(0);
+		«ENDIF»
+		
+		«IF Config.processes > 1»
+			if(a.get_distribution() == mkt::Distribution::DIST){
+				MPI_Allreduce(&local_result, &global_result, 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+				return global_result;
+			}else if(a.get_distribution() == mkt::Distribution::COPY){
 				return local_result;
-			«ENDIF»
-		}
+			}				
+		«ELSE»
+			return local_result;
+		«ENDIF»
+	'''
+	
+	def static generateMapReductionArray(MusketType input_type, MusketType output_type, ReductionOperation ro)'''
+		«val in_cppType = input_type.cppType»
+		«val out_cppType = output_type.cppType»
+		«val scalar_out_cppType = output_type.calculateCollectionType.cppType»
+		«val mpiType = output_type.MPIType»
+		«out_cppType» local_result;
+		local_result.fill(«getIdentity(output_type, ro)»);
+		«IF Config.processes > 1»
+			«out_cppType» global_result;
+			global_result.fill(«getIdentity(output_type, ro)»);
+		«ENDIF»
+		
+		«IF Config.gpus > 1»
+			if(a.get_device_distribution() == mkt::Distribution::DIST){
+				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+					acc_set_device_num(gpu, acc_device_not_host);
+					f.init(gpu);
+					«in_cppType»* devptr = a.get_device_pointer(gpu);
+					const int gpu_elements = a.get_size_gpu();
+					«out_cppType» gpu_result;
+					gpu_result.fill(«getIdentity(output_type, ro)»);
+					
+					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) async(0)
+					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+						«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
+						#pragma acc loop reduction(«ro.sign»:element_result)
+						for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
+							«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»]; // this is actually calculate more often than necessary
+							element_result = «generateReductionOperation("element_result", "map_result", ro)»;
+						}
+						gpu_result[«Config.var_loop_counter»] = «generateReductionOperation("gpu_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
+					}
+					acc_wait(0);
+					
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter»){
+						local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "gpu_result[" + Config.var_loop_counter + "]", ro)»;
+					}
+				}
+			}else if(a.get_device_distribution() == mkt::Distribution::COPY){
+				acc_set_device_num(0, acc_device_not_host);
+				f.init(0);
+				«in_cppType»* devptr = a.get_device_pointer(0);
+				const int gpu_elements = a.get_size_gpu();
+				
+				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
+				for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+					«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
+					#pragma acc loop reduction(«ro.sign»:element_result)
+					for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
+						«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»];
+						element_result = «generateReductionOperation("element_result", "map_result", ro)»;
+					}
+					local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
+				}
+				acc_wait(0);
+			}
+		«ELSE»
+			acc_set_device_num(0, acc_device_not_host);
+			f.init(0);
+			«in_cppType»* devptr = a.get_device_pointer(0);
+			const int gpu_elements = a.get_size_gpu();
+			
+			#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
+			for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+				«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
+				#pragma acc loop reduction(«ro.sign»:element_result)
+				for(int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
+					«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»];
+					element_result = «generateReductionOperation("element_result", "map_result", ro)»;
+				}
+				local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
+			}
+			acc_wait(0);
+		«ENDIF»
+		
+		«IF Config.processes > 1»
+			if(a.get_distribution() == mkt::Distribution::DIST){
+				MPI_Allreduce(&local_result.data(), &global_result.data(), 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+				return global_result;
+			}else if(a.get_distribution() == mkt::Distribution::COPY){
+				return local_result;
+			}				
+		«ELSE»
+			return local_result;
+		«ENDIF»
+	'''
+	
+	def static generateMapReductionStruct()'''
+«««	TODO
 	'''
 	
 	def static generateReductionOperation(String result, String input, ReductionOperation ro){

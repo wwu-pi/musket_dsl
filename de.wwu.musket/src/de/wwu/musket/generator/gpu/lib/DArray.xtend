@@ -150,7 +150,7 @@ class DArray {
 		  acc_wait(0);
 		  #pragma omp parallel for
 		  for(size_t element = 0; element < _size_local; ++element){
-			data[element] = a[element];
+			_data[element] = a[element];
 		  }
 		  update_devices();
 		}	
