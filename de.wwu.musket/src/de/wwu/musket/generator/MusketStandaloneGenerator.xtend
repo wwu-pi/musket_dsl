@@ -36,7 +36,7 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/fold.musket',
 			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
-//			'../de.wwu.musket.models/src/fss.musket',
+			'../de.wwu.musket.models/src/fss.musket',
 //			'../de.wwu.musket.models/src/fss-test.musket'
 //			'../de.wwu.musket.models/src/matmult.musket',
 			'../de.wwu.musket.models/src/matmult_float.musket',
@@ -56,7 +56,7 @@ class MusketStandaloneGenerator {
 
 		]
 
-		val benchmark_names = #['frobenius', 'matmult', 'nbody']
+		val benchmark_names = #['frobenius', 'matmult', 'nbody', 'fss']
 		val nodes = #[1, 4, 16]
 		val gpus = #[1, 2, 4]
 
