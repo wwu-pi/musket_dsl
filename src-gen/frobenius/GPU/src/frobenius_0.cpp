@@ -21,8 +21,8 @@
 	
 	
 			
-	const int dim = 2048;
-	mkt::DMatrix<double> as(0, 2048, 2048, 2048, 2048, 4194304, 4194304, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 32768;
+	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -54,15 +54,16 @@
 		int _worker;
 		int _vector;
 	};
-	struct Square_map_in_place_matrix_functor{
+	struct Square_map_reduce_matrix_functor{
 		
-		Square_map_in_place_matrix_functor(){
+		Square_map_reduce_matrix_functor(){
 		}
 		
-		~Square_map_in_place_matrix_functor() {}
+		~Square_map_reduce_matrix_functor() {}
 		
-		auto operator()(double& a){
+		auto operator()(double a){
 			a = ((a) * (a));
+			return (a);
 		}
 	
 		void init(int gpu){
@@ -86,17 +87,18 @@
 	
 	
 	template<>
-	double mkt::reduce_plus<double>(mkt::DMatrix<double>& a){
+	double mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(mkt::DMatrix<double>& a, Square_map_reduce_matrix_functor f){
 		double local_result = 0.0;
 		
 		acc_set_device_num(0, acc_device_not_host);
 		double* devptr = a.get_device_pointer(0);
+		f.init(0);
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
-			#pragma acc cache(local_result)					
-			local_result = local_result + devptr[counter];
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
+			double map_result = f(devptr[counter]);
+			local_result = local_result + map_result;
 		}
 		acc_wait(0);
 		
@@ -110,7 +112,7 @@
 		
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
+		Square_map_reduce_matrix_functor square_map_reduce_matrix_functor{};
 		
 		
 				
@@ -121,10 +123,8 @@
 			acc_wait_all();
 		}
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
-		fn = mkt::reduce_plus<double>(as);
-		printf("fn: %.5f\n",(fn));
+		fn = mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(as, square_map_reduce_matrix_functor);
 		fn = std::sqrt((fn));
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);

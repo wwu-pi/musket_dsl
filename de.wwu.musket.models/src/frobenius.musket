@@ -4,7 +4,7 @@
 #config CORES 4
 #config MODE release
 
-const int dim = 2048;
+const int dim = 32768;
 
 matrix<double,dim,dim,dist,dist> as;
 
@@ -24,9 +24,7 @@ main{
 	//as.show();
 	mkt::roi_start();
 	
-	as.mapInPlace(square());
-	double fn = as.reduce(plus);
-	mkt::print("fn: %.5f\n", fn);
+	double fn = as.mapReduce(square(), plus);
 	fn = mkt::sqrt(fn);
 	
 	mkt::roi_end();

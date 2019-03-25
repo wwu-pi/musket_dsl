@@ -17,8 +17,8 @@
 	
 
 	
-	const int dim = 2048;
-	mkt::DMatrix<double> as(0, 2048, 2048, 2048, 2048, 4194304, 4194304, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	const int dim = 32768;
+	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST);
 	
 	
 
@@ -26,12 +26,6 @@
 	struct Init_map_index_in_place_matrix_functor{
 		auto operator()(int x, int y, double& a) const{
 			a = static_cast<double>((((x) + (y)) + 1));
-		}
-		
-	};
-	struct Square_map_in_place_matrix_functor{
-		auto operator()(double& a) const{
-			a = ((a) * (a));
 		}
 		
 	};
@@ -45,7 +39,6 @@
 		
 		
 				Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
-				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -53,10 +46,8 @@
 		
 		mkt::map_index_in_place<double, Init_map_index_in_place_matrix_functor>(as, init_map_index_in_place_matrix_functor);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		mkt::map_in_place<double, Square_map_in_place_matrix_functor>(as, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
-		printf("fn: %.5f\n",(fn));
 		fn = std::sqrt((fn));
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
