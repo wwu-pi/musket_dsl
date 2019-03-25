@@ -4,7 +4,7 @@
 #config GPUS 4
 #config MODE release
 
-const int dim = 250000;
+const int dim = 500000;
 const int steps = 5;
 
 const float EPSILON = 0.0000000001f;
