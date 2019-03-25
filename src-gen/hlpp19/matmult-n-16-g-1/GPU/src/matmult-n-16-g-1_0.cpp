@@ -26,10 +26,10 @@
 	
 	
 			
-	const int dim = 8192;
-	mkt::DMatrix<float> as(0, 8192, 8192, 2048, 2048, 67108864, 4194304, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 8192, 8192, 2048, 2048, 67108864, 4194304, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 8192, 8192, 2048, 2048, 67108864, 4194304, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 16384;
+	mkt::DMatrix<float> as(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -96,7 +96,7 @@
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
 		auto operator()(int i, int j, float& Cij){
-			for(int k = 0; ((k) < 2048); k++){
+			for(int k = 0; ((k) < 4096); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 		}
@@ -477,18 +477,18 @@
 			
 			
 			MPI_Datatype as_partition_type;
-			MPI_Type_vector(2048, 2048, 8192, MPI_FLOAT, &as_partition_type);
-			MPI_Type_create_resized(as_partition_type, 0, sizeof(float) * 2048, &as_partition_type_resized);
+			MPI_Type_vector(4096, 4096, 16384, MPI_FLOAT, &as_partition_type);
+			MPI_Type_create_resized(as_partition_type, 0, sizeof(float) * 4096, &as_partition_type_resized);
 			MPI_Type_free(&as_partition_type);
 			MPI_Type_commit(&as_partition_type_resized);
 			MPI_Datatype bs_partition_type;
-			MPI_Type_vector(2048, 2048, 8192, MPI_FLOAT, &bs_partition_type);
-			MPI_Type_create_resized(bs_partition_type, 0, sizeof(float) * 2048, &bs_partition_type_resized);
+			MPI_Type_vector(4096, 4096, 16384, MPI_FLOAT, &bs_partition_type);
+			MPI_Type_create_resized(bs_partition_type, 0, sizeof(float) * 4096, &bs_partition_type_resized);
 			MPI_Type_free(&bs_partition_type);
 			MPI_Type_commit(&bs_partition_type_resized);
 			MPI_Datatype cs_partition_type;
-			MPI_Type_vector(2048, 2048, 8192, MPI_FLOAT, &cs_partition_type);
-			MPI_Type_create_resized(cs_partition_type, 0, sizeof(float) * 2048, &cs_partition_type_resized);
+			MPI_Type_vector(4096, 4096, 16384, MPI_FLOAT, &cs_partition_type);
+			MPI_Type_create_resized(cs_partition_type, 0, sizeof(float) * 4096, &cs_partition_type_resized);
 			MPI_Type_free(&cs_partition_type);
 			MPI_Type_commit(&cs_partition_type_resized);
 		

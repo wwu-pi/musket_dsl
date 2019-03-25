@@ -404,7 +404,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 template<>
 void mkt::gather<float>(const mkt::DMatrix<float>& in, mkt::DMatrix<float>& out, const MPI_Datatype& dt){
-	MPI_Allgatherv(in.get_data(), 4194304, MPI_FLOAT, out.get_data(), (std::array<int, 16>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}).data(), (std::array<int, 16>{0, 1, 2, 3, 8192, 8193, 8194, 8195, 16384, 16385, 16386, 16387, 24576, 24577, 24578, 24579}).data(), dt, MPI_COMM_WORLD);
+	MPI_Allgatherv(in.get_data(), 16777216, MPI_FLOAT, out.get_data(), (std::array<int, 16>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}).data(), (std::array<int, 16>{0, 1, 2, 3, 16384, 16385, 16386, 16387, 32768, 32769, 32770, 32771, 49152, 49153, 49154, 49155}).data(), dt, MPI_COMM_WORLD);
 }
 	
 template<typename T>

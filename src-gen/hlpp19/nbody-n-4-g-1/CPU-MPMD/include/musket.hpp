@@ -265,7 +265,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 template<>
 void mkt::gather<Particle>(const mkt::DArray<Particle>& in, mkt::DArray<Particle>& out){
-	MPI_Allgather(in.get_data(), 62500, Particle_mpi_type, out.get_data(), 62500, Particle_mpi_type, MPI_COMM_WORLD);
+	MPI_Allgather(in.get_data(), 125000, Particle_mpi_type, out.get_data(), 125000, Particle_mpi_type, MPI_COMM_WORLD);
 }
 template<typename T>
 void mkt::scatter(const mkt::DArray<T>& in, mkt::DArray<T>& out){

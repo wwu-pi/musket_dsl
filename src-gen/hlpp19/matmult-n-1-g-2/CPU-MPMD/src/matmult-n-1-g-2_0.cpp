@@ -17,18 +17,18 @@
 	
 
 	
-	const int dim = 8192;
-	mkt::DMatrix<float> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> cs(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	const int dim = 16384;
+	mkt::DMatrix<float> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> cs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
 	
 	
 
 	
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		auto operator()(int i, int j, float& Cij) const{
-			for(int k = 0; ((k) < 8192); k++){
-				Cij += (as[(i) * 8192 + (k)] * bs[(k) * 8192 + (j)]);
+			for(int k = 0; ((k) < 16384); k++){
+				Cij += (as[(i) * 16384 + (k)] * bs[(k) * 16384 + (j)]);
 			}
 		}
 		
