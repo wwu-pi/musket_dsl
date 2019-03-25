@@ -97,8 +97,8 @@
 	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
 		float local_result = 0.0f;
 		
-		#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
+			#pragma omp parallel for reduction(+:local_result)
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				float* devptr = a.get_device_pointer(gpu);

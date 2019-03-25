@@ -717,7 +717,6 @@
 	double mkt::map_reduce_plus<Fish, double, Lambda14_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda14_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 4; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -756,7 +755,6 @@
 	double mkt::map_reduce_max<Fish, double, Lambda15_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda15_map_reduce_array_functor f){
 		double local_result = std::numeric_limits<double>::lowest();
 		
-		//#pragma omp parallel for reduction(max:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 4; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -795,7 +793,6 @@
 	double mkt::map_reduce_plus<Fish, double, Lambda16_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda16_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 4; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -885,7 +882,6 @@
 	double mkt::map_reduce_plus<Fish, double, Lambda18_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda18_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 4; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -975,7 +971,6 @@
 	double mkt::map_reduce_max<Fish, double, Lambda20_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda20_map_reduce_array_functor f){
 		double local_result = std::numeric_limits<double>::lowest();
 		
-		//#pragma omp parallel for reduction(max:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 4; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);

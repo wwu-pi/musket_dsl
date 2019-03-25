@@ -723,7 +723,6 @@
 		double local_result = 0.0;
 		double global_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -768,7 +767,6 @@
 		double local_result = std::numeric_limits<double>::lowest();
 		double global_result = std::numeric_limits<double>::lowest();
 		
-		//#pragma omp parallel for reduction(max:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -813,7 +811,6 @@
 		double local_result = 0.0;
 		double global_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -916,7 +913,6 @@
 		double local_result = 0.0;
 		double global_result = 0.0;
 		
-		//#pragma omp parallel for reduction(+:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -1019,7 +1015,6 @@
 		double local_result = std::numeric_limits<double>::lowest();
 		double global_result = std::numeric_limits<double>::lowest();
 		
-		//#pragma omp parallel for reduction(max:local_result)
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			for(int gpu = 0; gpu < 2; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
