@@ -286,6 +286,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		«val in_cppType = input_type.cppType»
 		«val out_cppType = output_type.cppType»
 		«val scalar_out_cppType = output_type.calculateCollectionType.cppType»
+		«val out_size = output_type.size»
 		«val mpiType = output_type.MPIType»
 		«out_cppType» local_result;
 		local_result.fill(«getIdentity(output_type, ro)»);
@@ -305,7 +306,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 					gpu_result.fill(«getIdentity(output_type, ro)»);
 					
 					#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) async(0)
-					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+					for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «out_size»; ++«Config.var_loop_counter») {
 						«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 						#pragma acc loop reduction(«ro.sign»:element_result)
 						for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
@@ -316,7 +317,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 					}
 					acc_wait(0);
 					
-					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter»){
+					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «out_size»; ++«Config.var_loop_counter»){
 						local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "gpu_result[" + Config.var_loop_counter + "]", ro)»;
 					}
 				}
@@ -327,7 +328,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 				const int gpu_elements = a.get_size_gpu();
 				
 				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
-				for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+				for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «out_size»; ++«Config.var_loop_counter») {
 					«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 					#pragma acc loop reduction(«ro.sign»:element_result)
 					for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
@@ -345,7 +346,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 			const int gpu_elements = a.get_size_gpu();
 			
 			#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
-			for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «output_type.size»; ++«Config.var_loop_counter») {
+			for (int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < «out_size»; ++«Config.var_loop_counter») {
 				«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 				#pragma acc loop reduction(«ro.sign»:element_result)
 				for(int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
@@ -359,7 +360,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		
 		«IF Config.processes > 1»
 			if(a.get_distribution() == mkt::Distribution::DIST){
-				MPI_Allreduce(&local_result.data(), &global_result.data(), 1, «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+				MPI_Allreduce(&local_result.data(), &global_result.data(), «out_size», «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
 				return global_result;
 			}else if(a.get_distribution() == mkt::Distribution::COPY){
 				return local_result;
