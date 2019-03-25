@@ -360,7 +360,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		
 		«IF Config.processes > 1»
 			if(a.get_distribution() == mkt::Distribution::DIST){
-				MPI_Allreduce(&local_result.data(), &global_result.data(), «out_size», «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
+				MPI_Allreduce(local_result.data(), global_result.data(), «out_size», «mpiType», «ro.MPIReduction», MPI_COMM_WORLD);
 				return global_result;
 			}else if(a.get_distribution() == mkt::Distribution::COPY){
 				return local_result;
