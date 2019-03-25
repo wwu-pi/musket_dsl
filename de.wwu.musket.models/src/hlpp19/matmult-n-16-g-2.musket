@@ -1,0 +1,80 @@
+#config PLATFORM GPU CPU_MPMD
+#config PROCESSES 16
+#config GPUS 2
+#config CORES 24
+#config MODE release
+
+const int dim = 8192;
+matrix<float,dim,dim,dist,dist> as = {1.0f};
+matrix<float,dim,dim,dist,copy> bs = {0.001f};
+matrix<float,dim,dim,dist,dist> cs = {0.0f};
+
+float initA(int a, int b, float x){
+	x = (float) a * 4 + b;
+	return x;
+}
+
+float initB(int a, int b, float x){
+	x = (float) 16 + a * 4 + b;
+	return x;
+}
+
+int negate(int a){
+	return -a;
+}
+
+int identity(int a){
+	return a;
+}
+
+int minusOne(int a){
+	return -1;
+}
+
+float dotProduct(int i, int j, float Cij){
+	for (int k = 0; k < cs.columnsLocal(); k++) {
+		Cij += as[[i,k]] * bs[[k,j]];
+	}
+
+	return Cij;
+}
+
+float square(float a){
+	a = a * a;
+	return a;
+}
+
+main{
+	//as.mapIndexInPlace(initA());
+	//bs.mapIndexInPlace(initB());
+	
+	//as.mapInPlace(square());
+	//double fna = as.reduce(plus);
+	//fna = mkt::sqrt(fna);
+	
+	//bs.mapInPlace(square());
+	//double fnb = bs.reduce(plus);
+	//fnb = mkt::sqrt(fnb);
+
+	mkt::roi_start();
+	
+	as.shiftPartitionsHorizontally(negate());
+	bs.shiftPartitionsVertically(negate());
+	
+	for (int i = 0; i < as.blocksInRow(); ++i) {
+    	cs.mapLocalIndexInPlace(dotProduct());
+    	as.shiftPartitionsHorizontally(minusOne());
+    	bs.shiftPartitionsVertically(minusOne());
+	}
+
+	as.shiftPartitionsHorizontally(identity());
+	bs.shiftPartitionsVertically(identity());
+	
+	mkt::roi_end();
+
+	cs.mapInPlace(square());
+	double fn = cs.reduce(plus);
+	fn = mkt::sqrt(fn);
+		
+	mkt::print("Frobenius norm of cs is %.5f.\n", fn);
+}
