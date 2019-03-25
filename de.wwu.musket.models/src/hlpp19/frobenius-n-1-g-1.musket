@@ -4,7 +4,7 @@
 #config CORES 24
 #config MODE release
 
-const int dim = 16384;
+const int dim = 32768;
 
 matrix<double,dim,dim,dist,dist> as;
 
