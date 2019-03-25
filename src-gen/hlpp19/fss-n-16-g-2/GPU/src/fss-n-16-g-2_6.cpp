@@ -871,7 +871,7 @@
 					double element_result = 0.0;
 					#pragma acc loop reduction(+:element_result)
 					for (int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-						double map_result = (f(devptr[counter]))[inner_counter]; // this is actually calculate more often than necessary
+						double map_result = (f(devptr[inner_counter]))[counter]; // this is actually calculate more often than necessary
 						element_result = element_result + map_result;
 					}
 					gpu_result[counter] = gpu_result[counter] + element_result;
@@ -893,7 +893,7 @@
 				double element_result = 0.0;
 				#pragma acc loop reduction(+:element_result)
 				for (int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-					double map_result = (f(devptr[counter]))[inner_counter];
+					double map_result = (f(devptr[inner_counter]))[counter];
 					element_result = element_result + map_result;
 				}
 				local_result[counter] = local_result[counter] + element_result;
@@ -973,7 +973,7 @@
 					double element_result = 0.0;
 					#pragma acc loop reduction(+:element_result)
 					for (int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-						double map_result = (f(devptr[counter]))[inner_counter]; // this is actually calculate more often than necessary
+						double map_result = (f(devptr[inner_counter]))[counter]; // this is actually calculate more often than necessary
 						element_result = element_result + map_result;
 					}
 					gpu_result[counter] = gpu_result[counter] + element_result;
@@ -995,7 +995,7 @@
 				double element_result = 0.0;
 				#pragma acc loop reduction(+:element_result)
 				for (int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-					double map_result = (f(devptr[counter]))[inner_counter];
+					double map_result = (f(devptr[inner_counter]))[counter];
 					element_result = element_result + map_result;
 				}
 				local_result[counter] = local_result[counter] + element_result;

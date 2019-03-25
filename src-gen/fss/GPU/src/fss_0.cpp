@@ -38,12 +38,12 @@
 	const double STEP_SIZE_FINAL = 1.0E-5;
 	const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 	const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
-	const int NUMBER_OF_FISH = 512;
+	const int NUMBER_OF_FISH = 1024;
 	const int ITERATIONS = 50;
 	const int DIMENSIONS = 512;
-	mkt::DArray<Fish> population(0, 512, 512, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DArray<Fish> population(0, 1024, 1024, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> instinctive_movement_vector_copy(0, 512, 512, 0.0, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<Fish> weighted_fishes(0, 512, 512, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DArray<Fish> weighted_fishes(0, 1024, 1024, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> barycenter_copy(0, 512, 512, 0.0, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}
@@ -785,7 +785,7 @@
 			double element_result = 0.0;
 			#pragma acc loop reduction(+:element_result)
 			for(int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-				double map_result = (f(devptr[counter]))[inner_counter];
+				double map_result = (f(devptr[inner_counter]))[counter];
 				element_result = element_result + map_result;
 			}
 			local_result[counter] = local_result[counter] + element_result;
@@ -828,7 +828,7 @@
 			double element_result = 0.0;
 			#pragma acc loop reduction(+:element_result)
 			for(int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
-				double map_result = (f(devptr[counter]))[inner_counter];
+				double map_result = (f(devptr[inner_counter]))[counter];
 				element_result = element_result + map_result;
 			}
 			local_result[counter] = local_result[counter] + element_result;

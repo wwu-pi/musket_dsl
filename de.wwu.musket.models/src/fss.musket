@@ -19,7 +19,7 @@ const double STEP_SIZE_FINAL = 0.00001;
 const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
 const double STEP_SIZE_VOLITIVE_FINAL = 0.00002;
 
-const int NUMBER_OF_FISH = 512;
+const int NUMBER_OF_FISH = 1024;
 const int ITERATIONS = 50;
 const int DIMENSIONS = 512;
 
