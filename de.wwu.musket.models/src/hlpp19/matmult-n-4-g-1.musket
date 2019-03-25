@@ -4,7 +4,7 @@
 #config CORES 24
 #config MODE release
 
-const int dim = 8192;
+const int dim = 16384;
 matrix<float,dim,dim,dist,dist> as = {1.0f};
 matrix<float,dim,dim,dist,copy> bs = {0.001f};
 matrix<float,dim,dim,dist,dist> cs = {0.0f};
