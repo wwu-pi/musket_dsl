@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# remove files and create folder
+rm -rf -- build && \
+mkdir build && \
+
+# run cmake
+cd build && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Test -D CMAKE_CXX_COMPILER=pgc++ -D MPI_CXX_COMPILER=/opt/pgi/linux86-64/18.10/mpi/openmpi/bin/mpic++ ../ && \
+
+make frobenius-n-16-g-1_0 && \
+make frobenius-n-16-g-1_1 && \
+make frobenius-n-16-g-1_2 && \
+make frobenius-n-16-g-1_3 && \
+make frobenius-n-16-g-1_4 && \
+make frobenius-n-16-g-1_5 && \
+make frobenius-n-16-g-1_6 && \
+make frobenius-n-16-g-1_7 && \
+make frobenius-n-16-g-1_8 && \
+make frobenius-n-16-g-1_9 && \
+make frobenius-n-16-g-1_10 && \
+make frobenius-n-16-g-1_11 && \
+make frobenius-n-16-g-1_12 && \
+make frobenius-n-16-g-1_13 && \
+make frobenius-n-16-g-1_14 && \
+make frobenius-n-16-g-1_15 && \
+
+mpirun -np 1 bin/frobenius-n-16-g-1_0 : -np 1 bin/frobenius-n-16-g-1_1 : -np 1 bin/frobenius-n-16-g-1_2 : -np 1 bin/frobenius-n-16-g-1_3 : -np 1 bin/frobenius-n-16-g-1_4 : -np 1 bin/frobenius-n-16-g-1_5 : -np 1 bin/frobenius-n-16-g-1_6 : -np 1 bin/frobenius-n-16-g-1_7 : -np 1 bin/frobenius-n-16-g-1_8 : -np 1 bin/frobenius-n-16-g-1_9 : -np 1 bin/frobenius-n-16-g-1_10 : -np 1 bin/frobenius-n-16-g-1_11 : -np 1 bin/frobenius-n-16-g-1_12 : -np 1 bin/frobenius-n-16-g-1_13 : -np 1 bin/frobenius-n-16-g-1_14 : -np 1 bin/frobenius-n-16-g-1_15

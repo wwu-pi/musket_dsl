@@ -520,12 +520,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda42_map_reduce_array_functor{
+	struct Lambda63_map_reduce_array_functor{
 		
-		Lambda42_map_reduce_array_functor(){
+		Lambda63_map_reduce_array_functor(){
 		}
 		
-		~Lambda42_map_reduce_array_functor() {}
+		~Lambda63_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).weight;
@@ -547,12 +547,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda43_map_reduce_array_functor{
+	struct Lambda64_map_reduce_array_functor{
 		
-		Lambda43_map_reduce_array_functor(){
+		Lambda64_map_reduce_array_functor(){
 		}
 		
-		~Lambda43_map_reduce_array_functor() {}
+		~Lambda64_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).fitness_variation;
@@ -574,12 +574,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda44_map_reduce_array_functor{
+	struct Lambda65_map_reduce_array_functor{
 		
-		Lambda44_map_reduce_array_functor(){
+		Lambda65_map_reduce_array_functor(){
 		}
 		
-		~Lambda44_map_reduce_array_functor() {}
+		~Lambda65_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).fitness_variation;
@@ -601,12 +601,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda45_map_reduce_array_functor{
+	struct Lambda66_map_reduce_array_functor{
 		
-		Lambda45_map_reduce_array_functor(){
+		Lambda66_map_reduce_array_functor(){
 		}
 		
-		~Lambda45_map_reduce_array_functor() {}
+		~Lambda66_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).displacement;
@@ -628,12 +628,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda46_map_reduce_array_functor{
+	struct Lambda67_map_reduce_array_functor{
 		
-		Lambda46_map_reduce_array_functor(){
+		Lambda67_map_reduce_array_functor(){
 		}
 		
-		~Lambda46_map_reduce_array_functor() {}
+		~Lambda67_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).weight;
@@ -655,12 +655,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda47_map_reduce_array_functor{
+	struct Lambda68_map_reduce_array_functor{
 		
-		Lambda47_map_reduce_array_functor(){
+		Lambda68_map_reduce_array_functor(){
 		}
 		
-		~Lambda47_map_reduce_array_functor() {}
+		~Lambda68_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).position;
@@ -682,12 +682,12 @@
 		int _worker;
 		int _vector;
 	};
-	struct Lambda48_map_reduce_array_functor{
+	struct Lambda69_map_reduce_array_functor{
 		
-		Lambda48_map_reduce_array_functor(){
+		Lambda69_map_reduce_array_functor(){
 		}
 		
-		~Lambda48_map_reduce_array_functor() {}
+		~Lambda69_map_reduce_array_functor() {}
 		
 		auto operator()(Fish fi){
 			return (fi).best_fitness;
@@ -714,7 +714,7 @@
 	
 	
 	template<>
-	double mkt::map_reduce_plus<Fish, double, Lambda42_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda42_map_reduce_array_functor f){
+	double mkt::map_reduce_plus<Fish, double, Lambda63_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda63_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
 		acc_set_device_num(0, acc_device_not_host);
@@ -733,7 +733,7 @@
 		return local_result;
 	}
 	template<>
-	double mkt::map_reduce_max<Fish, double, Lambda43_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda43_map_reduce_array_functor f){
+	double mkt::map_reduce_max<Fish, double, Lambda64_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda64_map_reduce_array_functor f){
 		double local_result = std::numeric_limits<double>::lowest();
 		
 		acc_set_device_num(0, acc_device_not_host);
@@ -752,7 +752,7 @@
 		return local_result;
 	}
 	template<>
-	double mkt::map_reduce_plus<Fish, double, Lambda44_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda44_map_reduce_array_functor f){
+	double mkt::map_reduce_plus<Fish, double, Lambda65_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda65_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
 		acc_set_device_num(0, acc_device_not_host);
@@ -771,7 +771,7 @@
 		return local_result;
 	}
 	template<>
-	std::array<double,512> mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda45_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda45_map_reduce_array_functor f){
+	std::array<double,512> mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda66_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda66_map_reduce_array_functor f){
 		std::array<double,512> local_result;
 		local_result.fill(0.0);
 		
@@ -795,7 +795,7 @@
 		return local_result;
 	}
 	template<>
-	double mkt::map_reduce_plus<Fish, double, Lambda46_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda46_map_reduce_array_functor f){
+	double mkt::map_reduce_plus<Fish, double, Lambda67_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda67_map_reduce_array_functor f){
 		double local_result = 0.0;
 		
 		acc_set_device_num(0, acc_device_not_host);
@@ -814,7 +814,7 @@
 		return local_result;
 	}
 	template<>
-	std::array<double,512> mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda47_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda47_map_reduce_array_functor f){
+	std::array<double,512> mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda68_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda68_map_reduce_array_functor f){
 		std::array<double,512> local_result;
 		local_result.fill(0.0);
 		
@@ -838,7 +838,7 @@
 		return local_result;
 	}
 	template<>
-	double mkt::map_reduce_max<Fish, double, Lambda48_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda48_map_reduce_array_functor f){
+	double mkt::map_reduce_max<Fish, double, Lambda69_map_reduce_array_functor>(mkt::DArray<Fish>& a, Lambda69_map_reduce_array_functor f){
 		double local_result = std::numeric_limits<double>::lowest();
 		
 		acc_set_device_num(0, acc_device_not_host);
@@ -891,13 +891,13 @@
 		CalcWeightedFish_map_array_functor calcWeightedFish_map_array_functor{};
 		CalcBarycenterMap_map_in_place_array_functor calcBarycenterMap_map_in_place_array_functor{};
 		VolitiveMovement_map_in_place_array_functor volitiveMovement_map_in_place_array_functor{barycenter_copy, rns_pointers};
-		Lambda42_map_reduce_array_functor lambda42_map_reduce_array_functor{};
-		Lambda43_map_reduce_array_functor lambda43_map_reduce_array_functor{};
-		Lambda44_map_reduce_array_functor lambda44_map_reduce_array_functor{};
-		Lambda45_map_reduce_array_functor lambda45_map_reduce_array_functor{};
-		Lambda46_map_reduce_array_functor lambda46_map_reduce_array_functor{};
-		Lambda47_map_reduce_array_functor lambda47_map_reduce_array_functor{};
-		Lambda48_map_reduce_array_functor lambda48_map_reduce_array_functor{};
+		Lambda63_map_reduce_array_functor lambda63_map_reduce_array_functor{};
+		Lambda64_map_reduce_array_functor lambda64_map_reduce_array_functor{};
+		Lambda65_map_reduce_array_functor lambda65_map_reduce_array_functor{};
+		Lambda66_map_reduce_array_functor lambda66_map_reduce_array_functor{};
+		Lambda67_map_reduce_array_functor lambda67_map_reduce_array_functor{};
+		Lambda68_map_reduce_array_functor lambda68_map_reduce_array_functor{};
+		Lambda69_map_reduce_array_functor lambda69_map_reduce_array_functor{};
 		
 		rand_dist_double_INIT_LOWER_BOUND_INIT_UPPER_BOUND.reserve(4);
 		for(size_t counter = 0; counter < 4; ++counter){
@@ -921,7 +921,7 @@
 		double step_size = (STEP_SIZE_INITIAL);
 		double step_size_vol = (STEP_SIZE_VOLITIVE_INITIAL);
 		double sum_weight_last_iteration = 0.0;
-		sum_weight_last_iteration = mkt::map_reduce_plus<Fish, double, Lambda42_map_reduce_array_functor>(population, lambda42_map_reduce_array_functor);
+		sum_weight_last_iteration = mkt::map_reduce_plus<Fish, double, Lambda63_map_reduce_array_functor>(population, lambda63_map_reduce_array_functor);
 		for(int iteration = 0; ((iteration) < (ITERATIONS)); ++iteration){
 			mkt::map_in_place<Fish, EvaluateFitness_map_in_place_array_functor>(population, evaluateFitness_map_in_place_array_functor);
 			if(((iteration) > 0)){
@@ -931,20 +931,20 @@
 			individualMovement_map_in_place_array_functor.step_size = (step_size);
 			mkt::map_in_place<Fish, IndividualMovement_map_in_place_array_functor>(population, individualMovement_map_in_place_array_functor);
 			double max_fitness_variation = 0.0;
-			max_fitness_variation = mkt::map_reduce_max<Fish, double, Lambda43_map_reduce_array_functor>(population, lambda43_map_reduce_array_functor);
+			max_fitness_variation = mkt::map_reduce_max<Fish, double, Lambda64_map_reduce_array_functor>(population, lambda64_map_reduce_array_functor);
 			feeding_map_in_place_array_functor.max_fitness_variation = (max_fitness_variation);
 			mkt::map_in_place<Fish, Feeding_map_in_place_array_functor>(population, feeding_map_in_place_array_functor);
 			double sum_fitness_variation = 0.0;
-			sum_fitness_variation = mkt::map_reduce_plus<Fish, double, Lambda44_map_reduce_array_functor>(population, lambda44_map_reduce_array_functor);
+			sum_fitness_variation = mkt::map_reduce_plus<Fish, double, Lambda65_map_reduce_array_functor>(population, lambda65_map_reduce_array_functor);
 			mkt::map_in_place<Fish, CalcDisplacementMap_map_in_place_array_functor>(population, calcDisplacementMap_map_in_place_array_functor);
-			instinctive_movement_vector_copy = mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda45_map_reduce_array_functor>(population, lambda45_map_reduce_array_functor);
+			instinctive_movement_vector_copy = mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda66_map_reduce_array_functor>(population, lambda66_map_reduce_array_functor);
 			calcInstinctiveMovementVector_map_in_place_array_functor.sum_fitness_variation = (sum_fitness_variation);
 			mkt::map_in_place<double, CalcInstinctiveMovementVector_map_in_place_array_functor>(instinctive_movement_vector_copy, calcInstinctiveMovementVector_map_in_place_array_functor);
 			mkt::map_in_place<Fish, InstinctiveMovement_map_in_place_array_functor>(population, instinctiveMovement_map_in_place_array_functor);
 			double sum_weight = 0.0;
-			sum_weight = mkt::map_reduce_plus<Fish, double, Lambda46_map_reduce_array_functor>(population, lambda46_map_reduce_array_functor);
+			sum_weight = mkt::map_reduce_plus<Fish, double, Lambda67_map_reduce_array_functor>(population, lambda67_map_reduce_array_functor);
 			mkt::map<Fish, Fish, CalcWeightedFish_map_array_functor>(population, weighted_fishes, calcWeightedFish_map_array_functor);
-			barycenter_copy = mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda47_map_reduce_array_functor>(weighted_fishes, lambda47_map_reduce_array_functor);
+			barycenter_copy = mkt::map_reduce_plus<Fish, std::array<double,512>, Lambda68_map_reduce_array_functor>(weighted_fishes, lambda68_map_reduce_array_functor);
 			calcBarycenterMap_map_in_place_array_functor.sum_weight = (sum_weight);
 			mkt::map_in_place<double, CalcBarycenterMap_map_in_place_array_functor>(barycenter_copy, calcBarycenterMap_map_in_place_array_functor);
 			volitiveMovement_map_in_place_array_functor.step_size = (step_size_vol);volitiveMovement_map_in_place_array_functor.sum_weight = (sum_weight);volitiveMovement_map_in_place_array_functor.sum_weight_last_iteration = (sum_weight_last_iteration);
@@ -952,7 +952,7 @@
 			sum_weight_last_iteration = (sum_weight);
 		}
 		double global_best_fitness = 0.0;
-		global_best_fitness = mkt::map_reduce_max<Fish, double, Lambda48_map_reduce_array_functor>(population, lambda48_map_reduce_array_functor);
+		global_best_fitness = mkt::map_reduce_max<Fish, double, Lambda69_map_reduce_array_functor>(population, lambda69_map_reduce_array_functor);
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();

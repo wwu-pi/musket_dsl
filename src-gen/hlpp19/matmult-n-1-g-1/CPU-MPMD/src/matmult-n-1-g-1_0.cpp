@@ -27,7 +27,7 @@
 	
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		auto operator()(int i, int j, float& Cij) const{
-			for(int k = 0; ((k) < 4096); k++){
+			for(int k = 0; ((k) < 2048); k++){
 				Cij += (as[(i) * 8192 + (k)] * bs[(k) * 8192 + (j)]);
 			}
 		}
@@ -56,7 +56,7 @@
 				
 		
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		for(int i = 0; ((i) < 2); ++i){
+		for(int i = 0; ((i) < 4); ++i){
 			mkt::map_local_index_in_place<float, DotProduct_map_local_index_in_place_matrix_functor>(cs, dotProduct_map_local_index_in_place_matrix_functor);
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
