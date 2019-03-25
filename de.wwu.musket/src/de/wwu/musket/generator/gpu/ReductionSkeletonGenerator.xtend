@@ -132,6 +132,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		return result
 	}
 	
+	// TODO also special cases for array and structs
 	def static generateReductionSkeletonFunctionDefinition(MusketType type, ReductionOperation ro, String dataStructure) '''
 		«val cppType = type.cppType»
 		«val mpiType = type.MPIType»
@@ -309,7 +310,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 						«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 						#pragma acc loop reduction(«ro.sign»:element_result)
 						for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
-							«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»]; // this is actually calculate more often than necessary
+							«scalar_out_cppType» map_result = (f(devptr[inner_«Config.var_loop_counter»]))[«Config.var_loop_counter»]; // this is actually calculate more often than necessary
 							element_result = «generateReductionOperation("element_result", "map_result", ro)»;
 						}
 						gpu_result[«Config.var_loop_counter»] = «generateReductionOperation("gpu_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
@@ -331,7 +332,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 					«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 					#pragma acc loop reduction(«ro.sign»:element_result)
 					for (int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
-						«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»];
+						«scalar_out_cppType» map_result = (f(devptr[inner_«Config.var_loop_counter»]))[«Config.var_loop_counter»];
 						element_result = «generateReductionOperation("element_result", "map_result", ro)»;
 					}
 					local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
@@ -349,7 +350,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 				«scalar_out_cppType» element_result = «getIdentity(output_type, ro)»;
 				#pragma acc loop reduction(«ro.sign»:element_result)
 				for(int inner_«Config.var_loop_counter» = 0; inner_«Config.var_loop_counter» < gpu_elements; ++inner_«Config.var_loop_counter») {
-					«scalar_out_cppType» map_result = (f(devptr[«Config.var_loop_counter»]))[inner_«Config.var_loop_counter»];
+					«scalar_out_cppType» map_result = (f(devptr[inner_«Config.var_loop_counter»]))[«Config.var_loop_counter»];
 					element_result = «generateReductionOperation("element_result", "map_result", ro)»;
 				}
 				local_result[«Config.var_loop_counter»] = «generateReductionOperation("local_result[" + Config.var_loop_counter + "]", "element_result", ro)»;
