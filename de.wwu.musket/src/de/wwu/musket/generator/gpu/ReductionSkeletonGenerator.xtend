@@ -142,9 +142,9 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 				«cppType» global_result = «getIdentity(type, ro)»;
 			«ENDIF»
 			
-			«IF Config.gpus > 1»
-				«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
+			«IF Config.gpus > 1»				
 				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
 					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 						acc_set_device_num(gpu, acc_device_not_host);
 						«cppType»* devptr = a.get_device_pointer(gpu);
@@ -223,7 +223,6 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		«ENDIF»
 		
 		«IF Config.gpus > 1»
-			//«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
 			if(a.get_device_distribution() == mkt::Distribution::DIST){
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					acc_set_device_num(gpu, acc_device_not_host);
