@@ -82,12 +82,12 @@ class GatherScatterGenerator {
 				«IF Config.processes > 1»
 					int offset = out.get_offset();
 					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
-					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
+					for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < out.get_size_local(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(offset + «Config.var_loop_counter»));
 					}
 				«ELSE»
 					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
-					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
+					for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
 					}
 				«ENDIF»
@@ -103,7 +103,7 @@ class GatherScatterGenerator {
 					int row_offset = out.get_row_offset();
 					int column_offset = out.get_column_offset();
 					#pragma omp«IF Config.cores > 1» parallel for«ELSE» simd«ENDIF»
-					for(int i = 0; i < out.get_number_of_rows_local(); ++i){
+					for(unsigned int i = 0; i < out.get_number_of_rows_local(); ++i){
 					  «IF Config.cores > 1»#pragma omp simd«ENDIF»
 					  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
 					    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
@@ -111,7 +111,7 @@ class GatherScatterGenerator {
 					}
 				«ELSE»
 					#pragma omp«IF Config.cores > 1» parallel for «ENDIF» simd
-					for(int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
+					for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < in.get_size(); ++«Config.var_loop_counter»){
 					  out.set_local(«Config.var_loop_counter», in.get_local(«Config.var_loop_counter»));
 					}
 				«ENDIF»

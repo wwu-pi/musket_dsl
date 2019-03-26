@@ -192,7 +192,7 @@ class DMatrix {
 				
 				// init values
 				#pragma acc parallel loop deviceptr(devptr) async(0)
-				for(int i = 0; i < _size_gpu; ++i){
+				for(unsigned int i = 0; i < _size_gpu; ++i){
 				  devptr[i] = init_value;
 				}
 			}
@@ -203,7 +203,7 @@ class DMatrix {
 		mkt::DMatrix<T>::~DMatrix(){
 			// free device memory
 			#pragma omp parallel for
-			for(size_t gpu = 0; gpu < «Config.gpus»; ++gpu){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				acc_free(_gpu_data[gpu]);
 			}
@@ -212,10 +212,10 @@ class DMatrix {
 		template<typename T>
 		void mkt::DMatrix<T>::update_self() {
 		  	#pragma omp parallel for
-			for(size_t gpu = 0; gpu < «Config.gpus»; ++gpu){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				acc_update_self_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
-				#pragma acc wait
+				acc_wait(0);
 			}
 		}
 		
@@ -225,13 +225,13 @@ class DMatrix {
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				acc_update_device_async(_host_data[gpu], _size_gpu * sizeof(T), 0);
-				#pragma acc wait
+				acc_wait(0);
 			}
 		}
 		
 		template<typename T>
 		void mkt::DMatrix<T>::map_pointer() {
-			for(size_t gpu = 0; gpu < «Config.gpus»; ++gpu){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				acc_map_data( _host_data[gpu], _gpu_data[gpu], _size_gpu * sizeof(T));
 			}
@@ -245,7 +245,7 @@ class DMatrix {
 			T* host_pointer = _data.data() + index;
 			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 			acc_memcpy_from_device_async(host_pointer, gpu_pointer, sizeof(T), 0);
-			#pragma acc wait
+			acc_wait(0);
 		    return _data[index];
 		}
 		
@@ -256,7 +256,7 @@ class DMatrix {
 			T* host_pointer = _data.data() + index;
 			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 			acc_memcpy_from_device_async(host_pointer, gpu_pointer, sizeof(T), 0);
-			#pragma acc wait
+			acc_wait(0);
 		    return _data[index];
 		}
 		
@@ -278,7 +278,7 @@ class DMatrix {
 				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 				acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
 			}
-			#pragma acc wait
+			acc_wait(0);
 		}
 		
 		template<typename T>
@@ -298,7 +298,7 @@ class DMatrix {
 				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 				acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
 			}
-			#pragma acc wait
+			acc_wait(0);
 		}
 		
 		template<typename T>
@@ -511,9 +511,9 @@ class DMatrix {
 				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
-				const int gpu_elements = in.get_size_gpu();
+				const unsigned int gpu_elements = in.get_size_gpu();
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					out_devptr[i] = f(in_devptr[i]);
 				}
@@ -522,12 +522,12 @@ class DMatrix {
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
-			int row_offset = in.get_row_offset();
-			int column_offset = in.get_column_offset();
-			int columns_local = in.get_number_of_columns_local();
+			unsigned int row_offset = in.get_row_offset();
+			unsigned int column_offset = in.get_column_offset();
+			unsigned int columns_local = in.get_number_of_columns_local();
 
-		  	int gpu_elements = in.get_size_gpu();
-		  	int rows_on_gpu = in.get_rows_gpu();
+		  	unsigned int gpu_elements = in.get_size_gpu();
+		  	unsigned int rows_on_gpu = in.get_rows_gpu();
 			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
@@ -535,18 +535,18 @@ class DMatrix {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
-				int gpu_row_offset = row_offset;
-				int gpu_column_offset = column_offset;
+				unsigned int gpu_row_offset = row_offset;
+				unsigned int gpu_column_offset = column_offset;
 				
 				if(in.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = gpu_row_offset + (i / columns_local);
-					int column_index = gpu_column_offset + (i % columns_local);
+					unsigned int row_index = gpu_row_offset + (i / columns_local);
+					unsigned int column_index = gpu_column_offset + (i % columns_local);
 					out_devptr[i] = f(row_index, column_index, in_devptr[i]);
 				}
 			}
@@ -554,10 +554,10 @@ class DMatrix {
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
-			int columns_local = in.get_number_of_columns_local();
+			unsigned int columns_local = in.get_number_of_columns_local();
 
-		  	int gpu_elements = in.get_size_gpu();
-		  	int rows_on_gpu = in.get_rows_gpu();
+		  	unsigned int gpu_elements = in.get_size_gpu();
+		  	unsigned int rows_on_gpu = in.get_rows_gpu();
 		  	
 			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
@@ -566,16 +566,16 @@ class DMatrix {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				
-				int gpu_row_offset = 0;
+				unsigned int gpu_row_offset = 0;
 				if(in.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = gpu_row_offset + (i / columns_local);
-					int column_index = i % columns_local;
+					unsigned int row_index = gpu_row_offset + (i / columns_local);
+					unsigned int column_index = i % columns_local;
 					out_devptr[i] = f(row_index, column_index, in_devptr[i]);
 				}
 			}
@@ -588,9 +588,9 @@ class DMatrix {
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
-				const int gpu_elements = m.get_size_gpu();
+				const unsigned int gpu_elements = m.get_size_gpu();
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					f(devptr[i]);
 				}
@@ -599,30 +599,30 @@ class DMatrix {
 		
 		template<typename T, typename Functor>
 		void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
-			int row_offset = m.get_row_offset();
-			int column_offset = m.get_column_offset();
-			int columns_local = m.get_number_of_columns_local();
+			unsigned int row_offset = m.get_row_offset();
+			unsigned int column_offset = m.get_column_offset();
+			unsigned int columns_local = m.get_number_of_columns_local();
 
-		  	int gpu_elements = m.get_size_gpu();
-		  	int rows_on_gpu = m.get_rows_gpu();
+		  	unsigned int gpu_elements = m.get_size_gpu();
+		  	unsigned int rows_on_gpu = m.get_rows_gpu();
 			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 				
-				int gpu_row_offset = row_offset;
-				int gpu_column_offset = column_offset;
+				unsigned int gpu_row_offset = row_offset;
+				unsigned int gpu_column_offset = column_offset;
 				
 				if(m.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = gpu_row_offset + (i / columns_local);
-					int column_index = gpu_column_offset + (i % columns_local);
+					unsigned int row_index = gpu_row_offset + (i / columns_local);
+					unsigned int column_index = gpu_column_offset + (i % columns_local);
 					f(row_index, column_index, devptr[i]);
 				}
 			}
@@ -630,10 +630,10 @@ class DMatrix {
 		
 		template<typename T, typename Functor>
 		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
-			int columns_local = m.get_number_of_columns_local();
+			unsigned int columns_local = m.get_number_of_columns_local();
 
-		  	int gpu_elements = m.get_size_gpu();
-		  	int rows_on_gpu = m.get_rows_gpu();
+		  	unsigned int gpu_elements = m.get_size_gpu();
+		  	unsigned int rows_on_gpu = m.get_rows_gpu();
 		  	
 			//«IF Config.cores > 1»#pragma omp parallel for shared(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
@@ -642,16 +642,16 @@ class DMatrix {
 				
 				T* devptr = m.get_device_pointer(gpu);
 
-				int gpu_row_offset = 0;
+				unsigned int gpu_row_offset = 0;
 				if(m.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-				for (int i = 0; i < gpu_elements; ++i) {
+				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-					int row_index = gpu_row_offset + (i / columns_local);
-					int column_index = i % columns_local;
+					unsigned int row_index = gpu_row_offset + (i / columns_local);
+					unsigned int column_index = i % columns_local;
 					f(row_index, column_index, devptr[i]);
 				}
 			}
