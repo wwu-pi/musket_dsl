@@ -97,6 +97,7 @@
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
 		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
+			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result + map_result;
 		}

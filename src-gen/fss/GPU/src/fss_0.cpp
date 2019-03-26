@@ -723,7 +723,7 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result + map_result;
@@ -742,7 +742,7 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(max:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result > map_result ? local_result : map_result;
@@ -761,7 +761,7 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result + map_result;
@@ -781,10 +781,10 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
-		for (int counter = 0; counter < 512; ++counter) {
+		for(unsigned int counter = 0; counter < 512; ++counter) {
 			double element_result = 0.0;
 			#pragma acc loop reduction(+:element_result)
-			for(int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
+			for(unsigned int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
 				double map_result = (f(devptr[inner_counter]))[counter];
 				element_result = element_result + map_result;
 			}
@@ -804,7 +804,7 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result + map_result;
@@ -824,10 +824,10 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) async(0)
-		for (int counter = 0; counter < 512; ++counter) {
+		for(unsigned int counter = 0; counter < 512; ++counter) {
 			double element_result = 0.0;
 			#pragma acc loop reduction(+:element_result)
-			for(int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
+			for(unsigned int inner_counter = 0; inner_counter < gpu_elements; ++inner_counter) {
 				double map_result = (f(devptr[inner_counter]))[counter];
 				element_result = element_result + map_result;
 			}
@@ -847,7 +847,7 @@
 		const int gpu_elements = a.get_size_gpu();
 		
 		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(max:local_result) async(0)
-		for(int counter = 0; counter < gpu_elements; ++counter) {
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
 			#pragma acc cache(local_result, devptr[0:gpu_elements])
 			double map_result = f(devptr[counter]);
 			local_result = local_result > map_result ? local_result : map_result;
