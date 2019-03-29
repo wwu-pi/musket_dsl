@@ -3,7 +3,7 @@
 source_folder=${PWD} && \
 
 # remove files and create folder
-mkdir -p /home/fwrede/out/hlpp19/musket-test/nbody-n-4-g-4/out && \
+mkdir -p /home/fwrede/out/hlpp19/musket-test && \
 rm -rf -- /home/fwrede/build/hlpp19/musket/nbody-n-4-g-4 && \
 mkdir -p /home/fwrede/build/hlpp19/musket/nbody-n-4-g-4 && \
 
