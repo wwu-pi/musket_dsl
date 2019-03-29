@@ -573,8 +573,8 @@
 		
 		printf("Execution time: %.5fs\n", seconds);
 
-		printf("map time: %.5fs\n", map);
-		printf("shift time: %.5fs\n", shift);
+		printf("map time: %.5fs\n", map_time);
+		printf("shift time: %.5fs\n", shift_time);
 
 		printf("Threads: %i\n", omp_get_max_threads());
 		printf("Processes: %i\n", mpi_world_size);
