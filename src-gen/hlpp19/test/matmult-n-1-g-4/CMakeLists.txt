@@ -1,5 +1,5 @@
 	cmake_minimum_required(VERSION 3.10)
-	project(nbody-n-1-g-4 VERSION 1.0.0 LANGUAGES CXX)
+	project(matmult-n-1-g-4 VERSION 1.0.0 LANGUAGES CXX)
 	
 	# required macros
 	SET( CMAKE_CXX_FLAGS_DEV "-g -O0 -Minfo=accel" CACHE STRING "Flags used by the C++ compiler during DEV builds." FORCE )
@@ -20,9 +20,9 @@
 	find_package(OpenACC REQUIRED)
 
 	
-	add_executable(nbody-n-1-g-4_0 ${PROJECT_SOURCE_DIR}/src/nbody-n-1-g-4_0.cpp)
-	target_compile_features(nbody-n-1-g-4_0 PRIVATE cxx_std_14)
-	target_include_directories(nbody-n-1-g-4_0 PRIVATE ${PROJECT_SOURCE_DIR}/include)
-	target_compile_definitions(nbody-n-1-g-4_0 PRIVATE)
-	target_compile_options(nbody-n-1-g-4_0 PRIVATE ${OpenMP_CXX_FLAGS} ${OpenACC_CXX_FLAGS})
-	target_link_libraries(nbody-n-1-g-4_0 PRIVATE ${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES} ${OpenACC_CXX_FLAGS})
+	add_executable(matmult-n-1-g-4_0 ${PROJECT_SOURCE_DIR}/src/matmult-n-1-g-4_0.cpp)
+	target_compile_features(matmult-n-1-g-4_0 PRIVATE cxx_std_14)
+	target_include_directories(matmult-n-1-g-4_0 PRIVATE ${PROJECT_SOURCE_DIR}/include)
+	target_compile_definitions(matmult-n-1-g-4_0 PRIVATE)
+	target_compile_options(matmult-n-1-g-4_0 PRIVATE ${OpenMP_CXX_FLAGS} ${OpenACC_CXX_FLAGS})
+	target_link_libraries(matmult-n-1-g-4_0 PRIVATE ${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES} ${OpenACC_CXX_FLAGS})
