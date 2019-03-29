@@ -707,7 +707,7 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			gpu_row_offset = gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0) vector_length(1024)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			unsigned int row_index = gpu_row_offset + (i / columns_local);

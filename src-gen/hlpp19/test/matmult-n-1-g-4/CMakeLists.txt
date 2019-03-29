@@ -7,7 +7,7 @@
 	SET( CMAKE_CXX_FLAGS_VTUNE "-gopt -fast -O4 -w" CACHE STRING "Flags used by the C++ compiler during VTUNE builds." FORCE )
 	SET( CMAKE_CXX_FLAGS_BENCHMARK "-fast -O4 -ta:tesla:cc60,pinned -w" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
 	SET( CMAKE_CXX_FLAGS_BENCHMARKPALMA "-fast -O4 -tp -ta:tesla:cc35,pinned -w" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Palma." FORCE )
-	SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-fast -fastsse -O4 -tp=haswell -ta=tesla:cc35,pinned -w -Minfo=accel" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Taurus." FORCE )
+	SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-fast -fastsse -O4 -tp=haswell -ta=tesla:cc35,pinned,fastmath -w -Minfo=accel" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Taurus." FORCE )
 		
 	# output path for binaries and libraries
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
