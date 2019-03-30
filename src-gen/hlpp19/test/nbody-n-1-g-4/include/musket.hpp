@@ -470,17 +470,18 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
   	//#pragma omp parallel for
   	for(int gpu = 0; gpu < 4; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
-		f.init(gpu);
+		Functor gpu_f{f};
+		gpu_f.init(gpu);
 		T* devptr = a.get_device_pointer(gpu);
 		
 		unsigned int gpu_offset = offset;
 		if(a.get_device_distribution() == mkt::Distribution::DIST){
 			gpu_offset += gpu * gpu_elements;
 		}
-		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0) vector_length(1024)
-	  	for(unsigned int i = 0; i < gpu_elements; ++i) {
-	  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-	    	f(i + gpu_offset, devptr[i]);
+		#pragma acc parallel loop deviceptr(devptr) async(0) vector_length(1024)
+	  	for(unsigned int i = 0; i < gpu_elements; ++i) {\
+				
+	    	gpu_f(i + gpu_offset, devptr[i]);
 	  	}
   	}
 }
