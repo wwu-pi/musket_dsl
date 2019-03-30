@@ -127,41 +127,81 @@ mkt::DArray<float> oldP_charge(0, 500000, 500000, 0, 1, 0, 0, mkt::COPY, mkt::CO
 
 
 
-	// struct Calc_force_map_index_in_place_array_functor{
+	struct Calc_force_map_index_in_place_array_functor{
 		
-	// 	Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP_x, const mkt::DArray<Particle>& _oldP_y, const mkt::DArray<Particle>& _oldP_z, const mkt::DArray<Particle>& _oldP_charge) : oldP_x(_oldP_x), oldP_y(_oldP_y), oldP_z(_oldP_z), oldP_charge(_oldP_charge){
-	// 	}
+		// Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP_x, const mkt::DArray<Particle>& _oldP_y, const mkt::DArray<Particle>& _oldP_z, const mkt::DArray<Particle>& _oldP_charge) : oldP_x(_oldP_x), oldP_y(_oldP_y), oldP_z(_oldP_z), oldP_charge(_oldP_charge){
+		// }
+		Calc_force_map_index_in_place_array_functor(){
+		}
 		
-	// 	~Calc_force_map_index_in_place_array_functor() {}
+		~Calc_force_map_index_in_place_array_functor() {}
 		
-	// 	auto operator()(int curIndex, Particle& curParticle){
-			
-	// 	}
+		auto operator()(int curIndex, Particle& curParticle, float* p_oldP_x, float* p_oldP_y, float* p_oldP_z, float* p_oldP_charge){
+			float ax = 0.0f;
+			float ay = 0.0f;
+			float az = 0.0f;
+			for(int j = 0; ((j) < 500000); j++){
+				
+				if(((j) != (curIndex))){
+				float dx;
+				float dy;
+				float dz;
+				float r2;
+				float r;
+				float qj_by_r3;
+				dx = (curParticle.x - p_oldP_x[j]);
+				dy = (curParticle.y - p_oldP_y[j]);
+				dz = (curParticle.z - p_oldP_z[j]);
+				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
+				r = sqrtf((r2));
+				
+				if(((r) < (EPSILON))){
+				qj_by_r3 = 0.0f;
+				}
+				 else {
+						qj_by_r3 = (p_oldP_charge[j] / ((r2) * (r)));
+					}
+				ax += ((qj_by_r3) * (dx));
+				ay += ((qj_by_r3) * (dy));
+				az += ((qj_by_r3) * (dz));
+				}
+			}
+			float vx0 = (curParticle).vx;
+			float vy0 = (curParticle).vy;
+			float vz0 = (curParticle).vz;
+			float qidt_by_m = (((curParticle).charge * (DT)) / (curParticle).mass);
+			curParticle.vx += ((ax) * (qidt_by_m));
+			curParticle.vy += ((ay) * (qidt_by_m));
+			curParticle.vz += ((az) * (qidt_by_m));
+			curParticle.x += ((((vx0) + (curParticle).vx) * (DT)) * 0.5f);
+			curParticle.y += ((((vy0) + (curParticle).vy) * (DT)) * 0.5f);
+			curParticle.z += ((((vz0) + (curParticle).vz) * (DT)) * 0.5f);
+		}
 	
-	// 	void init(int gpu){
-	// 		oldP_y.init(gpu);
-	// 		oldP_x.init(gpu);
-	// 		oldP_z.init(gpu);
-	// 		oldP_charge.init(gpu);
-	// 	}
+		// void init(int gpu){
+		// 	oldP_y.init(gpu);
+		// 	oldP_x.init(gpu);
+		// 	oldP_z.init(gpu);
+		// 	oldP_charge.init(gpu);
+		// }
 		
-	// 	void set_id(int gang, int worker, int vector){
-	// 		_gang = gang;
-	// 		_worker = worker;
-	// 		_vector = vector;
-	// 	}
-		
-		
-	// 	mkt::DeviceArray<Particle> oldP_x;
-	// 	mkt::DeviceArray<Particle> oldP_y;
-	// 	mkt::DeviceArray<Particle> oldP_z;
-	// 	mkt::DeviceArray<Particle> oldP_charge;
+		// void set_id(int gang, int worker, int vector){
+		// 	_gang = gang;
+		// 	_worker = worker;
+		// 	_vector = vector;
+		// }
 		
 		
-	// 	int _gang;
-	// 	int _worker;
-	// 	int _vector;
-	// };
+		// mkt::DeviceArray<Particle> oldP_x;
+		// mkt::DeviceArray<Particle> oldP_y;
+		// mkt::DeviceArray<Particle> oldP_z;
+		// mkt::DeviceArray<Particle> oldP_charge;
+		
+		
+		// int _gang;
+		// int _worker;
+		// int _vector;
+	};
 	
 	
 	
@@ -206,47 +246,10 @@ mkt::DArray<float> oldP_charge(0, 500000, 500000, 0, 1, 0, 0, mkt::COPY, mkt::CO
 			// #pragma acc cache(devptr[:gpu_elements], oldpdevice[0:500000] )
 	    	// f(i + gpu_offset, devptr[i]);
 			//Particle* curParticle = devptr[i];
-			const int curIndex = i + gpu_offset;
+			// const int curIndex = i + gpu_offset;
 
-			float ax = 0.0f;
-			float ay = 0.0f;
-			float az = 0.0f;
-			for(int j = 0; ((j) < 500000); j++){
-				
-				if(((j) != (curIndex))){
-				float dx;
-				float dy;
-				float dz;
-				float r2;
-				float r;
-				float qj_by_r3;
-				dx = (devptr[i].x - d_oldP_x[j]);
-				dy = (devptr[i].y - d_oldP_y[j]);
-				dz = (devptr[i].z - d_oldP_z[j]);
-				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
-				r = sqrtf((r2));
-				
-				if(((r) < (EPSILON))){
-				qj_by_r3 = 0.0f;
-				}
-				 else {
-						qj_by_r3 = (d_oldP_charge[j] / ((r2) * (r)));
-					}
-				ax += ((qj_by_r3) * (dx));
-				ay += ((qj_by_r3) * (dy));
-				az += ((qj_by_r3) * (dz));
-				}
-			}
-			float vx0 = (devptr[i]).vx;
-			float vy0 = (devptr[i]).vy;
-			float vz0 = (devptr[i]).vz;
-			float qidt_by_m = (((devptr[i]).charge * (DT)) / (devptr[i]).mass);
-			devptr[i].vx += ((ax) * (qidt_by_m));
-			devptr[i].vy += ((ay) * (qidt_by_m));
-			devptr[i].vz += ((az) * (qidt_by_m));
-			devptr[i].x += ((((vx0) + (devptr[i]).vx) * (DT)) * 0.5f);
-			devptr[i].y += ((((vy0) + (devptr[i]).vy) * (DT)) * 0.5f);
-			devptr[i].z += ((((vz0) + (devptr[i]).vz) * (DT)) * 0.5f);
+			Calc_force_map_index_in_place_array_functor f{};
+			f(i + gpu_offset, devptr[i], d_oldP_x, d_oldP_y,d_oldP_z,d_oldP_charge);
 	  	}
   	}
 }
