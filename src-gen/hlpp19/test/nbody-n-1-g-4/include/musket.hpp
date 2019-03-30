@@ -89,8 +89,8 @@ void map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f);
 template<typename T, typename Functor>
 void map_in_place(mkt::DArray<T>& a, Functor f);
 
-template<typename T, typename Functor>
-void map_index_in_place(mkt::DArray<T>& a, Functor f);
+template<typename T>
+void map_index_in_place(mkt::DArray<T>& a);
 
 template<typename T, typename Functor>
 void map_local_index_in_place(mkt::DArray<T>& a, Functor f);
@@ -462,29 +462,7 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
   }
 }
 
-template<typename T, typename Functor>
-void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
-	unsigned int offset = a.get_offset();
-	unsigned int gpu_elements = a.get_size_gpu();
-			  
-  	//#pragma omp parallel for
-  	for(int gpu = 0; gpu < 4; ++gpu){
-		acc_set_device_num(gpu, acc_device_not_host);
-		Functor gpu_f{f};
-		gpu_f.init(gpu);
-		T* devptr = a.get_device_pointer(gpu);
-		
-		unsigned int gpu_offset = offset;
-		if(a.get_device_distribution() == mkt::Distribution::DIST){
-			gpu_offset += gpu * gpu_elements;
-		}
-		#pragma acc parallel loop deviceptr(devptr) async(0) vector_length(1024)
-	  	for(unsigned int i = 0; i < gpu_elements; ++i) {\
-				
-	    	gpu_f(i + gpu_offset, devptr[i]);
-	  	}
-  	}
-}
+
 
 template<typename T, typename Functor>
 void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
