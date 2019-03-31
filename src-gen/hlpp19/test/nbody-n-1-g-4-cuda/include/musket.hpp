@@ -1,7 +1,8 @@
 #pragma once
+#include <cuda.h>
 #include <string>
 #include "nbody-n-1-g-4.hpp"
-#include <cuda.h>
+#include "map_kernels.cuh"
 
 namespace mkt {
 enum Distribution {DIST, COPY};
@@ -136,9 +137,10 @@ class DeviceArray {
   
   
 // Getter and Setter
-
+	__device__
   const T& get_data_device(int device_index) const;
-
+	
+	__device__
   const T& get_data_local(int local_index) const;
 
  private:
@@ -186,14 +188,14 @@ void scatter(mkt::DArray<T>& in, mkt::DArray<T>& out);
 void mkt::init_mkt(){
 	for(int i = 0; i < 4; ++i){
 		cudaSetDevice(i);
-		cudaStreamCreate(&streams[i]);
+		cudaStreamCreate(&cuda_streams[i]);
 	}
 }
 
 void mkt::sync_streams(){
 	for(int i = 0; i < 4; ++i){
 		cudaSetDevice(i);
-		cudaStreamSynchronize(&streams[i]);
+		cudaStreamSynchronize(cuda_streams[i]);
 	}
 }
 
@@ -222,8 +224,8 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
 
 		// allocate memory
 		T* devptr;
-		cudaMalloc((void**)&devptr, _size_gpu * sizeof(T))
-		cudaMallocHost((void**)&_data, _size_local * sizeof(T))
+		cudaMalloc((void**)&devptr, _size_gpu * sizeof(T));
+		cudaMallocHost((void**)&_data, _size_local * sizeof(T));
 		
 		//init data
 		for(int i = 0; i< _size_local; ++i){
@@ -251,7 +253,7 @@ mkt::DArray<T>::~DArray(){
 	#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		cudaSetDevice(0);
-		cuda_free(_gpu_data[gpu]);
+		cudaFree(_gpu_data[gpu]);
 
 	}
 }
@@ -292,7 +294,7 @@ template<typename T>
 T mkt::DArray<T>::get_local(int index) {
 	int gpu = get_gpu_by_local_index(index);
 	cudaSetDevice(gpu);
-	T* host_pointer = _data.data() + index;
+	T* host_pointer = _data + index;
 	T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 	cudaMemcpyAsync(_gpu_data[gpu], _host_data[gpu], sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
 	mkt::sync_streams();
@@ -302,7 +304,7 @@ T mkt::DArray<T>::get_local(int index) {
 template<typename T>
 void mkt::DArray<T>::set_local(int index, const T& v) {
 	_data[index] = v;
-	T* host_pointer = _data.data() + index;
+	T* host_pointer = _data + index;
 	if(_device_dist == mkt::Distribution::COPY){
 		#pragma omp parallel for
 		for(int gpu = 0; gpu < 4; ++gpu){
@@ -371,12 +373,12 @@ mkt::Distribution mkt::DArray<T>::get_device_distribution() const {
 
 template<typename T>
 const T* mkt::DArray<T>::get_data() const {
-  return _data.data();
+  return _data();
 }
 
 template<typename T>
 T* mkt::DArray<T>::get_data() {
-  return _data.data();
+  return _data;
 }
 
 template<typename T>
@@ -412,7 +414,7 @@ void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 		const unsigned int gpu_elements = in.get_size_gpu();
 		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
-			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+			//f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(in_devptr[i]);
 		}
 	}
@@ -437,7 +439,7 @@ void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 		
 		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
-			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+			//f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
 		}
 	}
@@ -460,7 +462,7 @@ void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor
 		}
 		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
-			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+			//f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
 		}
 	}
@@ -478,7 +480,7 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 	
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
   	for(unsigned int i = 0; i < gpu_elements; ++i) {
-  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+  		//f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
     	f(devptr[i]);
   	}
   }
@@ -491,20 +493,21 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 			  
   	//#pragma omp parallel for
   	for(int gpu = 0; gpu < 4; ++gpu){
-		cudaSetDevice(gpu);
-		f.init(gpu);
-		T* devptr = a.get_device_pointer(gpu);
-		
-		unsigned int gpu_offset = offset;
-		if(a.get_device_distribution() == mkt::Distribution::DIST){
-			gpu_offset += gpu * gpu_elements;
+			cudaSetDevice(gpu);
+			f.init(gpu);
+			T* devptr = a.get_device_pointer(gpu);
+			
+			unsigned int gpu_offset = offset;
+			if(a.get_device_distribution() == mkt::Distribution::DIST){
+				gpu_offset += gpu * gpu_elements;
+			}
+
+			int smem_bytes = 0;
+
+			dim3 dimBlock(1024);
+			dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 		}
-		#pragma acc parallel loop deviceptr(devptr) async(0) vector_length(1024)
-	  	for(unsigned int i = 0; i < gpu_elements; ++i) {\
-				
-	    	gpu_f(i + gpu_offset, devptr[i]);
-	  	}
-  	}
 }
 
 template<typename T, typename Functor>
@@ -523,7 +526,7 @@ void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
 	}
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0) vector_length(1024)
   	for(unsigned int i = 0; i < gpu_elements; ++i) {
-  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+  		//f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
     	f(i + gpu_offset, devptr[i]);
   	}
   }
@@ -573,13 +576,13 @@ void mkt::DeviceArray<T>::init(int gpu) {
 }
 
 template<typename T>
-const T& mkt::DeviceArray<T>::get_data_device(int device_index) const {
+__device__ const T& mkt::DeviceArray<T>::get_data_device(int device_index) const {
   return _device_data[device_index];
 }
 
 
 template<typename T>
-const T& mkt::DeviceArray<T>::get_data_local(int local_index) const {
+__device__ const T& mkt::DeviceArray<T>::get_data_local(int local_index) const {
   return this->get_data_device(local_index - _device_offset);
 }
 

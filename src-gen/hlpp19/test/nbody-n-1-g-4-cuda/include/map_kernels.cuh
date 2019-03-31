@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "exec_plan.h"
-#include "plmatrix.h"
-#include "plarray.h"
 
 namespace mkt {
 
@@ -18,7 +15,7 @@ __global__ void mapKernel(T* in,
                           size_t size,
                           F func);
 
-template <typename T, typename R, typename F>
+template <typename T, typename F>
 __global__ void mapInPlaceKernel(T* inout,
                         size_t size,
                         F func);
@@ -28,16 +25,17 @@ template <typename T, typename R, typename F>
 __global__ void mapIndexKernel(T* in,
                                R* out,
                                size_t size,
-                               size_t offset
+                               size_t offset,
                                F func);
-}
 
-template <typename T, typename R, typename F>
+template <typename T, typename F>
 __global__ void mapIndexInPlaceKernel(T* inout,
                                size_t size,
                                size_t offset,
                                F func);
 
+} // namespace kernel
+} // namespace mkt
 
 // DEFINITION
 
@@ -54,7 +52,7 @@ __global__ void mkt::kernel::mapKernel(T* in,
   }
 }
 
-template <typename T, typename R, typename F>
+template <typename T, typename F>
 __global__ void mkt::kernel::mapInPlaceKernel(T* inout,
                                        size_t size,
                                        F func)
@@ -62,7 +60,7 @@ __global__ void mkt::kernel::mapInPlaceKernel(T* inout,
   size_t x = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (x < size) {
-    out[x] = func(in[x]);
+    func(inout[x]);
   }
 }
 
@@ -80,7 +78,7 @@ __global__ void mkt::kernel::mapIndexKernel(T* in,
   }
 }
 
-template <typename T, typename R, typename F>
+template <typename T, typename F>
 __global__ void mkt::kernel::mapIndexInPlaceKernel(T* inout,
                                             size_t size,
                                             size_t offset,
