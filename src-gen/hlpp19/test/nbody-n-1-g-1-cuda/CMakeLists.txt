@@ -1,5 +1,5 @@
 	cmake_minimum_required(VERSION 3.10)
-	project(nbody-n-1-g-4 VERSION 1.0.0 LANGUAGES CUDA CXX)
+	project(nbody-n-1-g-1 VERSION 1.0.0 LANGUAGES CUDA CXX)
 	
 	# packages
 	find_package(OpenMP REQUIRED)
@@ -43,9 +43,9 @@
 	
 
 	
-	add_executable(nbody-n-1-g-4_0 ${PROJECT_SOURCE_DIR}/src/nbody-n-1-g-4_0.cu)
-	target_compile_features(nbody-n-1-g-4_0 PRIVATE cxx_std_14)
-	target_include_directories(nbody-n-1-g-4_0 PRIVATE ${PROJECT_SOURCE_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-	target_compile_definitions(nbody-n-1-g-4_0 PRIVATE)
-	target_compile_options(nbody-n-1-g-4_0 PRIVATE )
-	target_link_libraries(nbody-n-1-g-4_0 PRIVATE ${OpenMP_CXX_LIBRARIES})
+	add_executable(nbody-n-1-g-1_0 ${PROJECT_SOURCE_DIR}/src/nbody-n-1-g-1_0.cu)
+	target_compile_features(nbody-n-1-g-1_0 PRIVATE cxx_std_14)
+	target_include_directories(nbody-n-1-g-1_0 PRIVATE ${PROJECT_SOURCE_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+	target_compile_definitions(nbody-n-1-g-1_0 PRIVATE)
+	target_compile_options(nbody-n-1-g-1_0 PRIVATE )
+	target_link_libraries(nbody-n-1-g-1_0 PRIVATE ${OpenMP_CXX_LIBRARIES})

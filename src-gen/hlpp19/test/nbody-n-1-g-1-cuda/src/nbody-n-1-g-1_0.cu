@@ -17,15 +17,15 @@
 	#include <curand_kernel.h>
 	
 	#include "../include/musket.hpp"
-	#include "../include/nbody-n-1-g-4_0.hpp"
+	#include "../include/nbody-n-1-g-1_0.hpp"
 		
 			
-	const int dim = 500000;
+	const int dim = 5000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<Particle> P(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -77,7 +77,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 500000); j++){
+			for(int j = 0; ((j) < 5000); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
