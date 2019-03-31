@@ -12,12 +12,12 @@
 	SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-O3 -DNDEBUG -march=haswell -DMPICH_IGNORE_CXX_SEEK -std=c++14 ${OpenMP_CXX_FLAGS}")
 
 
-	SET( CMAKE_CUDA_FLAGS_DEV "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_DEV}'")
-	SET( CMAKE_CUDA_FLAGS_TEST "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_TEST}'")
-	SET( CMAKE_CUDA_FLAGS_VTUNE "-g -G -pg -O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_VTUNE}'")
-	SET( CMAKE_CUDA_FLAGS_BENCHMARK "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARK}'" )
-	SET( CMAKE_CUDA_FLAGS_BENCHMARKPALMA "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARKPALMA}'" )
-	SET( CMAKE_CUDA_FLAGS_BENCHMARKTAURUS "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARKTAURUS}'")
+	SET( CMAKE_CUDA_FLAGS_DEV "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_DEV}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'")
+	SET( CMAKE_CUDA_FLAGS_TEST "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_TEST}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'")
+	SET( CMAKE_CUDA_FLAGS_VTUNE "-g -G -pg -O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O0' -Xcompiler '${CMAKE_CXX_FLAGS_VTUNE}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'")
+	SET( CMAKE_CUDA_FLAGS_BENCHMARK "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARK}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'" )
+	SET( CMAKE_CUDA_FLAGS_BENCHMARKPALMA "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARKPALMA}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'" )
+	SET( CMAKE_CUDA_FLAGS_BENCHMARKTAURUS "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas '-O3' -Xcompiler '${CMAKE_CXX_FLAGS_BENCHMARKTAURUS}' -Xlinker '${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES}'")
 		
 
 
@@ -35,4 +35,4 @@
 	target_include_directories(nbody-n-1-g-4_0 PRIVATE ${PROJECT_SOURCE_DIR}/include ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 	target_compile_definitions(nbody-n-1-g-4_0 PRIVATE)
 	target_compile_options(nbody-n-1-g-4_0 PRIVATE )
-	target_link_libraries(nbody-n-1-g-4_0 PRIVATE ${OpenMP_CXX_FLAGS} ${OpenMP_CXX_LIBRARIES})
+	target_link_libraries(nbody-n-1-g-4_0 PRIVATE )
