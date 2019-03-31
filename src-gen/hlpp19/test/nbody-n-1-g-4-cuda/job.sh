@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name nbody-test-n-1-g-4
+#SBATCH --job-name nbody-test-n-1-g-4-cuda
 #SBATCH --ntasks 1
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
 #SBATCH --partition gpu2
 #SBATCH --exclusive
-#SBATCH --output /home/fwrede/out/hlpp19/musket-test/nbody-n-1-g-4.out
+#SBATCH --output /home/fwrede/out/hlpp19/musket-test/nbody-n-1-g-4-cuda.out
 #SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
 #SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/test/nbody-n-1-g-4/job.conf
+    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/test/nbody-n-1-g-4-cuda/job.conf
 done
