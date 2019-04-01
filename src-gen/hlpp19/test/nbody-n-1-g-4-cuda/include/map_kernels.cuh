@@ -85,8 +85,9 @@ __global__ void mkt::kernel::mapIndexInPlaceKernel(T* inout,
                                             F func)
 {
   size_t x = blockIdx.x * blockDim.x + threadIdx.x;
-
+//printf("kernel size: %i", size);
   if (x < size) {
+    //printf("kernel x: %i", x);
     func(x + offset, inout[x]);
   }
 }

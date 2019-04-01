@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/build/hlpp19/musket/nbody-n-1-g-4-cuda && \
 
 # run cmake
 cd /home/fwrede/build/hlpp19/musket/nbody-n-1-g-4-cuda && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 make nbody-n-1-g-4_0 && \
 cd ${source_folder} && \

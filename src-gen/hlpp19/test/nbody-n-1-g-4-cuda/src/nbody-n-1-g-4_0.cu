@@ -24,8 +24,7 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+	
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -40,7 +39,7 @@
 	struct Init_particles_map_index_in_place_array_functor{
 		
 		Init_particles_map_index_in_place_array_functor(){
-			printf("init functor constructor\n");
+			//printf("init functor constructor\n");
 		}
 		
 		~Init_particles_map_index_in_place_array_functor() {}
@@ -48,7 +47,8 @@
 		__device__
 		auto operator()(int i, Particle& p){
 			curandState state;
-			curand_init(clock64(), 0, 0, &state);
+			int id = threadIdx.x + blockIdx.x * blockDim.x;
+			curand_init(1234, id, 0, &state);
 			
 			p.x = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
 			p.y = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
@@ -68,13 +68,16 @@
 	struct Calc_force_map_index_in_place_array_functor{
 		
 		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){
-			printf("functor constructor \n");
+			//printf("functor constructor \n");
 		}
 		
 		~Calc_force_map_index_in_place_array_functor() {}
 		
 		__device__
 		auto operator()(int curIndex, Particle& curParticle){
+			int id = threadIdx.x + blockIdx.x * blockDim.x;
+			//printf("calc force %i\n", id);
+
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
@@ -117,7 +120,7 @@
 		}
 	
 		void init(int gpu){
-			printf("functor init %i\n", gpu);
+			//printf("functor init %i\n", gpu);
 			oldP.init(gpu);
 		}
 			
@@ -130,7 +133,9 @@
 	
 	
 	int main(int argc, char** argv) {
-		
+		mkt::init_mkt();
+		mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		//curandState* devStates[4];
 		
 		// #pragma omp parallel for
@@ -144,9 +149,9 @@
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
 				
-		printf("map init\n");
+		//printf("map init\n");
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
-		printf("gather init\n");
+		//printf("gather init\n");
 		mkt::gather<Particle>(P, oldP);
 		mkt::sync_streams();
 
@@ -157,21 +162,21 @@
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
-			printf("map iteration %i\n", i);
+			//printf("map iteration %i\n", i);
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 
 			mkt::sync_streams();
-			printf("map end iteration %i\n", i);
+			//printf("map end iteration %i\n", i);
 			std::chrono::high_resolution_clock::time_point map_timer_end = std::chrono::high_resolution_clock::now();
 
 			map_time += std::chrono::duration<double>(map_timer_end - map_timer_start).count();
 
 			std::chrono::high_resolution_clock::time_point gather_timer_start = std::chrono::high_resolution_clock::now();
 
-			printf("gather iteration %i\n", i);
+			//printf("gather iteration %i\n", i);
 			mkt::gather<Particle>(P, oldP);
 			mkt::sync_streams();
-			printf("gather iteration %i\n", i);
+			//printf("gather iteration %i\n", i);
 
 			std::chrono::high_resolution_clock::time_point gather_timer_end = std::chrono::high_resolution_clock::now();
 
