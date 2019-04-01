@@ -29,13 +29,13 @@
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
-	__global__ void setup_kernel(curandState *state)
-	{
-		int id = threadIdx.x + blockIdx.x * 1024;
-		/* Each thread gets same seed, a different sequence 
-		   number, no offset */
-		curand_init(1234, id, 0, &state[id]);
-	}
+	// __global__ void setup_kernel(curandState *state)
+	// {
+	// 	int id = threadIdx.x + blockIdx.x * 1024;
+	// 	/* Each thread gets same seed, a different sequence 
+	// 	   number, no offset */
+	// 	curand_init(1234, id, 0, &state[id]);
+	// }
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
@@ -154,7 +154,7 @@
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
-			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
+			// mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_end = std::chrono::high_resolution_clock::now();
