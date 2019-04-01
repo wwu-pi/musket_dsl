@@ -154,7 +154,7 @@
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
-			// mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
+			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_end = std::chrono::high_resolution_clock::now();
