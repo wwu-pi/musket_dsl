@@ -47,9 +47,9 @@
 		__device__
 		auto operator()(int i, Particle& p){
 			curandState state;
-			int id = threadIdx.x + blockIdx.x * blockDim.x;
+			size_t id = threadIdx.x + blockIdx.x * blockDim.x;
 			curand_init(1234, id, 0, &state);
-			
+			printf("init functor()\n");
 			p.x = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
 			p.y = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
 			p.z = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
@@ -130,7 +130,9 @@
 	};
 	
 	
-	
+	void showParticle(Particle p) {
+		printf("x: %.5f, y: %.5f, z: %.5f, vx: %.5f, vy: %.5f, vz: %.5f, mass: %.5f, charge: %.5f \n", p.x, p.y, p.z, p.vx, p.vy, p.vz, p.mass, p.charge);
+	}
 	
 	int main(int argc, char** argv) {
 		mkt::init_mkt();
@@ -145,16 +147,21 @@
 		// 	setup_kernel<<<64, 1024>>>(devStates[gpu]);
 		// }
 		
+		
+
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
-				
+		
+		
 		//printf("map init\n");
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		//printf("gather init\n");
 		mkt::gather<Particle>(P, oldP);
 		mkt::sync_streams();
 
+		Particle in_particle = oldP.get_global(0);
+		showParticle(in_particle);
 		double gather_time = 0.0;
 		double map_time = 0.0;
 
@@ -186,6 +193,9 @@
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 		
+		Particle out_particle = oldP.get_global(0);
+		showParticle(out_particle);
+
 		printf("Execution time: %.5fs\n", seconds);
 
 		printf("map time: %.5fs\n", map_time);

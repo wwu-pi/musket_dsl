@@ -20,7 +20,7 @@ class DArray {
  public:
 
   // CONSTRUCTORS / DESTRUCTOR
-  DArray(size_t pid, size_t size, size_t size_local, T init_value, size_t partitions, size_t partition_pos, size_t offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
+  DArray(int pid, size_t size, size_t size_local, T init_value, size_t partitions, size_t partition_pos, size_t offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
   ~ DArray();
   
   template<std::size_t N> 
@@ -46,6 +46,10 @@ class DArray {
   size_t get_size_gpu() const;
 
   size_t get_offset() const;
+
+
+	bool get_pid_by_global_index(size_t global_index) const;
+	bool is_local(size_t global_index) const;
 		
   Distribution get_distribution() const;
   Distribution get_device_distribution() const;
@@ -53,19 +57,19 @@ class DArray {
   T* get_data();
   const T* get_data() const;
   
-  T* get_device_pointer(size_t gpu) const;
+  T* get_device_pointer(int gpu) const;
 		
  private:
 
-  size_t get_gpu_by_local_index(size_t local_index) const;
-  size_t get_gpu_by_global_index(size_t global_index) const;
+  int get_gpu_by_local_index(size_t local_index) const;
+  int get_gpu_by_global_index(size_t global_index) const;
 
   //
   // Attributes
   //
 
   // position of processor in data parallel group of processors; zero-base
-  size_t _pid;
+  int _pid;
 
   size_t _size;
   size_t _size_local;
@@ -133,7 +137,7 @@ class DeviceArray {
   DeviceArray(const DeviceArray<T>& da);
   ~DeviceArray();
   
-  void init(size_t device_id);
+  void init(int device_id);
   
   
 // Getter and Setter
@@ -204,7 +208,7 @@ void mkt::sync_streams(){
 }
 
 template<typename T>
-mkt::DArray<T>::DArray(size_t pid, size_t size, size_t size_local, T init_value, size_t partitions, size_t partition_pos, size_t offset, Distribution d, Distribution device_dist)
+mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, size_t partitions, size_t partition_pos, size_t offset, Distribution d, Distribution device_dist)
     : _pid(pid),
       _size(size),
       _size_local(size_local),
@@ -313,11 +317,11 @@ void mkt::DArray<T>::update_devices() {
 template<typename T>
 T mkt::DArray<T>::get_local(size_t index) {
 	//printf("darray get_local");
-	size_t gpu = get_gpu_by_local_index(index);
+	int gpu = get_gpu_by_local_index(index);
 	cudaSetDevice(gpu);
 	T* host_pointer = _data + index;
 	T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
-	cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+	cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
 	mkt::sync_streams();
     return _data[index];
 }
@@ -335,7 +339,7 @@ void mkt::DArray<T>::set_local(size_t index, const T& v) {
 			cudaMemcpyAsync(gpu_pointer, host_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 		}
 	}else if(_device_dist == mkt::Distribution::DIST){
-		size_t gpu = get_gpu_by_local_index(index);
+		int gpu = get_gpu_by_local_index(index);
 		cudaSetDevice(gpu);
 		T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 		cudaMemcpyAsync(gpu_pointer, host_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
@@ -344,8 +348,30 @@ void mkt::DArray<T>::set_local(size_t index, const T& v) {
 }
 
 template<typename T>
-T mkt::DArray<T>::get_global(size_t index) {
-  // TODO
+bool mkt::DArray<T>::get_pid_by_global_index(size_t global_index) const {
+  return global_index / _size_local;
+}
+
+template<typename T>
+bool mkt::DArray<T>::is_local(size_t global_index) const {
+	int pid = get_pid_by_global_index(global_index);
+  return (pid == _pid);
+}
+
+template<typename T>
+T mkt::DArray<T>::get_global(size_t global_index) {
+	// T result;
+	// if(is_local(global_index)){
+	// 	size_t local_index = global_index - _offset;
+	// 	result = get_local(local_index);
+	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, _pid, )
+	// }else{
+	// 	int root = get_pid_by_global_index(global_index);
+	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
+	// }
+	// return result;
+
+	return get_local(global_index);
 }
 
 template<typename T>
@@ -404,12 +430,12 @@ T* mkt::DArray<T>::get_data() {
 }
 
 template<typename T>
-T* mkt::DArray<T>::get_device_pointer(size_t gpu) const{
+T* mkt::DArray<T>::get_device_pointer(int gpu) const{
   return _gpu_data[gpu];
 }
 
 template<typename T>
-size_t mkt::DArray<T>::get_gpu_by_local_index(size_t local_index) const {
+int mkt::DArray<T>::get_gpu_by_local_index(size_t local_index) const {
 	if(_device_dist == mkt::Distribution::COPY){
 		return 0;
 	}else if(_device_dist == mkt::Distribution::DIST){
@@ -421,7 +447,7 @@ size_t mkt::DArray<T>::get_gpu_by_local_index(size_t local_index) const {
 }
 
 template<typename T>
-size_t mkt::DArray<T>::get_gpu_by_global_index(size_t global_index) const {
+int mkt::DArray<T>::get_gpu_by_global_index(size_t global_index) const {
 	// TODO
 	return -1;
 }
@@ -595,7 +621,7 @@ mkt::DeviceArray<T>::~DeviceArray(){
 }
 
 template<typename T>
-void mkt::DeviceArray<T>::init(size_t gpu) {
+void mkt::DeviceArray<T>::init(int gpu) {
 	//printf("devicearray init\n");
 	if(_device_dist == Distribution::COPY){
 		_device_offset = 0;
