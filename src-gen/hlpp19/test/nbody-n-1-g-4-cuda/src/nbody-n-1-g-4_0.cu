@@ -40,7 +40,7 @@
 	struct Init_particles_map_index_in_place_array_functor{
 		
 		Init_particles_map_index_in_place_array_functor(){
-			
+			printf("init functor constructor\n");
 		}
 		
 		~Init_particles_map_index_in_place_array_functor() {}
@@ -68,6 +68,7 @@
 	struct Calc_force_map_index_in_place_array_functor{
 		
 		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){
+			printf("functor constructor \n");
 		}
 		
 		~Calc_force_map_index_in_place_array_functor() {}
@@ -116,6 +117,7 @@
 		}
 	
 		void init(int gpu){
+			printf("functor init %i\n", gpu)
 			oldP.init(gpu);
 		}
 			
@@ -142,8 +144,9 @@
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
 				
-		
+		printf("map init\n");
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
+		printf("gather init\n");
 		mkt::gather<Particle>(P, oldP);
 		mkt::sync_streams();
 
@@ -154,17 +157,21 @@
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
+			printf("map iteration %i\n", i);
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 
 			mkt::sync_streams();
+			printf("map end iteration %i\n", i);
 			std::chrono::high_resolution_clock::time_point map_timer_end = std::chrono::high_resolution_clock::now();
 
 			map_time += std::chrono::duration<double>(map_timer_end - map_timer_start).count();
 
 			std::chrono::high_resolution_clock::time_point gather_timer_start = std::chrono::high_resolution_clock::now();
 
-			//mkt::gather<Particle>(P, oldP);
+			printf("gather iteration %i\n", i);
+			mkt::gather<Particle>(P, oldP);
 			mkt::sync_streams();
+			printf("gather iteration %i\n", i);
 
 			std::chrono::high_resolution_clock::time_point gather_timer_end = std::chrono::high_resolution_clock::now();
 

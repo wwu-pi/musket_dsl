@@ -214,6 +214,8 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
       _dist(d),
       _device_dist(device_dist) {
     
+		printf("darray constructor\n");
+
     if(device_dist == mkt::Distribution::DIST){
     	_size_gpu = size_local / 4; // assume even distribution for now			
     }else if(device_dist == mkt::Distribution::COPY){
@@ -250,6 +252,7 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
 
 template<typename T>
 mkt::DArray<T>::~DArray(){
+	printf("DArray destructor\n");
 	cudaFreeHost(_data);
 	// free device memory
 	#pragma omp parallel for
@@ -274,6 +277,8 @@ void mkt::DArray<T>::operator=(const std::array<T, N>& a) {
 template<typename T>
 void mkt::DArray<T>::update_self() {
 	// if copy gpu dist
+printf("darray update_self\n");
+
   	#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		cudaSetDevice(gpu);
@@ -284,6 +289,7 @@ void mkt::DArray<T>::update_self() {
 
 template<typename T>
 void mkt::DArray<T>::update_devices() {
+	printf("darray update devices\n");
   	#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		cudaSetDevice(gpu);
@@ -294,6 +300,7 @@ void mkt::DArray<T>::update_devices() {
 		
 template<typename T>
 T mkt::DArray<T>::get_local(int index) {
+	printf("darray get_local");
 	int gpu = get_gpu_by_local_index(index);
 	cudaSetDevice(gpu);
 	T* host_pointer = _data + index;
@@ -305,6 +312,7 @@ T mkt::DArray<T>::get_local(int index) {
 
 template<typename T>
 void mkt::DArray<T>::set_local(int index, const T& v) {
+	printf("darray set local\n");
 	_data[index] = v;
 	T* host_pointer = _data + index;
 	if(_device_dist == mkt::Distribution::COPY){
@@ -490,6 +498,7 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 
 template<typename T, typename Functor>
 void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
+	printf("map index in place start.\n");
 	unsigned int offset = a.get_offset();
 	unsigned int gpu_elements = a.get_size_gpu();
 			  
@@ -510,6 +519,8 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 			dim3 dimGrid((gpu_elements+dimBlock.x)/dimBlock.x);
 			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 		}
+		mkt::sync_streams();
+		printf("map index in place end.\n");
 }
 
 template<typename T, typename Functor>
@@ -556,6 +567,7 @@ mkt::DeviceArray<T>::DeviceArray(const DeviceArray<T>& da)
       _dist(da._dist),
       _device_dist(da._device_dist) 
 {
+	printf("devicearray constructor\n");
 	_device_data = da._device_data;
 	for(int i = 0; i < 4; ++i){
 		_gpu_data[i] = da._gpu_data[i];
@@ -564,10 +576,12 @@ mkt::DeviceArray<T>::DeviceArray(const DeviceArray<T>& da)
 
 template<typename T>
 mkt::DeviceArray<T>::~DeviceArray(){
+	printf("devicearray destructor\n");
 }
 
 template<typename T>
 void mkt::DeviceArray<T>::init(int gpu) {
+	printf("devicearray init\n");
 	if(_device_dist == Distribution::COPY){
 		_device_offset = 0;
 	} else {
@@ -579,6 +593,7 @@ void mkt::DeviceArray<T>::init(int gpu) {
 
 template<typename T>
 __device__ const T& mkt::DeviceArray<T>::get_data_device(int device_index) const {
+	printf("devicearray get_data\n");
   return _device_data[device_index];
 }
 
@@ -622,12 +637,14 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 template<>
 void mkt::gather<Particle>(mkt::DArray<Particle>& in, mkt::DArray<Particle>& out){
+	printf("gather\n");
 	in.update_self();
 	#pragma omp parallel for  simd
 	for(int counter = 0; counter < in.get_size(); ++counter){
 	  out[counter] = in[counter];
 	}
 	out.update_devices();
+	printf("gather end\n");
 }
 template<typename T>
 void mkt::scatter(mkt::DArray<T>& in, mkt::DArray<T>& out){
