@@ -117,7 +117,7 @@
 		}
 	
 		void init(int gpu){
-			printf("functor init %i\n", gpu)
+			printf("functor init %i\n", gpu);
 			oldP.init(gpu);
 		}
 			
