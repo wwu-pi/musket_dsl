@@ -250,7 +250,6 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
 
 template<typename T>
 mkt::DArray<T>::~DArray(){
-	cudaFree(_data);
 	cudaFreeHost(_data);
 	// free device memory
 	#pragma omp parallel for
