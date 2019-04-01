@@ -163,7 +163,7 @@
 
 			std::chrono::high_resolution_clock::time_point gather_timer_start = std::chrono::high_resolution_clock::now();
 
-			mkt::gather<Particle>(P, oldP);
+			//mkt::gather<Particle>(P, oldP);
 			mkt::sync_streams();
 
 			std::chrono::high_resolution_clock::time_point gather_timer_end = std::chrono::high_resolution_clock::now();
