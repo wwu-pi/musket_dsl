@@ -135,6 +135,10 @@
 	
 	int main(int argc, char** argv) {
 		mkt::init_mkt();
+		int number_of_devices = 0;
+		cudaGetDeviceCount(&number_of_devices);
+		printf("number of devices: %i\n", number_of_devices);
+
 		mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		//curandState* devStates[4];
