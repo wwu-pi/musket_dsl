@@ -38,6 +38,9 @@ class DArray {
   T get_local(size_t index);
   void set_local(size_t index, const T& value);
 
+	T get_host_local(int local_index);
+	void set_host_local(int local_index, T value);
+
   T& operator[](size_t local_index);
   const T& operator[](size_t local_index) const;
 
@@ -48,7 +51,7 @@ class DArray {
   size_t get_offset() const;
 
 
-	bool get_pid_by_global_index(size_t global_index) const;
+	int get_pid_by_global_index(size_t global_index) const;
 	bool is_local(size_t global_index) const;
 		
   Distribution get_distribution() const;
@@ -228,7 +231,6 @@ mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, si
     }
     _bytes_gpu = _size_gpu * sizeof(T);
 
-  #pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		cudaSetDevice(gpu);
 
@@ -263,9 +265,9 @@ mkt::DArray<T>::~DArray(){
 	//printf("DArray destructor\n");
 	cudaFreeHost(_data);
 	// free device memory
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
-		cudaSetDevice(0);
+		cudaSetDevice(gpu);
 		cudaFree(_gpu_data[gpu]);
 
 	}
@@ -275,7 +277,7 @@ template<typename T>
 template<std::size_t N>
 void mkt::DArray<T>::operator=(const std::array<T, N>& a) {
   mkt::sync_streams();
-  #pragma omp parallel for
+  //#pragma omp parallel for
   for(size_t element = 0; element < _size_local; ++element){
 	_data[element] = a[element];
   }
@@ -288,29 +290,28 @@ void mkt::DArray<T>::update_self() {
 //printf("darray update_self\n");
 
 	if(_device_dist == Distribution::DIST){
-		#pragma omp parallel for
+		//#pragma omp parallel for
 		for(int gpu = 0; gpu < 4; ++gpu){
 			cudaSetDevice(gpu);
 			cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
-			mkt::sync_streams();
 		}
 	}else{
 		cudaSetDevice(0);
 		cudaMemcpyAsync(_host_data[0], _gpu_data[0], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
-		mkt::sync_streams();
+		
 	}
 
-  
+  mkt::sync_streams();
 }
 
 template<typename T>
 void mkt::DArray<T>::update_devices() {
 	//printf("darray update devices\n");
-  	#pragma omp parallel for
+  	//#pragma omp parallel for
 	for(int gpu = 0; gpu < 4; ++gpu){
 		cudaSetDevice(gpu);
 		cudaMemcpyAsync(_gpu_data[gpu], _host_data[gpu], _bytes_gpu, cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
-		mkt::sync_streams();
+		//mkt::sync_streams();
 	}
 }
 		
@@ -329,10 +330,11 @@ T mkt::DArray<T>::get_local(size_t index) {
 template<typename T>
 void mkt::DArray<T>::set_local(size_t index, const T& v) {
 	//printf("darray set local\n");
+	mkt::sync_streams();
 	_data[index] = v;
 	T* host_pointer = _data + index;
 	if(_device_dist == mkt::Distribution::COPY){
-		#pragma omp parallel for
+		//#pragma omp parallel for
 		for(int gpu = 0; gpu < 4; ++gpu){
 			cudaSetDevice(gpu);
 			T* gpu_pointer = _gpu_data[gpu] + index;
@@ -344,11 +346,21 @@ void mkt::DArray<T>::set_local(size_t index, const T& v) {
 		T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 		cudaMemcpyAsync(gpu_pointer, host_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 	}
-	mkt::sync_streams();
+	//mkt::sync_streams();
 }
 
 template<typename T>
-bool mkt::DArray<T>::get_pid_by_global_index(size_t global_index) const {
+T mkt::DArray<T>::get_host_local(int index) {
+	return _data[index];
+}
+
+template<typename T>
+void mkt::DArray<T>::set_host_local(int index, T v) {
+	_data[index] = v;
+}
+
+template<typename T>
+int mkt::DArray<T>::get_pid_by_global_index(size_t global_index) const {
   return global_index / _size_local;
 }
 
@@ -555,11 +567,11 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 
 			size_t smem_bytes = 0;
 
-			dim3 dimBlock(1024);
+			dim3 dimBlock(128);
 			dim3 dimGrid((gpu_elements+dimBlock.x)/dimBlock.x);
 			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 		}
-		mkt::sync_streams();
+		//mkt::sync_streams();
 		//printf("map index in place end.\n");
 }
 
@@ -680,10 +692,11 @@ template<>
 void mkt::gather<Particle>(mkt::DArray<Particle>& in, mkt::DArray<Particle>& out){
 	//printf("gather\n");
 	in.update_self();
-	#pragma omp parallel for  simd
-	for(size_t counter = 0; counter < in.get_size(); ++counter){
-	  out[counter] = in[counter];
-	}
+	// #pragma omp parallel for simd
+	// for(size_t counter = 0; counter < in.get_size(); ++counter){
+	//   out[counter] = in[counter];
+	// }
+	std::copy(in.get_data(), in.get_data() + in.get_size_local(), out.get_data());
 	out.update_devices();
 	//printf("gather end\n");
 }

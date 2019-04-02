@@ -46,13 +46,13 @@
 		
 		__device__
 		auto operator()(int i, Particle& p){
-			curandState state;
-			size_t id = threadIdx.x + blockIdx.x * blockDim.x;
-			curand_init(1234, id, 0, &state);
-			printf("init functor()\n");
-			p.x = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.y = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.z = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+			curandState_t curand_state;
+			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
+			curand_init(1234, id, 0, &curand_state);
+			//printf("init functor()\n");
+			p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
@@ -75,7 +75,6 @@
 		
 		__device__
 		auto operator()(int curIndex, Particle& curParticle){
-			int id = threadIdx.x + blockIdx.x * blockDim.x;
 			//printf("calc force %i\n", id);
 
 			float ax = 0.0f;

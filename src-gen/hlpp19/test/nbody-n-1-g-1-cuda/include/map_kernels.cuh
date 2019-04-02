@@ -85,8 +85,15 @@ __global__ void mkt::kernel::mapIndexInPlaceKernel(T* inout,
                                             F func)
 {
   size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+ 
+  if(x == 0){
+    printf("inside mapIndexInPlaceKernel\n");
+  }
 
   if (x < size) {
+    if(x == 0){
+      printf("call func\n");
+    }
     func(x + offset, inout[x]);
   }
 }

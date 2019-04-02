@@ -12,7 +12,7 @@
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
-	//#include <cuda.h>
+	#include <cuda.h>
 	//#include <openacc_curand.h>
 	#include <curand_kernel.h>
 	
@@ -24,43 +24,48 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
-	__global__ void setup_kernel(curandState *state)
-	{
-		int id = threadIdx.x + blockIdx.x * 1024;
-		/* Each thread gets same seed, a different sequence 
-		   number, no offset */
-		curand_init(1234, id, 0, &state[id]);
-	}
+	// __global__ void setup_kernel(curandState *state)
+	// {
+	// 	int id = threadIdx.x + blockIdx.x * 1024;
+	// 	/* Each thread gets same seed, a different sequence 
+	// 	   number, no offset */
+	// 	curand_init(1234, id, 0, &state[id]);
+	// }
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
+		__host__
 		Init_particles_map_index_in_place_array_functor(){
-			
+			printf("init constructor.\n");
 		}
 		
-		~Init_particles_map_index_in_place_array_functor() {}
+		__host__
+		~Init_particles_map_index_in_place_array_functor() {printf("init destructor.\n");}
 		
 		__device__
 		auto operator()(int i, Particle& p){
-			curandState state;
-			curand_init(clock64(), 0, 0, &state);
-			
-			p.x = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.y = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.z = static_cast<float>(curand_uniform(&state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+			curandState_t curand_state;
+			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
+			curand_init(1234, id, 0, &curand_state);
+			// p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+			// p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+			// p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
+			p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
-
+			//printf("p.x = %.5f\n", p.x);
 		}
 	
+		__host__
 		void init(int gpu){
 
 		}
@@ -125,7 +130,9 @@
 	};
 	
 	
-	
+	void showParticle(Particle p) {
+		printf("x: %.5f, y: %.5f, z: %.5f, vx: %.5f, vy: %.5f, vz: %.5f, mass: %.5f, charge: %.5f \n", p.x, p.y, p.z, p.vx, p.vy, p.vz, p.mass, p.charge);
+	}	
 	
 	int main(int argc, char** argv) {
 		
@@ -137,21 +144,32 @@
 		// 	cudaMalloc((void **)&devStates[gpu], 64 * 1024 * sizeof(curandState)));
 		// 	setup_kernel<<<64, 1024>>>(devStates[gpu]);
 		// }
-		
+		mkt::init_mkt();
+		mkt::DArray<Particle> P(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
 				
-		
+		printf("init start.\n");
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
 		mkt::sync_streams();
+		printf("init end.\n");
+printf("input:\n");
+		Particle in_particlep = P.get_global(0);
+		showParticle(in_particlep);
+		Particle in_particle = oldP.get_global(0);
+		showParticle(in_particle);
+		
 
 		double gather_time = 0.0;
 		double map_time = 0.0;
 
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		for(int i = 0; ((i) < (steps)); ++i){
+		//for(int i = 0; ((i) < (steps)); ++i){
+		for(int i = 0; ((i) < (2)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
@@ -173,7 +191,12 @@
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
-		
+		printf("output:\n");
+		Particle out_particlep = P.get_global(0);
+		showParticle(out_particlep);
+		Particle out_particle = oldP.get_global(0);
+		showParticle(out_particle);
+
 		printf("Execution time: %.5fs\n", seconds);
 
 		printf("map time: %.5fs\n", map_time);

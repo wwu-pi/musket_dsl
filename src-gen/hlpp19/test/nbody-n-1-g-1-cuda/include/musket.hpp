@@ -38,6 +38,9 @@ class DArray {
   T get_local(int index);
   void set_local(int index, const T& value);
 
+	T get_host_local(int local_index);
+	void set_host_local(int local_index, T value);
+
   T& operator[](int local_index);
   const T& operator[](int local_index) const;
 
@@ -47,6 +50,9 @@ class DArray {
 
   int get_offset() const;
 		
+	int get_pid_by_global_index(size_t global_index) const;
+	bool is_local(size_t global_index) const;
+
   Distribution get_distribution() const;
   Distribution get_device_distribution() const;
 		
@@ -138,10 +144,10 @@ class DeviceArray {
   
 // Getter and Setter
 	__device__
-  const T& get_data_device(int device_index) const;
+  const T& get_data_device(size_t device_index) const;
 	
 	__device__
-  const T& get_data_local(int local_index) const;
+  const T& get_data_local(size_t local_index) const;
 
  private:
 
@@ -221,7 +227,6 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
     }
     _bytes_gpu = _size_gpu * sizeof(T);
 
-    #pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
 		cudaSetDevice(gpu);
 
@@ -244,18 +249,20 @@ mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int part
 	    }		
 		
 		// init values
-		cudaMemcpyAsync(devptr, _host_data[gpu], _size_gpu * sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
+		//cudaMemcpyAsync(devptr, _host_data[gpu], _size_gpu * sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 	}
+	update_devices();
+
+	mkt::sync_streams();
 }
 
 template<typename T>
 mkt::DArray<T>::~DArray(){
-	cudaFree(_data);
 	cudaFreeHost(_data);
 	// free device memory
 	#pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
-		cudaSetDevice(0);
+		cudaSetDevice(gpu);
 		cudaFree(_gpu_data[gpu]);
 
 	}
@@ -274,21 +281,25 @@ void mkt::DArray<T>::operator=(const std::array<T, N>& a) {
 		
 template<typename T>
 void mkt::DArray<T>::update_self() {
-	// if copy gpu dist
-  	#pragma omp parallel for
-	for(int gpu = 0; gpu < 1; ++gpu){
-		cudaSetDevice(gpu);
-		cudaMemcpyAsync(_gpu_data[gpu], _host_data[gpu], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+		if(_device_dist == Distribution::DIST){
+		#pragma omp parallel for
+		for(int gpu = 0; gpu < 1; ++gpu){
+			cudaSetDevice(gpu);
+			cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+			mkt::sync_streams();
+		}
+	}else{
+		cudaSetDevice(0);
+		cudaMemcpyAsync(_host_data[0], _gpu_data[0], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
 		mkt::sync_streams();
 	}
 }
 
 template<typename T>
 void mkt::DArray<T>::update_devices() {
-  	#pragma omp parallel for
 	for(int gpu = 0; gpu < 1; ++gpu){
 		cudaSetDevice(gpu);
-		cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], _bytes_gpu, cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
+		cudaMemcpyAsync(_gpu_data[gpu], _host_data[gpu], _bytes_gpu, cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 		mkt::sync_streams();
 	}
 }
@@ -299,13 +310,14 @@ T mkt::DArray<T>::get_local(int index) {
 	cudaSetDevice(gpu);
 	T* host_pointer = _data + index;
 	T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
-	cudaMemcpyAsync(_gpu_data[gpu], _host_data[gpu], sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+	cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
 	mkt::sync_streams();
     return _data[index];
 }
 
 template<typename T>
 void mkt::DArray<T>::set_local(int index, const T& v) {
+	mkt::sync_streams();
 	_data[index] = v;
 	T* host_pointer = _data + index;
 	if(_device_dist == mkt::Distribution::COPY){
@@ -313,7 +325,7 @@ void mkt::DArray<T>::set_local(int index, const T& v) {
 		for(int gpu = 0; gpu < 1; ++gpu){
 			cudaSetDevice(gpu);
 			T* gpu_pointer = _gpu_data[gpu] + index;
-			cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
+			cudaMemcpyAsync(gpu_pointer, host_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 		}
 	}else if(_device_dist == mkt::Distribution::DIST){
 		int gpu = get_gpu_by_local_index(index);
@@ -321,12 +333,44 @@ void mkt::DArray<T>::set_local(int index, const T& v) {
 		T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 		cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyHostToDevice, mkt::cuda_streams[gpu]);
 	}
-	mkt::sync_streams();
+//	mkt::sync_streams();
 }
 
 template<typename T>
-T mkt::DArray<T>::get_global(int index) {
-  // TODO
+T mkt::DArray<T>::get_host_local(int index) {
+	return _data[index];
+}
+
+template<typename T>
+void mkt::DArray<T>::set_host_local(int index, T v) {
+	_data[index] = v;
+}
+
+template<typename T>
+int mkt::DArray<T>::get_pid_by_global_index(size_t global_index) const {
+  return global_index / _size_local;
+}
+
+template<typename T>
+bool mkt::DArray<T>::is_local(size_t global_index) const {
+	int pid = get_pid_by_global_index(global_index);
+  return (pid == _pid);
+}
+
+template<typename T>
+T mkt::DArray<T>::get_global(int global_index) {
+	// T result;
+	// if(is_local(global_index)){
+	// 	size_t local_index = global_index - _offset;
+	// 	result = get_local(local_index);
+	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, _pid, )
+	// }else{
+	// 	int root = get_pid_by_global_index(global_index);
+	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
+	// }
+	// return result;
+
+	return get_local(global_index);
 }
 
 template<typename T>
@@ -491,11 +535,13 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 
 template<typename T, typename Functor>
 void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
+	printf("map index in place start.\n");
 	unsigned int offset = a.get_offset();
 	unsigned int gpu_elements = a.get_size_gpu();
 			  
   	//#pragma omp parallel for
   	for(int gpu = 0; gpu < 1; ++gpu){
+			printf("map index in place: gpu loop start.\n");
 			cudaSetDevice(gpu);
 			f.init(gpu);
 			T* devptr = a.get_device_pointer(gpu);
@@ -507,10 +553,13 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 
 			int smem_bytes = 0;
 
-			dim3 dimBlock(1024);
-			dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+			dim3 dimBlock(128);
+			dim3 dimGrid((gpu_elements+dimBlock.x)/dimBlock.x);
+			printf("map index in place: kernel call.\n");
 			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 		}
+		mkt::sync_streams();
+		printf("map index in place end.\n");
 }
 
 template<typename T, typename Functor>
@@ -574,18 +623,26 @@ void mkt::DeviceArray<T>::init(int gpu) {
 	} else {
 		_device_offset = _size_device * gpu;
 	}
-	    
+	
 	_device_data = _gpu_data[gpu];
+	printf("size %i, size_local %i, size_device %i, offset %i", _size, _size_local, _size_device, _offset);
+	printf("_device_data: %p\n", (void*)_device_data);
 }
 
 template<typename T>
-__device__ const T& mkt::DeviceArray<T>::get_data_device(int device_index) const {
+__device__ const T& mkt::DeviceArray<T>::get_data_device(size_t device_index) const {
+	size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+	// if(x == 0)
+	// 	printf("device_index %i\n", device_index);
   return _device_data[device_index];
 }
 
 
 template<typename T>
-__device__ const T& mkt::DeviceArray<T>::get_data_local(int local_index) const {
+__device__ const T& mkt::DeviceArray<T>::get_data_local(size_t local_index) const {
+	size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+	// if(x == 0)
+	// printf("local_index %i, device offset: %i\n", local_index ,_device_offset);
   return this->get_data_device(local_index - _device_offset);
 }
 
@@ -624,10 +681,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 template<>
 void mkt::gather<Particle>(mkt::DArray<Particle>& in, mkt::DArray<Particle>& out){
 	in.update_self();
-	#pragma omp parallel for  simd
-	for(int counter = 0; counter < in.get_size(); ++counter){
-	  out[counter] = in[counter];
-	}
+	std::copy(in.get_data(), in.get_data() + in.get_size_local(), out.get_data());
 	out.update_devices();
 }
 template<typename T>
