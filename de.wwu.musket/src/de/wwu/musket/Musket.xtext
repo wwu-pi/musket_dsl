@@ -19,7 +19,7 @@ Include:
 
 //-----------------------------------------------------------
 ConfigBlock:
-	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformCPUMPMD?='CPU_MPMD')? & (platformGPU?='GPU')?)) &
+	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformCPUMPMD?='CPU_MPMD')? & (platformGPU?='GPU')? & (platformCUDA?='CUDA')?)) &
 	('#config' 'PROCESSES' processes=INT) &
 	('#config' 'CORES' cores=INT)?	&
 	('#config' 'GPUS' gpus=INT)?	&

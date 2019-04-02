@@ -12,6 +12,7 @@ import org.apache.log4j.LogManager
 import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
 import de.wwu.musket.generator.cpu.mpmd.MusketCPUMPMDGenerator
 import de.wwu.musket.generator.gpu.MusketGPUGenerator
+import de.wwu.musket.generator.cuda.MusketCUDAGenerator
 import de.wwu.musket.generator.preprocessor.MusketPreprocessor
 
 /**
@@ -41,6 +42,10 @@ class MusketGenerator extends AbstractGenerator {
 		
 		if (resource.isPlatformGPU) {
 			MusketGPUGenerator.doGenerate(preprocessedModel, fsa, context)
+		}
+		
+		if (resource.isPlatformCUDA) {
+			MusketCUDAGenerator.doGenerate(preprocessedModel, fsa, context)
 		}
 		
 		logger.info("Musket generator done.")

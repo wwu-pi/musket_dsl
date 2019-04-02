@@ -136,4 +136,8 @@ class ModelElementAccess {
 	def static isPlatformGPU(Resource resource) {
 		resource.allContents.filter(ConfigBlock).head.platformGPU
 	}
+	
+	def static isPlatformCUDA(Resource resource) {
+		resource.allContents.filter(ConfigBlock).head.platformCUDA
+	}
 }
