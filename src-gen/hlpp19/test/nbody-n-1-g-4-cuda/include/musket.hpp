@@ -206,7 +206,8 @@ void mkt::init_mkt(){
 void mkt::sync_streams(){
 	for(int i = 0; i < 4; ++i){
 		cudaSetDevice(i);
-		cudaStreamSynchronize(cuda_streams[i]);
+		//cudaStreamSynchronize(cuda_streams[i]);
+		cudaDeviceSynchronize();
 	}
 }
 
@@ -571,7 +572,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 			cudaSetDevice(gpu);
 			dim3 dimBlock(128);
 			dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
-			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
+			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes>>>(devptr, gpu_elements, gpu_offset, f);
 			mkt::sync_streams(); // for testing
 		}
 		//mkt::sync_streams();
