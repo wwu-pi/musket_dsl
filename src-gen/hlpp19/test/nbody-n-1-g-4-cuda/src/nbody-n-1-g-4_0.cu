@@ -53,7 +53,7 @@
 			curand_init(1234, id, 0, &curand_state);
 			float random_number = curand_uniform(&curand_state);
 			if(id == 0 || id == 124999){
-				printf("init functor() id %i on Device %i, random number: 0.5f\n", id, deviceId, random_number);
+				printf("init functor() id %i on Device %i, random number: %.5f\n", id, deviceId, random_number);
 			}
 			//printf("init functor()\n");
 			p.x = curand_uniform(&curand_state);
