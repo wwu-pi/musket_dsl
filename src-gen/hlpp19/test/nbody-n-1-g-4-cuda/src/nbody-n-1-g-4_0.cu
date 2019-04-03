@@ -48,17 +48,17 @@
 		auto operator()(int i, Particle& p){
 			int deviceId = -1;
 			cudaGetDevice(&deviceId);
-			curandState_t curand_state;
+			//curandState_t curand_state;
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
-			curand_init(1234, id, 0, &curand_state);
-			float random_number = curand_uniform(&curand_state);
+			//curand_init(1234, id, 0, &curand_state);
+			float random_number = 1.1f; //curand_uniform(&curand_state);
 			if(id == 0 || id == 124999){
 				printf("init functor() id %i on Device %i, random number: %.5f\n", id, deviceId, random_number);
 			}
 			//printf("init functor()\n");
-			p.x = curand_uniform(&curand_state);
-			p.y = curand_uniform(&curand_state);
-			p.z = curand_uniform(&curand_state);
+			p.x = 1.2f; //curand_uniform(&curand_state);
+			p.y = 1.3f;//curand_uniform(&curand_state);
+			p.z = 1.4f;//curand_uniform(&curand_state);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
