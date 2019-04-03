@@ -51,8 +51,9 @@
 			curandState_t curand_state;
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			curand_init(1234, id, 0, &curand_state);
-			if(id == 0 || id == 499999){
-				printf("init functor() id%i on Device %i\n", id, deviceId);
+			float random_number = curand_uniform(&curand_state);
+			if(id == 0 || id == 124999){
+				printf("init functor() id %i on Device %i, random number: 0.5f\n", id, deviceId, random_number);
 			}
 			//printf("init functor()\n");
 			p.x = curand_uniform(&curand_state);
