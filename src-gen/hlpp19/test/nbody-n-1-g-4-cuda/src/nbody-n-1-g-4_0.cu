@@ -20,7 +20,7 @@
 	#include "../include/nbody-n-1-g-4_0.hpp"
 		
 			
-	const int dim = 500000;
+	const int dim = 50000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
@@ -86,7 +86,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 500000); j++){
+			for(int j = 0; ((j) < 50000); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
@@ -145,8 +145,8 @@
 		cudaGetDeviceCount(&number_of_devices);
 		printf("number of devices: %i\n", number_of_devices);
 
-		mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-		mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+		mkt::DArray<Particle> P(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		//curandState* devStates[4];
 		
 		// #pragma omp parallel for
