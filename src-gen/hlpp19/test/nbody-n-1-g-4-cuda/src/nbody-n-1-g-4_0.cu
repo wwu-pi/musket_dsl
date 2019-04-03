@@ -48,11 +48,14 @@
 		auto operator()(int i, Particle& p){
 			curandState_t curand_state;
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
-			curand_init(1234, id, 0, &curand_state);
+			//curand_init(1234, id, 0, &curand_state);
+			if(id == 0 || id == 499999){
+				printf("init functor()\n");
+			}
 			//printf("init functor()\n");
-			p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.x = 0.3f;//curand_uniform(&curand_state);
+			p.y = 0.4f;//curand_uniform(&curand_state);
+			p.z = 0.5f;//curand_uniform(&curand_state);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
