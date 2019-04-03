@@ -555,7 +555,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
   	//#pragma omp parallel for
   	for(int gpu = 0; gpu < 4; ++gpu){
 			printf("map index in place for gpu %i, gpu_elements: %zu\n", gpu, gpu_elements);
-			cudaSetDevice(gpu);
+			
 			f.init(gpu);
 			T* devptr = a.get_device_pointer(gpu);
 			
@@ -568,6 +568,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 
 			size_t smem_bytes = 0;
 
+			cudaSetDevice(gpu);
 			dim3 dimBlock(128);
 			dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 			mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);

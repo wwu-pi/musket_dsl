@@ -6,7 +6,7 @@
 
 	SET(CMAKE_CXX_FLAGS_DEV "-O0 -g -march=native -Wall -Wextra -DMPICH_IGNORE_CXX_SEEK -std=c++14")
 	SET(CMAKE_CXX_FLAGS_TEST "-O3 -g -march=native -fopt-info-vec-optimized -Wall -Wextra -DMPICH_IGNORE_CXX_SEEK -std=c++14 " )
-	SET( CMAKE_CXX_FLAGS_VTUNE "-O3 -g -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK -std=c++14")
+	SET( CMAKE_CXX_FLAGS_NVPROF "-O3 -g -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK -std=c++14")
 	SET( CMAKE_CXX_FLAGS_BENCHMARK "-O3 -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK -std=c++14")
 	SET( CMAKE_CXX_FLAGS_BENCHMARKPALMA "-O3 -DNDEBUG -march=broadwell -DMPICH_IGNORE_CXX_SEEK -std=c++14")
 	SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-O3 -DNDEBUG -march=haswell -DMPICH_IGNORE_CXX_SEEK -std=c++14")
@@ -27,7 +27,7 @@
 
 	SET( CMAKE_CUDA_FLAGS_DEV "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas -O0 -Xcompiler -O0,-g,-march=native,-Wall,-Wextra,-DMPICH_IGNORE_CXX_SEEK,-std=c++14")
 	SET( CMAKE_CUDA_FLAGS_TEST "-g -G -O0 -arch=compute_61 -code=sm_61 -use_fast_math -restrict -Xptxas -O0 -Xcompiler -O3,-g,-march=native,-fopt-info-vec-optimized,-Wall,-Wextra,-DMPICH_IGNORE_CXX_SEEK,-std=c++14")
-	SET( CMAKE_CUDA_FLAGS_VTUNE "-g -G -pg -O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas -O3 -Xcompiler -O3,-g,-DNDEBUG,-march=native,-DMPICH_IGNORE_CXX_SEEK,-std=c++14")
+	SET( CMAKE_CUDA_FLAGS_NVPROF "-g -G -pg -O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas -O3 -Xcompiler -O3,-g,-DNDEBUG,-march=native,-DMPICH_IGNORE_CXX_SEEK,-std=c++14")
 	SET( CMAKE_CUDA_FLAGS_BENCHMARK "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas -O3" )
 	SET( CMAKE_CUDA_FLAGS_BENCHMARKPALMA "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas -O3 -Xcompiler -O3,-DNDEBUG,-march=broadwell,-DMPICH_IGNORE_CXX_SEEK,-std=c++14" )
 	SET( CMAKE_CUDA_FLAGS_BENCHMARKTAURUS "-O3 -arch=compute_35 -code=sm_35 -use_fast_math -w -restrict -Xptxas -O3 -Xcompiler -O3,-DNDEBUG,-march=haswell,-DMPICH_IGNORE_CXX_SEEK,-std=c++14")
