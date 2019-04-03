@@ -46,16 +46,18 @@
 		
 		__device__
 		auto operator()(int i, Particle& p){
+			int deviceId;
+			cudaGetDevice(&deviceId);
 			curandState_t curand_state;
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
-			//curand_init(1234, id, 0, &curand_state);
+			curand_init(1234, id, 0, &curand_state);
 			if(id == 0 || id == 499999){
-				printf("init functor()\n");
+				printf("init functor() id%i on Device %i\n", id, deviceId);
 			}
 			//printf("init functor()\n");
-			p.x = 0.3f;//curand_uniform(&curand_state);
-			p.y = 0.4f;//curand_uniform(&curand_state);
-			p.z = 0.5f;//curand_uniform(&curand_state);
+			p.x = curand_uniform(&curand_state);
+			p.y = curand_uniform(&curand_state);
+			p.z = curand_uniform(&curand_state);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
