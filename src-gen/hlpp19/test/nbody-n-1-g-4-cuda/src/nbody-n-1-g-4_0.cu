@@ -46,7 +46,7 @@
 		
 		__device__
 		auto operator()(int i, Particle& p){
-			int deviceId;
+			int deviceId = -1;
 			cudaGetDevice(&deviceId);
 			curandState_t curand_state;
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
