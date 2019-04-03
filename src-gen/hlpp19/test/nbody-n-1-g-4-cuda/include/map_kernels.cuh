@@ -85,7 +85,12 @@ __global__ void mkt::kernel::mapIndexInPlaceKernel(T* inout,
                                             F func)
 {
   size_t x = blockIdx.x * blockDim.x + threadIdx.x;
-//printf("kernel size: %i", size);
+  int deviceId = -1;
+  cudaGetDevice(&deviceId);
+  if(x == 0){
+    printf("kernel: id: %i, device: %i\n", x, deviceId);
+  }
+  
   if (x < size) {
     //printf("kernel x: %i", x);
     func(x + offset, inout[x]);

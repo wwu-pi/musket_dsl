@@ -52,7 +52,7 @@
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			//curand_init(1234, id, 0, &curand_state);
 			float random_number = 1.1f; //curand_uniform(&curand_state);
-			if(id == 0 || id == 124999){
+			if(id == 0 || id == 12499){
 				printf("init functor() id %i on Device %i, random number: %.5f\n", id, deviceId, random_number);
 			}
 			//printf("init functor()\n");
@@ -175,7 +175,7 @@
 		double map_time = 0.0;
 
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		for(int i = 0; ((i) < (steps)); ++i){
+		for(int i = 0; ((i) < (0)); ++i){
 			mkt::sync_streams();
 			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
 			//printf("map iteration %i\n", i);
