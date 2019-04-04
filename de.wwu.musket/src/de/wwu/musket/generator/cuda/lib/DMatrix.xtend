@@ -40,8 +40,11 @@ class DMatrix {
 		  void set_local(size_t row, size_t column, const T& value);
 		  void set_local(size_t index, const T& value);
 		
-		  T& get_local_host_data(size_t row, size_t column);
-		  const T& get_local_host_data(size_t row, size_t column) const;
+		  T get_local_host_data(size_t row, size_t column) const;
+		  T get_local_host_data(size_t index) const;
+		  
+		  void set_local_host_data(size_t row, size_t column, T v);
+		  void set_local_host_data(size_t index, T v);
 		  
 		  T& operator[](size_t local_index);
 		  const T& operator[](size_t local_index) const;
@@ -200,7 +203,7 @@ class DMatrix {
 				
 			}
 			for(size_t i = 0; i < _size_gpu; ++i){
-			  devptr[i] = init_value;
+			  _data[i] = init_value;
 			}
 			update_devices();
 		}
@@ -291,8 +294,8 @@ class DMatrix {
 		}
 		
 		template<typename T>
-		T mkt::DMatrix<T>::get_local_host_data(size_t row, size_t column) {
-		  get_local_host_data(row * _number_of_columns_local + column);
+		T mkt::DMatrix<T>::get_local_host_data(size_t row, size_t column) const {
+		  return get_local_host_data(row * _number_of_columns_local + column);
 		}
 		
 		template<typename T>
@@ -301,12 +304,12 @@ class DMatrix {
 		}
 		
 		template<typename T>
-		void mkt::DArray<T>::set_local_host_data(size_t row, size_t column, T v) {
+		void mkt::DMatrix<T>::set_local_host_data(size_t row, size_t column, T v) {
 			set_local_host_data(row * _number_of_columns_local + column, v);
 		}
 		
 		template<typename T>
-		void mkt::DArray<T>::set_local_host_data(size_t index, T v) {
+		void mkt::DMatrix<T>::set_local_host_data(size_t index, T v) {
 			_data[index] = v;
 		}
 		
@@ -437,14 +440,14 @@ class DMatrix {
 		
 		template<typename T>
 		int mkt::DMatrix<T>::get_pid_by_global_index(size_t global_row, size_t global_column) const {
-			size_t row_pos = global_row / _rows_local; // assumes even distribution
-			size_t col_pos = gobal_column / columns_local;
+			size_t row_pos = global_row / _number_of_rows_local; // assumes even distribution
+			size_t col_pos = global_column / _number_of_columns_local;
 			return row_pos * _partitions_in_row + col_pos;
 		}
 		
 		template<typename T>
 		bool mkt::DMatrix<T>::is_local(size_t global_row, size_t global_column) const {
-			int pid = get_pid_by_global_index(global_index);
+			int pid = get_pid_by_global_index(global_row, global_column);
 			return (pid == _pid);
 		}
 		
@@ -503,7 +506,7 @@ class DMatrix {
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 			
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 			const size_t gpu_elements = in.get_size_gpu();
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
@@ -523,7 +526,7 @@ class DMatrix {
 			size_t column_offset = in.get_column_offset();
 			size_t columns_local = in.get_number_of_columns_local();
 
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 
 		  	size_t gpu_elements = in.get_size_gpu();
 		  	size_t rows_on_gpu = in.get_rows_gpu();
@@ -550,7 +553,7 @@ class DMatrix {
 		void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 			size_t columns_local = in.get_number_of_columns_local();
 
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 
 		  	size_t gpu_elements = in.get_size_gpu();
 		  	size_t rows_on_gpu = in.get_rows_gpu();
@@ -575,7 +578,7 @@ class DMatrix {
 
 		template<typename T, typename Functor>
 		void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 			const size_t gpu_elements = m.get_size_gpu();
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
@@ -594,7 +597,7 @@ class DMatrix {
 			size_t column_offset = m.get_column_offset();
 			size_t columns_local = m.get_number_of_columns_local();
 
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 
 		  	size_t gpu_elements = m.get_size_gpu();
 		  	size_t rows_on_gpu = m.get_rows_gpu();
@@ -620,7 +623,7 @@ class DMatrix {
 		void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			size_t columns_local = m.get_number_of_columns_local();
 
-			size_t smem_bytes = f.get_smem_size();
+			size_t smem_bytes = f.get_smem_bytes();
 
 		  	size_t gpu_elements = m.get_size_gpu();
 		  	size_t rows_on_gpu = m.get_rows_gpu();
