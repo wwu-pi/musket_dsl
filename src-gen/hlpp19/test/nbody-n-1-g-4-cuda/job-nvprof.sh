@@ -18,5 +18,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    nvprof --device-buffer-size 1024 --profiling-semaphore-pool-size 131072 /home/fwrede/build/hlpp19/musket/nbody-n-1-g-4-cuda/bin/nbody-n-1-g-4_0
+    nvprof -f --device-buffer-size 1024 --profiling-semaphore-pool-size 131072 -o /home/fwrede/out/hlpp19/musket-test/nbody-n-1-g-4-cuda-nvprof.profile --cpu-thread-tracing on --cpu-thread-tracing on --devices all /home/fwrede/build/hlpp19/musket/nbody-n-1-g-4-cuda/bin/nbody-n-1-g-4_0
 done

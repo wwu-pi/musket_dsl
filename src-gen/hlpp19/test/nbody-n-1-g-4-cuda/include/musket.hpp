@@ -605,7 +605,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 			printf("map index in place: offset: %zu \n", gpu_offset);
 
 			gpuErrchk( cudaSetDevice(gpu) );
-			dim3 dimBlock(128);
+			dim3 dimBlock(32);
 			dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 			mkt::kernel::mapIndexInPlaceKernel<T, Functor><<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 			gpuErrchk( cudaPeekAtLastError() );
