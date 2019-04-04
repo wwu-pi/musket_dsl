@@ -13,6 +13,7 @@ import static de.wwu.musket.generator.cuda.RunScriptGenerator.generateRunScript
 import static de.wwu.musket.generator.cuda.SourceFileGenerator.generateSourceFile
 import static de.wwu.musket.generator.cuda.SlurmGenerator.generateSlurmJob
 import static de.wwu.musket.generator.cuda.lib.Musket.generateMusketHeaderFile
+import static de.wwu.musket.generator.cuda.lib.Kernel.generateKernelHeaderFile
 
 /** 
  * This is the start of the GPU generator.
@@ -33,7 +34,7 @@ class MusketCUDAGenerator {
  * They call the other generators later as required.
  */
 	def static void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		logger.info("Start generation for GPU Platform.")
+		logger.info("Start generation for CUDA Platform.")
 
 		// config
 		Config.init(resource)
@@ -48,6 +49,7 @@ class MusketCUDAGenerator {
 		
 		// lib header files
 		generateMusketHeaderFile(resource, fsa, context)
+		generateKernelHeaderFile(resource, fsa, context)
 		generateHeaderFile(resource, fsa, context)
 		//generateDArrayHeaderFile(resource, fsa, context)
 		//generateDMatrixHeaderFile(resource, fsa, context)
@@ -58,6 +60,6 @@ class MusketCUDAGenerator {
 			generateProcessHeaderFiles(resource, fsa, context, i)		
 			generateSourceFile(resource, fsa, context, i)
 		}
-		logger.info("Generation for GPU platform done.")
+		logger.info("Generation for CUDA platform done.")
 	}
 }

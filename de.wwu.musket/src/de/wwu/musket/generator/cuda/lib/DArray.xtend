@@ -37,6 +37,9 @@ class DArray {
 		  T get_local(size_t index);
 		  void set_local(size_t index, const T& value);
 		
+		  T mkt::DArray<T>::get_host_local(size_t index);		
+		  void mkt::DArray<T>::set_host_local(size_t index, T v);
+		
 		  T& operator[](size_t local_index);
 		  const T& operator[](size_t local_index) const;
 		
@@ -140,7 +143,7 @@ class DArray {
 		template<typename T>
 		mkt::DArray<T>::~DArray(){
 			cudaFreeHost(_data);
-			for(int gpu = 0; gpu < 4; ++gpu){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
 				cudaFree(_gpu_data[gpu]);
 			}
@@ -208,12 +211,12 @@ class DArray {
 		}
 
 		template<typename T>
-		T mkt::DArray<T>::get_host_local(int index) {
+		T mkt::DArray<T>::get_host_local(size_t index) {
 			return _data[index];
 		}
 		
 		template<typename T>
-		void mkt::DArray<T>::set_host_local(int index, T v) {
+		void mkt::DArray<T>::set_host_local(size_t index, T v) {
 			_data[index] = v;
 		}
 
@@ -369,85 +372,84 @@ class DArray {
 	def static generateDArraySkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
-«««			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
-«««			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-«««				acc_set_device_num(gpu, acc_device_not_host);
-«««				f.init(gpu);
-«««				T* in_devptr = in.get_device_pointer(gpu);
-«««				R* out_devptr = out.get_device_pointer(gpu);
-«««				const size_t gpu_elements = in.get_size_gpu();
-«««				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-«««				for(size_t i = 0; i < gpu_elements; ++i) {
-«««					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-«««					out_devptr[i] = f(in_devptr[i]);
-«««				}
-«««			}
+			size_t gpu_elements = a.get_size_gpu();
+						  
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				cudaSetDevice(gpu);
+				f.init(gpu);
+				T* in_devptr = in.get_device_pointer(gpu);
+				R* out_devptr = out.get_device_pointer(gpu);
+
+				size_t smem_bytes = f.get_smem_bytes();
+				
+				dim3 dimBlock(«Config.threads»);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, f);
+			}
 		}
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
-«««			size_t offset = in.get_offset();
-«««			size_t gpu_elements = in.get_size_gpu();
-«««			
-«««			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
-«««			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-«««				acc_set_device_num(gpu, acc_device_not_host);
-«««				f.init(gpu);
-«««				T* in_devptr = in.get_device_pointer(gpu);
-«««				R* out_devptr = out.get_device_pointer(gpu);
-«««				
-«««				size_t gpu_offset = offset;
-«««				if(in.get_device_distribution() == mkt::Distribution::DIST){
-«««					gpu_offset += gpu * gpu_elements;
-«««				}
-«««				
-«««				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-«««				for(size_t i = 0; i < gpu_elements; ++i) {
-«««					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-«««					out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
-«««				}
-«««			}
+			size_t offset = in.get_offset();
+			size_t gpu_elements = in.get_size_gpu();
+						  
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				cudaSetDevice(gpu);
+				f.init(gpu);
+				T* in_devptr = in.get_device_pointer(gpu);
+				R* out_devptr = out.get_device_pointer(gpu);
+				
+				size_t gpu_offset = offset;
+				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					gpu_offset += gpu * gpu_elements;
+				}
+
+				size_t smem_bytes = f.get_smem_bytes();
+				
+				dim3 dimBlock(«Config.threads»);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, gpu_offset, f);
+			}
 		}
 		
 		template<typename T, typename R, typename Functor>
 		void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
-«««			size_t gpu_elements = in.get_size_gpu();
-«««			
-«««			//«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
-«««			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-«««				acc_set_device_num(gpu, acc_device_not_host);
-«««				f.init(gpu);
-«««				T* in_devptr = in.get_device_pointer(gpu);
-«««				R* out_devptr = out.get_device_pointer(gpu);
-«««				
-«««				size_t gpu_offset = 0;
-«««				if(in.get_device_distribution() == mkt::Distribution::DIST){
-«««					gpu_offset = gpu * gpu_elements;
-«««				}
-«««				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
-«««				for(size_t i = 0; i < gpu_elements; ++i) {
-«««					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-«««					out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
-«««				}
-«««			}
+			size_t gpu_elements = in.get_size_gpu();
+						  
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				cudaSetDevice(gpu);
+				f.init(gpu);
+				T* in_devptr = in.get_device_pointer(gpu);
+				R* out_devptr = out.get_device_pointer(gpu);
+				
+				size_t gpu_offset = 0;
+				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					gpu_offset += gpu * gpu_elements;
+				}
+
+				size_t smem_bytes = f.get_smem_bytes();
+				
+				dim3 dimBlock(«Config.threads»);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, gpu_offset, f);
+			}
 		}
 		
 		template<typename T, typename Functor>
 		void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
-«««			size_t gpu_elements = a.get_size_gpu();
-«««			
-«««		  //«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
-«««		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-«««			acc_set_device_num(gpu, acc_device_not_host);
-«««			f.init(gpu);
-«««			T* devptr = a.get_device_pointer(gpu);
-«««			
-«««			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-«««		  	for(size_t i = 0; i < gpu_elements; ++i) {
-«««		  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-«««		    	f(devptr[i]);
-«««		  	}
-«««		  }
+			size_t gpu_elements = a.get_size_gpu();
+						  
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				cudaSetDevice(gpu);
+				f.init(gpu);
+				T* devptr = a.get_device_pointer(gpu);
+
+				size_t smem_bytes = f.get_smem_bytes();
+				
+				dim3 dimBlock(«Config.threads»);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, f);
+			}
 		}
 		
 		template<typename T, typename Functor>
@@ -468,31 +470,31 @@ class DArray {
 				size_t smem_bytes = f.get_smem_bytes();
 				
 				dim3 dimBlock(«Config.threads»);
-				dim3 dimGrid((gpu_elements+dimBlock.x)/dimBlock.x);
-				mkt::kernel::mapIndexInPlaceKernel<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 			}
 		}
 		
 		template<typename T, typename Functor>
 		void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
-«««			size_t gpu_elements = a.get_size_gpu();
-«««			
-«««		  //«IF Config.cores > 1»#pragma omp parallel for«ENDIF»
-«««		  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-«««			acc_set_device_num(gpu, acc_device_not_host);
-«««			f.init(gpu);
-«««			T* devptr = a.get_device_pointer(gpu);				
-«««			
-«««			size_t gpu_offset = 0;
-«««			if(a.get_device_distribution() == mkt::Distribution::DIST){
-«««				gpu_offset = gpu * gpu_elements;
-«««			}
-«««			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-«««		  	for(size_t i = 0; i < gpu_elements; ++i) {
-«««		  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-«««		    	f(i + gpu_offset, devptr[i]);
-«««		  	}
-«««		  }
+			size_t gpu_elements = a.get_size_gpu();
+						  
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				cudaSetDevice(gpu);
+				f.init(gpu);
+				T* devptr = a.get_device_pointer(gpu);
+				
+				size_t gpu_offset = 0;
+				if(a.get_device_distribution() == mkt::Distribution::DIST){
+					gpu_offset = gpu * gpu_elements;
+				}
+
+				size_t smem_bytes = f.get_smem_bytes();
+				
+				dim3 dimBlock(«Config.threads»);
+				dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
+				mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
+			}
 		}
 	'''
 }

@@ -30,10 +30,10 @@ class DeviceMatrix {
 		  
 		// Getter and Setter
 		
-		  const T& get_data_device(int device_index) const;
-		  const T& get_data_device(int device_row, int device_column) const;
+		  const T& get_data_device(size_t device_index) const;
+		  const T& get_data_device(size_t device_row, size_t device_column) const;
 
-		  const T& get_data_local(int local_row, int local_column) const;
+		  const T& get_data_local(size_t local_row, size_t local_column) const;
 		  
 «««		  int get_row_offset() const;
 «««		  int get_column_offset() const;
@@ -59,17 +59,18 @@ class DeviceMatrix {
 		  // Attributes
 		  //
 
-		  int _size;
-		  int _size_local;
-		  int _size_device;
-		  int _rows_device;
-		  int _columns_device;
+		  size_t _size;
+		  size_t _size_local;
+		  size_t _size_device;
+		  size_t _rows_device;
+		  size_t _columns_device;
+		  size_t _bytes_device;
 
-		  int _row_offset;
-		  int _column_offset;
+		  size_t _row_offset;
+		  size_t _column_offset;
 		  
-		  int _device_row_offset;
-		  int _device_column_offset;
+		  size_t _device_row_offset;
+		  size_t _device_column_offset;
 
 		  Distribution _dist;
 		  Distribution _device_dist;
@@ -135,17 +136,17 @@ class DeviceMatrix {
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_device(int device_index) const {
+		const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_index) const {
 		  return _device_data[device_index];
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_device(int device_row, int device_column) const {
+		const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_row, size_t device_column) const {
 		  return this->get_data_device(device_row * _columns_device + device_column);
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_local(int local_row, int local_column) const {
+		const T& mkt::DeviceMatrix<T>::get_data_local(size_t local_row, size_t local_column) const {
 		  return this->get_data_device(local_row - _device_row_offset, local_column - _device_column_offset);
 		}
 

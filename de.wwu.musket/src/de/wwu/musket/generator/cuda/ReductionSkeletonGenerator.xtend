@@ -132,7 +132,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		return result
 	}
 	
-	// TODO also special cases for array and structs
+	// TODO special cases for array and structs
 	def static generateReductionSkeletonFunctionDefinition(MusketType type, ReductionOperation ro, String dataStructure) '''
 		«val cppType = type.cppType»
 		«val mpiType = type.MPIType»
@@ -142,48 +142,99 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 			«IF Config.processes > 1»
 				«cppType» global_result = «getIdentity(type, ro)»;
 			«ENDIF»
-			
+						
 			«IF Config.gpus > 1»				
 				if(a.get_device_distribution() == mkt::Distribution::DIST){
-					«IF Config.cores > 1»#pragma omp parallel for reduction(«ro.sign»:local_result)«ENDIF»
-					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
-						acc_set_device_num(gpu, acc_device_not_host);
-						«cppType»* devptr = a.get_device_pointer(gpu);
-						const int gpu_elements = a.get_size_gpu();
-						«cppType» gpu_result = «getIdentity(type, ro)»;
-						
-						#pragma acc parallel loop deviceptr(devptr) present_or_copy(gpu_result) reduction(«ro.sign»:gpu_result) async(0)
-						for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-							#pragma acc cache(gpu_result)
-							gpu_result = «generateReductionOperation("gpu_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
-						}
-						acc_wait(0);
-						local_result = «generateReductionOperation("local_result", "gpu_result" , ro)»;
-					}
-				}else if(a.get_device_distribution() == mkt::Distribution::COPY){
-					acc_set_device_num(0, acc_device_not_host);
-					«cppType»* devptr = a.get_device_pointer(0);
+					std::array<«cppType»*,«Config.gpus»> d_odata;
+					std::array<«cppType», «Config.gpus»> gpu_results;
 					const int gpu_elements = a.get_size_gpu();
-					
-					#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
-					for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-						#pragma acc cache(local_result)
-						local_result = «generateReductionOperation("local_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
+					int threads = gpu_elements < «Config.threads» ? gpu_elements : «Config.threads»; // nextPow2
+					int blocks = (gpu_elements + threads - 1) / threads;
+
+					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+						cudaSetDevice(gpu);
+						cudaMalloc((void**) &d_odata[i], blocks * sizeof(T));
+						«cppType»* devptr = a.get_device_pointer(gpu);
+						
+						mkt::kernel::reduce_«ro.name»_call<«cppType»>(gpu_elements, devptr, d_odata[gpu], threads, blocks, mkt::cuda_streams[gpu], gpu);
 					}
-					acc_wait(0);
+					mkt::sync_streams();
+					
+					// fold on gpus: step 2
+					while(blocks > 1){
+				      int threads_2 = blocks < «Config.threads» ? blocks : «Config.threads»; // nextPow2
+				      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
+					  for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+					      cudaSetDevice(gpu);
+					      mkt::kernel::reduce_«ro.name»_call<«cppType»>(blocks, d_odata[gpu], d_odata[gpu], threads_2, blocks_2, mkt::cuda_streams[gpu], gpu);
+					  }
+					  blocks = blocks_2;
+				  	  msl::syncStreams();
+				  	}
+					
+					// copy final sum from device to host
+					  for (int gpu = 0; gpu < «Config.gpus»; ++gpu) {
+					    cudaSetDevice(gpu);
+					    cudaMemcpyAsync(&gpu_results[gpu], d_odata[gpu], sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]));
+					  }
+					  msl::syncStreams();
+					  
+					  for(int gpu = 0; gpu < «Config.gpus»; ++gpu) {
+						cudaSetDevice(gpu);
+						cudaFree(d_odata[gpu]);
+					  }
+					
+					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+						local_result = «generateReductionOperation("local_result", "gpu_results[gpu]" , ro)»;
+					}
+				}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
+					const int gpu_elements = a.get_size_gpu();
+					int threads = gpu_elements < «Config.threads» ? gpu_elements : «Config.threads»; // nextPow2
+					int blocks = (gpu_elements + threads - 1) / threads;
+					cudaSetDevice(0);
+					«cppType»* d_odata;
+					cudaMalloc((void**) &d_odata, blocks * sizeof(T));
+					«cppType»* devptr = a.get_device_pointer(0);
+					
+					mkt::kernel::reduce_«ro.name»_call<«cppType»>(gpu_elements, devptr, d_odata, threads, blocks, mkt::cuda_streams[0], 0);
+					
+					// fold on gpus: step 2
+					while(blocks > 1){
+					  int threads_2 = blocks < «Config.threads» ? blocks : «Config.threads»; // nextPow2
+					  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
+					  mkt::kernel::reduce_«ro.name»_call<«cppType»>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
+					  blocks = blocks_2;
+					}
+					
+					// copy final sum from device to host
+					  cudaMemcpyAsync(&local_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]));
+					  msl::syncStreams();
+					cudaFree(d_odata);
 				}
 			«ELSE»
-				acc_set_device_num(0, acc_device_not_host);
-				«cppType»* devptr = a.get_device_pointer(0);
 				const int gpu_elements = a.get_size_gpu();
+				int threads = gpu_elements < «Config.threads» ? gpu_elements : «Config.threads»; // nextPow2
+				int blocks = (gpu_elements + threads - 1) / threads;
+				cudaSetDevice(0);
+				«cppType»* d_odata;
+				cudaMalloc((void**) &d_odata, blocks * sizeof(T));
+				«cppType»* devptr = a.get_device_pointer(0);
 				
-				#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(«ro.sign»:local_result) async(0)
-				for(unsigned int «Config.var_loop_counter» = 0; «Config.var_loop_counter» < gpu_elements; ++«Config.var_loop_counter») {
-					#pragma acc cache(local_result)					
-					local_result = «generateReductionOperation("local_result", "devptr[" + Config.var_loop_counter + "]" , ro)»;
+				mkt::kernel::reduce_«ro.name»_call<«cppType»>(gpu_elements, devptr, d_odata, threads, blocks, mkt::cuda_streams[0], 0);
+				
+				// fold on gpus: step 2
+				while(blocks > 1){
+				  int threads_2 = blocks < «Config.threads» ? blocks : «Config.threads»; // nextPow2
+				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
+				  mkt::kernel::reduce_«ro.name»_call<«cppType»>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
+				  blocks = blocks_2;
 				}
-				acc_wait(0);
-			«ENDIF»
+				
+				// copy final sum from device to host
+				  cudaMemcpyAsync(&local_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]));
+				  msl::syncStreams();
+				cudaFree(d_odata);
+			«ENDIF»	
 			
 			«IF Config.processes > 1»
 				if(a.get_distribution() == mkt::Distribution::DIST){
@@ -198,6 +249,8 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 		}
 	'''
 	
+	
+//	TODO MAP REDUCE
 	def static generateMapReductionSkeletonFunctionDefinition(MusketType input_type, MusketType output_type, ReductionOperation ro, String functorType, String dataStructure) '''
 		«val in_cppType = input_type.cppType»
 		«val out_cppType = output_type.cppType»

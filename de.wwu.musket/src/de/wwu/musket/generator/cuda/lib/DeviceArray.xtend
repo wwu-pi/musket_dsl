@@ -30,9 +30,8 @@ class DeviceArray {
 		// Getter and Setter
 			size_t get_bytes_device() const;
 		
-		  const T& get_data_device(int device_index) const;
-
-		  const T& get_data_local(int local_index) const;
+			const T& get_data_device(int device_index) const;
+			const T& get_data_local(int local_index) const;
 		
 		 private:
 		
