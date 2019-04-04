@@ -45,7 +45,7 @@
 		~Init_particles_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int i, Particle& p){
+		void operator()(int i, Particle& p){
 			int deviceId = -1;
 			cudaGetDevice(&deviceId);
 			//curandState_t curand_state;
@@ -65,6 +65,9 @@
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
 
+			if(id == 0 || id == 12499){
+				printf("init functor() on device %i for thread %i: particle after changes: p.x = %.5f; p.y = %.5f; p.z = %.5f; p.vx = %.5f; p.vy = %.5f; p.vz = %.5f; p.mass = %.5f; p.charge = %.5f\n", deviceId, id, p.x, p.y, p.z, p.vx, p.vy, p.vz, p.mass, p.charge);
+			}
 		}
 	
 		void init(int gpu){
@@ -80,7 +83,7 @@
 		~Calc_force_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int curIndex, Particle& curParticle){
+		void operator()(int curIndex, Particle& curParticle){
 			//printf("calc force %i\n", id);
 
 			float ax = 0.0f;
