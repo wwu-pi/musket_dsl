@@ -88,6 +88,9 @@ class DMatrix {
 		int get_gpu_by_local_index(size_t local_index) const;
 		int get_gpu_by_global_index(size_t global_index) const;
 		
+		int get_pid_by_global_index(size_t global_row_index, size_t global_column_index) const;
+		bool is_local(size_t global_row_index, size_t global_column_index) const;
+		
 		  //
 		  // Attributes
 		  //
@@ -168,8 +171,7 @@ class DMatrix {
 		      _row_offset(row_offset),
 		      _column_offset(column_offset),
 		      _dist(d),
-		      _device_dist(device_dist),
-		      _data(size_local, init_value) {
+		      _device_dist(device_dist) {
 			if(device_dist == mkt::Distribution::DIST){
 		    	_size_gpu = size_local / «Config.gpus»; // assume even distribution for now
 		    	_rows_gpu = number_of_rows_local / «Config.gpus»;
@@ -178,6 +180,7 @@ class DMatrix {
 		    	_rows_gpu = number_of_rows_local;
 		    }
 		    _bytes_gpu = sizeof(T) * _size_gpu;
+			cudaMallocHost((void**)&_data, _size_local * sizeof(T));
 		    
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
@@ -185,7 +188,6 @@ class DMatrix {
 				// allocate memory
 				T* devptr;
 				cudaMalloc((void**)&devptr, _bytes_gpu);
-				cudaMallocHost((void**)&_data, _size_local * sizeof(T));
 				
 				// store pointer to device memory and host memory
 				_gpu_data[gpu] = devptr;
@@ -225,6 +227,7 @@ class DMatrix {
 				cudaSetDevice(0);
 				cudaMemcpyAsync(_host_data[0], _gpu_data[0], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
 			}
+			mkt::sync_streams();
 		}
 		
 		template<typename T>

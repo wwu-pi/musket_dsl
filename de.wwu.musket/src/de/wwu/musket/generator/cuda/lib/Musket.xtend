@@ -42,9 +42,18 @@ class Musket {
 		#pragma once
 		#include <string>
 		#include "«resource.ProjectName»«Config.header_extension»"
+		#include "kernel«Config.header_extension»"
 		
 		namespace mkt {
 		«generateDistEnum»
+		
+		// Musket variables
+		cudaStream_t cuda_streams[4];
+		
+		// Musket functions
+		void init();		
+		void sync_streams();
+		
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDeclaration»
 			«generateDArraySkeletonDeclarations»
@@ -120,6 +129,32 @@ class Musket {
 		
 		
 		} // namespace mkt
+		
+		
+		void mkt::init(){
+«««			omp_set_dynamic(0); // disable dynamic teams
+«««			omp_set_num_threads(«Config.gpus»); // one thread per gpu
+
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+«««			#pragma omp parallel
+«««			{
+«««				int gpu = omp_get_thread_num();
+				cudaSetDevice(gpu);
+				cudaStreamCreate(&cuda_streams[gpu]);
+			}
+		}
+		
+		void mkt::sync_streams(){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+«««			#pragma omp parallel
+«««			{
+«««				int gpu = omp_get_thread_num();
+				cudaSetDevice(gpu);
+				cudaStreamSynchronize(cuda_streams[gpu]);
+«««				cudaDeviceSynchronize();
+			}
+		}
+		
 		
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDefinition»

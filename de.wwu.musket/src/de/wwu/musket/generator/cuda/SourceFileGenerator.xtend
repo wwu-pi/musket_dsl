@@ -119,9 +119,8 @@ class SourceFileGenerator {
 		«IF Config.processes > 1»
 			#include <mpi.h>
 		«ENDIF»
-		
+		#include <cuda.h>
 		#include <omp.h>
-		#include <openacc.h>
 		#include <stdlib.h>
 		#include <math.h>
 		#include <array>
@@ -133,10 +132,9 @@ class SourceFileGenerator {
 		#include <memory>
 		#include <cstddef>
 		#include <type_traits>
-		#include <cuda.h>
-		#include <openacc_curand.h>
 		
-		#include "../include/musket.hpp"
+		
+		#include "../include/musket«Config.header_extension»"
 	'''
 
 	/**

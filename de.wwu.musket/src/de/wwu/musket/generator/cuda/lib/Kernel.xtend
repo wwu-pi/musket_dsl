@@ -101,7 +101,7 @@ class Kernel {
 	
 	def static generateReductionCallKernelDeclaration(String name, boolean template, String type) '''
 		«IF template»template<typename T>«ENDIF»
-		void reduce_«name»_call(size_t size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu);»
+		void reduce_«name»_call(size_t size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu);
 	'''
 	
 	def static generateMapKernelDefinitions() '''
@@ -153,7 +153,7 @@ class Kernel {
 		
 		  if (y < rows) {
 		    if (x < columns) {
-		      out[y * columns + x] = func(y + rowOffset, x + colOffset, in[y * columns + x]);
+		      out[y * columns + x] = func(y + row_offset, x + column_offset, in[y * columns + x]);
 		    }
 		  }
 		}
@@ -166,7 +166,7 @@ class Kernel {
 		
 		  if (y < rows) {
 		    if (x < columns) {
-		      func(y + rowOffset, x + colOffset, inout[y * columns + x]);
+		      func(y + row_offset, x + column_offset, inout[y * columns + x]);
 		    }
 		  }
 		}
@@ -185,54 +185,55 @@ class Kernel {
 	
 	    switch (threads) {
 	      case 1024:
-	        foldKernel<T, F, 1024> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 1024> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 512:
-	        foldKernel<T, F, 512> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 512> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 256:
-	        foldKernel<T, F, 256> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 256> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 128:
-	        foldKernel<T, F, 128> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 128> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 64:
-	        foldKernel<T, F, 64> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 64> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 32:
-	        foldKernel<T, F, 32> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 32> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 16:
-	        foldKernel<T, F, 16> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 16> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 8:
-	        foldKernel<T, F, 8> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 8> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 4:
-	        foldKernel<T, F, 4> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 4> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 2:
-	        foldKernel<T, F, 2> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 2> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	      case 1:
-	        foldKernel<T, F, 1> <<<dimGrid, dimBlock, smemSize, stream>>>(
+	        mkt::kernel::fold<T, F, 1> <<<dimGrid, dimBlock, smemSize, stream>>>(
 	            d_idata, d_odata, size, identity, f);
 	        break;
 	    }
+	  }
 	
 		template<typename T, typename F, size_t blockSize>
 		__global__ void mkt::kernel::fold(T *g_idata, T *g_odata, size_t n, T identity, F func) {
-		  extern __shared__ T sdata[];
+		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
@@ -243,86 +244,86 @@ class Kernel {
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
 		  // in a larger gridSize and therefore fewer elements per thread.
-		  sdata[tid] = identity;
+		  sdata_t[tid] = identity;
 		
 		  while (i < n) {
-		    sdata[tid] = func(sdata[tid], g_idata[i]);
+		    sdata_t[tid] = func(sdata_t[tid], g_idata[i]);
 		    i += gridSize;
 		  }
 		  __syncthreads();
 		
 		  // perform reduction in shared memory
 		  if ((blockSize >= 1024) && (tid < 512)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 512]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 512]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 512) && (tid < 256)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 256]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 256]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 256) && (tid < 128)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 128]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 128]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 128) && (tid < 64)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 64]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 64]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 64) && (tid < 32)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 32]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 32]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 32) && (tid < 16)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 16]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 16]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 16) && (tid < 8)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 8]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 8]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 8) && (tid < 4)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 4]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 4]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 4) && (tid < 2)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 2]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 2]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 2) && (tid < 1)) {
-		    sdata[tid] = func(sdata[tid], sdata[tid + 1]);
+		    sdata_t[tid] = func(sdata_t[tid], sdata_t[tid + 1]);
 		  }
 		  __syncthreads();
 		
 		  // write result for this block to global mem
 		  if (tid == 0) {
-		    g_odata[blockIdx.x] = sdata[0];
+		    g_odata[blockIdx.x] = sdata_t[0];
 		  }
 		}
 	'''
 	
 	def static generateReductionKernelDefinitions() '''
-		«generateReduceCallDefinition("plus", "", "reduce_plus", true)»
-		«generateReduceCallDefinition("multiply", "", "reduce_multiply", true)»
-		«generateReduceCallDefinition("min", "int", "reduce_min", false)»
-		«generateReduceCallDefinition("min", "float", "reduce_min", false)»
-		«generateReduceCallDefinition("min", "double", "reduce_min", false)»
-		«generateReduceCallDefinition("max", "int", "reduce_max", false)»
-		«generateReduceCallDefinition("max", "float", "reduce_max", false)»
-		«generateReduceCallDefinition("max", "double", "reduce_max", false)»
+		«generateReduceCallDefinition("plus", "", "mkt::kernel::reduce_plus", true)»
+		«generateReduceCallDefinition("multiply", "", "mkt::kernel::reduce_multiply", true)»
+		«generateReduceCallDefinition("min", "int", "mkt::kernel::reduce_min", false)»
+		«generateReduceCallDefinition("min", "float", "mkt::kernel::reduce_min", false)»
+		«generateReduceCallDefinition("min", "double", "mkt::kernel::reduce_min", false)»
+		«generateReduceCallDefinition("max", "int", "mkt::kernel::reduce_max", false)»
+		«generateReduceCallDefinition("max", "float", "mkt::kernel::reduce_max", false)»
+		«generateReduceCallDefinition("max", "double", "mkt::kernel::reduce_max", false)»
 		
 		    
 		template<typename T, size_t blockSize>
 		__global__ void mkt::kernel::reduce_plus(T *g_idata, T *g_odata, size_t n) {
-		  extern __shared__ T sdata[];
+		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
@@ -333,74 +334,74 @@ class Kernel {
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
 		  // in a larger gridSize and therefore fewer elements per thread.
-		  sdata[tid] = static_cast<T>(0);
+		  sdata_t[tid] = static_cast<T>(0);
 		
 		  while (i < n) {
-		    sdata[tid] += g_idata[i];
+		    sdata_t[tid] += g_idata[i];
 		    i += gridSize;
 		  }
 		  __syncthreads();
 		
 		  // perform reduction in shared memory
 		  if ((blockSize >= 1024) && (tid < 512)) {
-		    sdata[tid] += sdata[tid + 512];
+		    sdata_t[tid] += sdata_t[tid + 512];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 512) && (tid < 256)) {
-		    sdata[tid] += sdata[tid + 256];
+		    sdata_t[tid] += sdata_t[tid + 256];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 256) && (tid < 128)) {
-		    sdata[tid] += sdata[tid + 128];
+		    sdata_t[tid] += sdata_t[tid + 128];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 128) && (tid < 64)) {
-		    sdata[tid] += sdata[tid + 64];
+		    sdata_t[tid] += sdata_t[tid + 64];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 64) && (tid < 32)) {
-		    sdata[tid] += sdata[tid + 32];
+		    sdata_t[tid] += sdata_t[tid + 32];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 32) && (tid < 16)) {
-		    sdata[tid] += sdata[tid + 16];
+		    sdata_t[tid] += sdata_t[tid + 16];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 16) && (tid < 8)) {
-		    sdata[tid] += sdata[tid + 8];
+		    sdata_t[tid] += sdata_t[tid + 8];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 8) && (tid < 4)) {
-		    sdata[tid] += sdata[tid + 4];
+		    sdata_t[tid] += sdata_t[tid + 4];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 4) && (tid < 2)) {
-		    sdata[tid] += sdata[tid + 2];
+		    sdata_t[tid] += sdata_t[tid + 2];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 2) && (tid < 1)) {
-		    sdata[tid] += sdata[tid + 1];
+		    sdata_t[tid] += sdata_t[tid + 1];
 		  }
 		  __syncthreads();
 		
 		  // write result for this block to global mem
 		  if (tid == 0) {
-		    g_odata[blockIdx.x] = sdata[0];
+		    g_odata[blockIdx.x] = sdata_t[0];
 		  }
 		}
 		
 		template<typename T, size_t blockSize>
 		__global__ void mkt::kernel::reduce_multiply(T *g_idata, T *g_odata, size_t n) {
-		  extern __shared__ T sdata[];
+		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
@@ -411,84 +412,84 @@ class Kernel {
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
 		  // in a larger gridSize and therefore fewer elements per thread.
-		  sdata[tid] = static_cast<T>(1);
+		  sdata_t[tid] = static_cast<T>(1);
 		
 		  while (i < n) {
-		    sdata[tid] *= g_idata[i];
+		    sdata_t[tid] *= g_idata[i];
 		    i += gridSize;
 		  }
 		  __syncthreads();
 		
 		  // perform reduction in shared memory
 		  if ((blockSize >= 1024) && (tid < 512)) {
-		    sdata[tid] *= sdata[tid + 512];
+		    sdata_t[tid] *= sdata_t[tid + 512];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 512) && (tid < 256)) {
-		    sdata[tid] *= sdata[tid + 256];
+		    sdata_t[tid] *= sdata_t[tid + 256];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 256) && (tid < 128)) {
-		    sdata[tid] *= sdata[tid + 128];
+		    sdata_t[tid] *= sdata_t[tid + 128];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 128) && (tid < 64)) {
-		    sdata[tid] *= sdata[tid + 64];
+		    sdata_t[tid] *= sdata_t[tid + 64];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 64) && (tid < 32)) {
-		    sdata[tid] *= sdata[tid + 32];
+		    sdata_t[tid] *= sdata_t[tid + 32];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 32) && (tid < 16)) {
-		    sdata[tid] *= sdata[tid + 16];
+		    sdata_t[tid] *= sdata_t[tid + 16];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 16) && (tid < 8)) {
-		    sdata[tid] *= sdata[tid + 8];
+		    sdata_t[tid] *= sdata_t[tid + 8];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 8) && (tid < 4)) {
-		    sdata[tid] *= sdata[tid + 4];
+		    sdata_t[tid] *= sdata_t[tid + 4];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 4) && (tid < 2)) {
-		    sdata[tid] *= sdata[tid + 2];
+		    sdata_t[tid] *= sdata_t[tid + 2];
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 2) && (tid < 1)) {
-		    sdata[tid] *= sdata[tid + 1];
+		    sdata_t[tid] *= sdata_t[tid + 1];
 		  }
 		  __syncthreads();
 		
 		  // write result for this block to global mem
 		  if (tid == 0) {
-		    g_odata[blockIdx.x] = sdata[0];
+		    g_odata[blockIdx.x] = sdata_t[0];
 		  }
 		}
 		
-		generateReduceWithFunctionAndType("max", "max", "int", "INT_MIN");
-		generateReduceWithFunctionAndType("max", "fmaxf", "float", "FLT_MIN");
-		generateReduceWithFunctionAndType("max", "fmax", "double", "DBL_MIN");
+		«generateReduceWithFunctionAndType("max", "max", "int", "INT_MIN")»
+		«generateReduceWithFunctionAndType("max", "fmaxf", "float", "FLT_MIN")»
+		«generateReduceWithFunctionAndType("max", "fmax", "double", "DBL_MIN")»
 		
-		generateReduceWithFunctionAndType("min", "min", "int", "INT_MAX");
-		generateReduceWithFunctionAndType("min", "fminf", "float", "FLT_MAX");
-		generateReduceWithFunctionAndType("min", "fmin", "double", "DBL_MAX");
+		«generateReduceWithFunctionAndType("min", "min", "int", "INT_MAX")»
+		«generateReduceWithFunctionAndType("min", "fminf", "float", "FLT_MAX")»
+		«generateReduceWithFunctionAndType("min", "fmin", "double", "DBL_MAX")»
 	'''
 	
 	def static generateReduceWithFunctionAndType(String reduction_name, String function, String type, String identity)'''
 		template<size_t blockSize>
 		__global__ void mkt::kernel::reduce_«reduction_name»(«type» *g_idata, «type» *g_odata, size_t n) {
-		  extern __shared__ «type» sdata[];
+		  extern __shared__ «type» sdata_«type»[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
@@ -499,68 +500,68 @@ class Kernel {
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
 		  // in a larger gridSize and therefore fewer elements per thread.
-		  sdata[tid] = «identity»;
+		  sdata_«type»[tid] = «identity»;
 		
 		  while (i < n) {
-		    sdata[tid] = «function»(sdata[tid], g_idata[i]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], g_idata[i]);
 		    i += gridSize;
 		  }
 		  __syncthreads();
 		
 		  // perform reduction in shared memory
 		  if ((blockSize >= 1024) && (tid < 512)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 512]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 512]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 512) && (tid < 256)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 256]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 256]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 256) && (tid < 128)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 128]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 128]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 128) && (tid < 64)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 64]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 64]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 64) && (tid < 32)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 32]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 32]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 32) && (tid < 16)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 16]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 16]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 16) && (tid < 8)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 8]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 8]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 8) && (tid < 4)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 4]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 4]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 4) && (tid < 2)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 2]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 2]);
 		  }
 		  __syncthreads();
 		
 		  if ((blockSize >= 2) && (tid < 1)) {
-		    sdata[tid] = «function»(sdata[tid], sdata[tid + 1]);
+		    sdata_«type»[tid] = «function»(sdata_«type»[tid], sdata_«type»[tid + 1]);
 		  }
 		  __syncthreads();
 		
 		  // write result for this block to global mem
 		  if (tid == 0) {
-		    g_odata[blockIdx.x] = sdata[0];
+		    g_odata[blockIdx.x] = sdata_«type»[0];
 		  }
 		}
 	'''
@@ -610,5 +611,6 @@ class Kernel {
 		        «function»<«IF template»T, «ENDIF»1> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size);
 		        break;
 		    }
+		}
 	'''
 }

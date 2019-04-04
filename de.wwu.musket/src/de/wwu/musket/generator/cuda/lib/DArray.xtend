@@ -37,8 +37,8 @@ class DArray {
 		  T get_local(size_t index);
 		  void set_local(size_t index, const T& value);
 		
-		  T mkt::DArray<T>::get_host_local(size_t index);		
-		  void mkt::DArray<T>::set_host_local(size_t index, T v);
+		  T get_host_local(size_t index);		
+		  void set_host_local(size_t index, T v);
 		
 		  T& operator[](size_t local_index);
 		  const T& operator[](size_t local_index) const;
@@ -62,6 +62,9 @@ class DArray {
 		
 		  int get_gpu_by_local_index(size_t local_index) const;
 		  int get_gpu_by_global_index(size_t global_index) const;
+			
+		  int get_pid_by_global_index(size_t global_index) const;
+		  bool is_local(size_t global_index) const;
 		
 		  //
 		  // Attributes
@@ -105,8 +108,7 @@ class DArray {
 		      _partition_pos(partition_pos),
 		      _offset(offset),
 		      _dist(d),
-		      _device_dist(device_dist),
-		      _data(size_local, init_value) {
+		      _device_dist(device_dist) {
 		    
 		    if(device_dist == mkt::Distribution::DIST){
 		    	_size_gpu = size_local / «Config.gpus»; // assume even distribution for now
@@ -114,6 +116,7 @@ class DArray {
 		    	_size_gpu = size_local;
 		    }
 		    _bytes_gpu = _size_gpu * sizeof(T);
+		    cudaMallocHost((void**)&_data, _size_local * sizeof(T));
 		    
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
@@ -121,8 +124,6 @@ class DArray {
 				// allocate memory
 				T* devptr;
 				cudaMalloc((void**)&devptr, _size_gpu * sizeof(T));
-				cudaMallocHost((void**)&_data, _size_local * sizeof(T));
-				
 				
 				// store pointer to device memory and host memory
 				_gpu_data[gpu] = devptr;
@@ -169,7 +170,8 @@ class DArray {
 			}else{
 				cudaSetDevice(0);
 				cudaMemcpyAsync(_host_data[0], _gpu_data[0], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
-			}	
+			}
+			mkt::sync_streams();
 		}
 		
 		template<typename T>
@@ -372,7 +374,7 @@ class DArray {
 	def static generateDArraySkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
-			size_t gpu_elements = a.get_size_gpu();
+			size_t gpu_elements = in.get_size_gpu();
 						  
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				cudaSetDevice(gpu);
@@ -400,7 +402,7 @@ class DArray {
 				R* out_devptr = out.get_device_pointer(gpu);
 				
 				size_t gpu_offset = offset;
-				if(a.get_device_distribution() == mkt::Distribution::DIST){
+				if(in.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_offset += gpu * gpu_elements;
 				}
 
@@ -423,7 +425,7 @@ class DArray {
 				R* out_devptr = out.get_device_pointer(gpu);
 				
 				size_t gpu_offset = 0;
-				if(a.get_device_distribution() == mkt::Distribution::DIST){
+				if(in.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_offset += gpu * gpu_elements;
 				}
 
