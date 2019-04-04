@@ -345,8 +345,8 @@ void mkt::DArray<T>::update_devices() {
 		
 template<typename T>
 T mkt::DArray<T>::get_local(size_t index) {
-	//printf("darray get_local");
 	int gpu = get_gpu_by_local_index(index);
+	printf("darray get_local; index: %i, gpu: %i\n", index, gpu);
 	gpuErrchk( cudaSetDevice(gpu) );
 	T* host_pointer = _data + index;
 	T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
@@ -732,7 +732,7 @@ void mkt::print(std::ostringstream& stream, const T& a) {
 
 template<>
 void mkt::gather<Particle>(mkt::DArray<Particle>& in, mkt::DArray<Particle>& out){
-	//printf("gather\n");
+	printf("gather\n");
 	in.update_self();
 	// #pragma omp parallel for simd
 	// for(size_t counter = 0; counter < in.get_size(); ++counter){
@@ -740,7 +740,7 @@ void mkt::gather<Particle>(mkt::DArray<Particle>& in, mkt::DArray<Particle>& out
 	// }
 	std::copy(in.get_data(), in.get_data() + in.get_size_local(), out.get_data());
 	out.update_devices();
-	//printf("gather end\n");
+	printf("gather end\n");
 }
 template<typename T>
 void mkt::scatter(mkt::DArray<T>& in, mkt::DArray<T>& out){
