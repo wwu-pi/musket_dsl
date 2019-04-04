@@ -250,6 +250,8 @@ mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, si
     }
     _bytes_gpu = _size_gpu * sizeof(T);
 
+		gpuErrchk( cudaMallocHost((void**)&_data, _size_local * sizeof(T)));
+
 	// for(int gpu = 0; gpu < 4; ++gpu){
 	#pragma omp parallel
 	{
@@ -258,9 +260,7 @@ mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, si
 
 		// allocate memory
 		T* devptr;
-		gpuErrchk( cudaMalloc((void**)&devptr, _size_gpu * sizeof(T)));
-		gpuErrchk( cudaMallocHost((void**)&_data, _size_local * sizeof(T)));
-		
+		gpuErrchk( cudaMalloc((void**)&devptr, _size_gpu * sizeof(T)));	
 		
 		// store pointer to device memory and host memory
 		_gpu_data[gpu] = devptr;
