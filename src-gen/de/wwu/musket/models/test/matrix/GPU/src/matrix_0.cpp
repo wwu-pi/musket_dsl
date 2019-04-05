@@ -1,6 +1,8 @@
 	
 	#include <omp.h>
 	#include <openacc.h>
+	#include <stdlib.h>
+	#include <math.h>
 	#include <array>
 	#include <vector>
 	#include <sstream>
@@ -10,39 +12,55 @@
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
+	//#include <cuda.h>
+	//#include <openacc_curand.h>
 	
 	#include "../include/musket.hpp"
 	#include "../include/matrix_0.hpp"
 	
 	
 	
-
-	
-	mkt::DMatrix<int> ads(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<int> bds(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<int> acs(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::COPY);
-	mkt::DMatrix<int> bcs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY);
-	mkt::DMatrix<int> r_ads(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<int> r_bds(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<int> r_acs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY);
-	mkt::DMatrix<int> r_bcs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY);
+			
+	mkt::DMatrix<int> ads(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<int> bds(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<int> acs(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DMatrix<int> bcs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DMatrix<int> r_ads(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<int> r_bds(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<int> r_acs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DMatrix<int> r_bcs(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::COPY, mkt::COPY);
 	
 	
 
 	
 	struct Init_map_index_matrix_functor{
 		
-		Init_map_index_matrix_functor() {}
+		Init_map_index_matrix_functor(){
+		}
 		
-		auto operator()(const int row, const int col, const int x) const{
+		~Init_map_index_matrix_functor() {}
+		
+		auto operator()(const int row, const int col, const int x){
 			return (((row) * 4) + (col));
 		}
 	
 		void init(int gpu){
 		}
 		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
 		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
 	};
+	
 	
 	
 	
@@ -52,8 +70,8 @@
 	int main(int argc, char** argv) {
 		
 		
-				Init_map_index_matrix_functor init_map_index_matrix_functor{};
 		
+		Init_map_index_matrix_functor init_map_index_matrix_functor{};
 		
 		
 				

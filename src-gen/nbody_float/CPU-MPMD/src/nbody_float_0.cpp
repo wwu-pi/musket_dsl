@@ -19,12 +19,12 @@
 	
 
 	
-	const int dim = 128;
+	const int dim = 32;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 128, 128, Particle{}, 1, 0, 0, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 128, 128, Particle{}, 1, 0, 0, mkt::COPY);
+	mkt::DArray<Particle> P(0, 32, 32, Particle{}, 1, 0, 0, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 32, 32, Particle{}, 1, 0, 0, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -48,7 +48,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 128); j++){
+			for(int j = 0; ((j) < 32); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
@@ -114,6 +114,7 @@
 		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<void>(P, oldP);
+		mkt::print("oldP", oldP);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
@@ -121,6 +122,7 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		mkt::print("oldP", oldP);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

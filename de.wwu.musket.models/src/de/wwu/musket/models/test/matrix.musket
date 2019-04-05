@@ -1,5 +1,5 @@
-#config PLATFORM GPU CPU_MPMD
-#config PROCESSES 4
+#config PLATFORM GPU CPU_MPMD CUDA
+#config PROCESSES 1
 #config GPUS 1
 #config CORES 4
 #config MODE debug

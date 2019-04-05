@@ -8,31 +8,17 @@ SET( CMAKE_CXX_FLAGS_VTUNE "-O3 -g -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEE
 SET( CMAKE_CXX_FLAGS_BENCHMARK "-O3 -DNDEBUG -march=native -DMPICH_IGNORE_CXX_SEEK -std=c++14" CACHE STRING "Flags used by the C++ compiler during Benchmark builds." FORCE )
 SET( CMAKE_CXX_FLAGS_BENCHMARKPALMA "-O3 -DNDEBUG -march=broadwell -DMPICH_IGNORE_CXX_SEEK -std=c++14" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Palma." FORCE )
 SET( CMAKE_CXX_FLAGS_BENCHMARKTAURUS "-O3 -DNDEBUG -march=haswell -DMPICH_IGNORE_CXX_SEEK -std=c++14" CACHE STRING "Flags used by the C++ compiler during Benchmark builds for Taurus." FORCE )
+SET( CMAKE_CXX_FLAGS_CALLGRIND "-O3 -g -DNDEBUG -march=haswell -DMPICH_IGNORE_CXX_SEEK -std=c++14" CACHE STRING "Flags used by the C++ compiler during Callgrind builds for Taurus." FORCE )
 		
 # output path for binaries and libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 # packages
-find_package(MPI REQUIRED)
-### this is a cmake bug: MPI link flags are preceeded by two whitespaces, which leads to one leading whitespace, which is now an error according to policy CMP0004.
-string(STRIP "${MPI_CXX_LINK_FLAGS}" MPI_CXX_LINK_FLAGS)
 
 find_package(OpenMP REQUIRED)
 
 add_executable(matrix_0 ${PROJECT_SOURCE_DIR}/src/matrix_0.cpp)
-target_include_directories(matrix_0 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(matrix_0 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(matrix_0 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(matrix_1 ${PROJECT_SOURCE_DIR}/src/matrix_1.cpp)
-target_include_directories(matrix_1 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(matrix_1 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(matrix_1 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(matrix_2 ${PROJECT_SOURCE_DIR}/src/matrix_2.cpp)
-target_include_directories(matrix_2 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(matrix_2 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(matrix_2 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-add_executable(matrix_3 ${PROJECT_SOURCE_DIR}/src/matrix_3.cpp)
-target_include_directories(matrix_3 PRIVATE ${PROJECT_SOURCE_DIR}/include/ ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(matrix_3 PRIVATE ${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS})
-target_link_libraries(matrix_3 PRIVATE ${MPI_CXX_LINK_FLAGS} ${MPI_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
+target_include_directories(matrix_0 PRIVATE ${PROJECT_SOURCE_DIR}/include/)
+target_compile_options(matrix_0 PRIVATE ${OpenMP_CXX_FLAGS})
+target_link_libraries(matrix_0 PRIVATE ${OpenMP_CXX_FLAGS})

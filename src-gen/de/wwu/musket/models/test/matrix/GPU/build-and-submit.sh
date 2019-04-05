@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source_folder=${PWD} && \
+
 # remove files and create folder
-rm -rf -- ~/musket-build/de/wwu/musket/models/test/matrix/GPU/build/ && \
-mkdir ~/musket-build/de/wwu/musket/models/test/matrix/GPU/build/ && \
+mkdir -p /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/GPU/out/ && \
+rm -rf -- /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/GPU/build/benchmark && \
+mkdir -p /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/GPU/build/benchmark && \
 
 # run cmake
-cd ~/musket-build/de/wwu/musket/models/test/matrix/GPU/build/ && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmark -D CMAKE_CXX_COMPILER=pgc++ ../ && \
+cd /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/GPU/build/benchmark && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
 
-make matrix && \
-cd .. && \
-mkdir -p ~/musket-build/de/wwu/musket/models/test/matrix/GPU/out/ && \
+make matrix_0 && \
+cd ${source_folder} && \
+
 sbatch job.sh

@@ -17,10 +17,10 @@
 	
 
 	
-	const int dim = 128;
-	mkt::DMatrix<float> as(0, 128, 128, 128, 128, 16384, 16384, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 128, 128, 128, 128, 16384, 16384, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
-	mkt::DMatrix<float> cs(0, 128, 128, 128, 128, 16384, 16384, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	const int dim = 4;
+	mkt::DMatrix<float> as(0, 4, 4, 4, 4, 16, 16, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 4, 4, 4, 4, 16, 16, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST);
+	mkt::DMatrix<float> cs(0, 4, 4, 4, 4, 16, 16, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST);
 	
 	
 
@@ -39,9 +39,15 @@
 	};
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		auto operator()(int i, int j, float& Cij) const{
-			for(int k = 0; ((k) < 128); k++){
-				Cij += (as[(i) * 128 + (k)] * bs[(k) * 128 + (j)]);
+			for(int k = 0; ((k) < 4); k++){
+				Cij += (as[(i) * 4 + (k)] * bs[(k) * 4 + (j)]);
 			}
+		}
+		
+	};
+	struct Square_map_in_place_matrix_functor{
+		auto operator()(float& a) const{
+			a = ((a) * (a));
 		}
 		
 	};
@@ -57,6 +63,7 @@
 				InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 				InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
 				DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{};
+				Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 		
@@ -64,12 +71,20 @@
 		
 		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
 		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
+		mkt::print("as", as);
+		mkt::print("bs", bs);
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
 		for(int i = 0; ((i) < 1); ++i){
 			mkt::map_local_index_in_place<float, DotProduct_map_local_index_in_place_matrix_functor>(cs, dotProduct_map_local_index_in_place_matrix_functor);
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		mkt::print("cs", cs);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		// TODO: SkeletonGenerator.generateSkeletonExpression: default case
+		fn = std::sqrt((fn));
+		printf("Frobenius norm of cs is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

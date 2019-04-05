@@ -1,15 +1,21 @@
 #!/bin/bash
-#SBATCH --job-name matrix-nodes-4-cpu-8
-#SBATCH --ntasks 4
-#SBATCH --nodes 4
+#SBATCH --job-name matrix-CPU-MPMD-nodes-1-cpu-4
+#SBATCH --ntasks 1
+#SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
-#SBATCH --partition normal
-#SBATCH --output ~/musket-build/de/wwu/musket/models/test/matrix/CPU-MPMD/out/matrix-nodes-4-cpu-8.out
-#SBATCH --cpus-per-task 64
+#SBATCH --partition haswell
+#SBATCH --exclusive
+#SBATCH --exclude taurusi[1001-1270],taurusi[3001-3180],taurusi[2001-2108],taurussmp[1-7],taurusknl[1-32]
+#SBATCH --output /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/CPU-MPMD/out/matrix-nodes-1-cpu-4.out
+#SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
-#SBATCH --mail-user my@e-mail.de
-#SBATCH --time 01:00:00
+#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
+#SBATCH --time 05:00:00
+#SBATCH -A p_algcpugpu
 
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=4
 
-mpirun ~/musket-build/de/wwu/musket/models/test/matrix/CPU-MPMD/build/bin/matrix
+RUNS=10
+for ((i=1;i<=RUNS;i++)); do
+    srun --multi-prog /home/fwrede/musket/src-gen/de/wwu/musket/models/test/matrix/CPU-MPMD/job.conf
+done	

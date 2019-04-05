@@ -1,10 +1,10 @@
-#config PLATFORM GPU CPU_MPMD
+#config PLATFORM GPU CPU_MPMD CUDA
 #config PROCESSES 1
 #config GPUS 1
 #config CORES 4
 #config MODE release
 
-const int dim = 32768;
+const int dim = 8192;
 
 matrix<double,dim,dim,dist,dist> as;
 

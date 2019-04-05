@@ -25,12 +25,26 @@
 	std::vector<std::uniform_real_distribution<float>> rand_dist_float_0_0f_1_0f;
 	
 			
-	const int dim = 128;
+	const int dim = 32;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 128, 128, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 128, 128, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> P_x(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_y(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_z(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vx(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vy(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vz(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_mass(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_charge(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> oldP_x(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_y(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_z(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vx(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vy(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vz(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_mass(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_charge(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -102,7 +116,7 @@
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 128); j++){
+			for(int j = 0; ((j) < 32); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
@@ -199,6 +213,8 @@
 		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
+		oldP.update_self();
+		mkt::print("oldP", oldP);
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
@@ -214,6 +230,8 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		oldP.update_self();
+		mkt::print("oldP", oldP);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

@@ -21,10 +21,10 @@
 	
 	
 			
-	const int dim = 128;
-	mkt::DMatrix<float> as(0, 128, 128, 128, 128, 16384, 16384, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 128, 128, 128, 128, 16384, 16384, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 128, 128, 128, 128, 16384, 16384, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 4;
+	mkt::DMatrix<float> as(0, 4, 4, 4, 4, 16, 16, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 4, 4, 4, 4, 16, 16, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 4, 4, 4, 4, 16, 16, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -91,7 +91,7 @@
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
 		auto operator()(int i, int j, float& Cij){
-			for(int k = 0; ((k) < 128); k++){
+			for(int k = 0; ((k) < 4); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 		}
@@ -116,10 +116,54 @@
 		int _worker;
 		int _vector;
 	};
+	struct Square_map_in_place_matrix_functor{
+		
+		Square_map_in_place_matrix_functor(){
+		}
+		
+		~Square_map_in_place_matrix_functor() {}
+		
+		auto operator()(float& a){
+			a = ((a) * (a));
+		}
+	
+		void init(int gpu){
+		}
+		
+		void set_id(int gang, int worker, int vector){
+			_gang = gang;
+			_worker = worker;
+			_vector = vector;
+		}
+		
+		
+		
+		
+		int _gang;
+		int _worker;
+		int _vector;
+	};
 	
 	
 	
 	
+	template<>
+	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
+		float local_result = 0.0f;
+		
+		acc_set_device_num(0, acc_device_not_host);
+		float* devptr = a.get_device_pointer(0);
+		const int gpu_elements = a.get_size_gpu();
+		
+		#pragma acc parallel loop deviceptr(devptr) present_or_copy(local_result) reduction(+:local_result) async(0)
+		for(unsigned int counter = 0; counter < gpu_elements; ++counter) {
+			#pragma acc cache(local_result)					
+			local_result = local_result + devptr[counter];
+		}
+		acc_wait(0);
+		
+		return local_result;
+	}
 	
 	
 	
@@ -130,12 +174,17 @@
 		InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
 		InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
 		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
+		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 				
 		
 		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
 		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
+		as.update_self();
+		mkt::print("as", as);
+		bs.update_self();
+		mkt::print("bs", bs);
 		for(int gpu = 0; gpu < 1; ++gpu){
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
@@ -150,6 +199,13 @@
 		}
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		cs.update_self();
+		mkt::print("cs", cs);
+		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
+		double fn = 0.0;
+		fn = mkt::reduce_plus<float>(cs);
+		fn = std::sqrt((fn));
+		printf("Frobenius norm of cs is %.5f.\n",(fn));
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

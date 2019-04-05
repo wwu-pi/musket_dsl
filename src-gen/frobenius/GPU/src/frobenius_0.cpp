@@ -21,8 +21,8 @@
 	
 	
 			
-	const int dim = 32768;
-	mkt::DMatrix<double> as(0, 32768, 32768, 32768, 32768, 1073741824, 1073741824, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 8192;
+	mkt::DMatrix<double> as(0, 8192, 8192, 8192, 8192, 67108864, 67108864, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
