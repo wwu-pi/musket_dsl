@@ -21,8 +21,8 @@ class Config {
 	public static String build_path = ""
 	public static String out_path = ""
 	
-	public static final int threads = 256
-	public static final int threads_2d = 16
+	public static final int threads = 1024
+	public static final int threads_2d = 32
 	
 	// these can be changed 
 	public static final String include_path = "include/"
