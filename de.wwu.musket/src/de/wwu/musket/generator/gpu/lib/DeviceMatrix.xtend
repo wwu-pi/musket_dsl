@@ -91,9 +91,12 @@ class DeviceMatrix {
 		      _columns_device(dm.get_number_of_columns_local()),
 		      _row_offset(dm.get_row_offset()),
 		      _column_offset(dm.get_column_offset()),
+		      _device_row_offset(0),
+		      _device_column_offset(0),
 		      _dist(dm.get_distribution()),
 		      _device_dist(dm.get_device_distribution()) 
 		{
+			_device_data = nullptr;
 			for(int i = 0; i < «Config.gpus»; ++i){
 				_gpu_data[i] = dm.get_device_pointer(i);
 			}
@@ -108,6 +111,8 @@ class DeviceMatrix {
 		      _columns_device(dm._columns_device),
 		      _row_offset(dm._row_offset),
 		      _column_offset(dm._column_offset),
+		      _device_row_offset(dm._device_row_offset),
+		      _device_column_offset(dm._device_column_offset),
 		      _dist(dm._dist),
 		      _device_dist(dm._device_dist) 
 		{
@@ -116,6 +121,7 @@ class DeviceMatrix {
 				_gpu_data[i] = dm._gpu_data[i];
 			}
 		}
+
 
 		template<typename T>
 		mkt::DeviceMatrix<T>::~DeviceMatrix(){

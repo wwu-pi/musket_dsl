@@ -64,9 +64,11 @@ class DeviceArray {
 		      _size_local(da.get_size_local()),
 		      _size_device(da.get_size_gpu()),
 		      _offset(da.get_offset()),
+		      _device_offset(0),
 		      _dist(da.get_distribution()),
 		      _device_dist(da.get_device_distribution()) 
 		{
+			_device_data = nullptr;
 			for(int i = 0; i < «Config.gpus»; ++i){
 				_gpu_data[i] = da.get_device_pointer(i);
 			}
@@ -78,6 +80,7 @@ class DeviceArray {
 		      _size_local(da._size_local),
 		      _size_device(da._size_device),
 		      _offset(da._offset),
+		      _device_offset(da._device_offset),
 		      _dist(da._dist),
 		      _device_dist(da._device_dist) 
 		{
