@@ -30,8 +30,8 @@ class DeviceArray {
 		// Getter and Setter
 			size_t get_bytes_device() const;
 		
-			const T& get_data_device(size_t device_index) const;
-			const T& get_data_local(size_t local_index) const;
+			__device__ const T& get_data_device(size_t device_index) const;
+			__device__ const T& get_data_local(size_t local_index) const;
 		
 		 private:
 		
@@ -48,8 +48,8 @@ class DeviceArray {
 		  
 		  size_t _device_offset;
 
-		  Distribution _dist;
-		  Distribution _device_dist;
+		  mkt::Distribution _dist;
+		  mkt::Distribution _device_dist;
 
 		  T* _device_data;
 		
@@ -66,9 +66,11 @@ class DeviceArray {
 		      _size_device(da.get_size_gpu()),
 		      _bytes_device(da.get_bytes_gpu()),
 		      _offset(da.get_offset()),
+		      _device_offset(0),
 		      _dist(da.get_distribution()),
 		      _device_dist(da.get_device_distribution()) 
 		{
+			_device_data = nullptr;
 			for(int i = 0; i < «Config.gpus»; ++i){
 				_gpu_data[i] = da.get_device_pointer(i);
 			}
@@ -79,7 +81,9 @@ class DeviceArray {
 		    : _size(da._size),
 		      _size_local(da._size_local),
 		      _size_device(da._size_device),
+		      _bytes_device(da._bytes_device),
 		      _offset(da._offset),
+		      _device_offset(da._device_offset),
 		      _dist(da._dist),
 		      _device_dist(da._device_dist) 
 		{
@@ -95,7 +99,7 @@ class DeviceArray {
 		
 		template<typename T>
 		void mkt::DeviceArray<T>::init(int gpu) {
-			if(_device_dist == Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				_device_offset = 0;
 			} else {
 				_device_offset = _size_device * gpu;
@@ -110,13 +114,13 @@ class DeviceArray {
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceArray<T>::get_data_device(size_t device_index) const {
+		__device__ const T& mkt::DeviceArray<T>::get_data_device(size_t device_index) const {
 		  return _device_data[device_index];
 		}
 		
 		
 		template<typename T>
-		const T& mkt::DeviceArray<T>::get_data_local(size_t local_index) const {
+		__device__ const T& mkt::DeviceArray<T>::get_data_local(size_t local_index) const {
 		  return this->get_data_device(local_index - _device_offset);
 		}
 	'''

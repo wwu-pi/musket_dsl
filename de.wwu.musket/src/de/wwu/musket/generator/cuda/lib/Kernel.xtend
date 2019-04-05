@@ -38,30 +38,30 @@ class Kernel {
 
 	def static generateMapKernelDeclarations() '''
 		template <typename T, typename R, typename F>
-		__global__ void map(T* in, R* out, size_t size, F func);
+		__global__ void map(T* in, R* out, unsigned int size, F func);
 		
 		template <typename T, typename F>
-		__global__ void map_in_place(T* inout, size_t size, F func);		
+		__global__ void map_in_place(T* inout, unsigned int size, F func);		
 		
 		template <typename T, typename R, typename F>
-		__global__ void map_index(T* in, R* out, size_t size, size_t offset, F func);
+		__global__ void map_index(T* in, R* out, unsigned int size, unsigned int offset, F func);
 		
 		template <typename T, typename F>
-		__global__ void map_index_in_place(T* inout, size_t size, size_t offset, F func);
+		__global__ void map_index_in_place(T* inout, unsigned int size, unsigned int offset, F func);
 		
 		template <typename T, typename R, typename F>
-		__global__ void map_index(T* in, R* out, size_t rows, size_t columns, size_t row_offset, size_t column_offset, F func);
+		__global__ void map_index(T* in, R* out, unsigned int rows, unsigned int columns, unsigned int row_offset, unsigned int column_offset, F func);
 		
 		template <typename T, typename F>
-		__global__ void map_index_in_place(T* inout, size_t rows, size_t columns, size_t row_offset, size_t column_offset, F func);
+		__global__ void map_index_in_place(T* inout, unsigned int rows, unsigned int columns, unsigned int row_offset, unsigned int column_offset, F func);
 	'''
 	
 	def static generateFoldKernelDeclarations() '''
 		template<typename T, typename F>
-		void fold_call(size_t size, T* d_idata, T* d_odata, int threads, int blocks, F& f, cudaStream_t& stream, int gpu);
+		void fold_call(unsigned int size, T* d_idata, T* d_odata, int threads, int blocks, F& f, cudaStream_t& stream, int gpu);
 
-		template<typename T, typename F, size_t blockSize>
-		__global__ void fold(T *g_idata, T *g_odata, size_t n, F func);
+		template<typename T, typename F, unsigned int blockSize>
+		__global__ void fold(T *g_idata, T *g_odata, unsigned int n, F func);
 	'''
 	
 	def static generateReductionKernelDeclarations() '''
@@ -73,42 +73,48 @@ class Kernel {
 		«generateReductionCallKernelDeclaration("max", false, "int")»
 		«generateReductionCallKernelDeclaration("max", false, "float")»
 		«generateReductionCallKernelDeclaration("max", false, "double")»
+		
+		template<typename T, typename R, typename Functor>
+		void map_reduce_plus_call(unsigned int size, T* d_idata, R* d_odata, int threads, int blocks, Functor f, cudaStream_t& stream, int gpu);
 
-		template<typename T, size_t blockSize>
-		__global__ void reduce_plus(T *g_idata, T *g_odata, size_t n);
+		template<typename T, unsigned int blockSize>
+		__global__ void reduce_plus(T *g_idata, T *g_odata, unsigned int n);
 		
-		template<typename T, size_t blockSize>
-		__global__ void reduce_multiply(T *g_idata, T *g_odata, size_t n);
+		template<typename T, unsigned int blockSize>
+		__global__ void reduce_multiply(T *g_idata, T *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_max(int *g_idata, int *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_max(int *g_idata, int *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_max(float *g_idata, float *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_max(float *g_idata, float *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_max(double *g_idata, double *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_max(double *g_idata, double *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_min(int *g_idata, int *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_min(int *g_idata, int *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_min(float *g_idata, float *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_min(float *g_idata, float *g_odata, unsigned int n);
 		
-		template<size_t blockSize>
-		__global__ void reduce_min(double *g_idata, double *g_odata, size_t n);
+		template<unsigned int blockSize>
+		__global__ void reduce_min(double *g_idata, double *g_odata, unsigned int n);
+		
+		template<typename T, typename R, unsigned int blockSize, typename Functor>
+		__global__ void map_reduce_plus(T *g_idata, R *g_odata, unsigned int n, Functor f);
 	'''
 	
 	def static generateReductionCallKernelDeclaration(String name, boolean template, String type) '''
 		«IF template»template<typename T>«ENDIF»
-		void reduce_«name»_call(size_t size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu);
+		void reduce_«name»_call(unsigned int size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu);
 	'''
 	
 	def static generateMapKernelDefinitions() '''
 		template <typename T, typename R, typename F>
-		__global__ void mkt::kernel::map(T* in, R* out, size_t size, F func)
+		__global__ void mkt::kernel::map(T* in, R* out, unsigned int size, F func)
 		{
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (x < size) {
 		    out[x] = func(in[x]);
@@ -116,9 +122,9 @@ class Kernel {
 		}
 		
 		template <typename T, typename F>
-		__global__ void mkt::kernel::map_in_place(T* inout, size_t size, F func)
+		__global__ void mkt::kernel::map_in_place(T* inout, unsigned int size, F func)
 		{
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (x < size) {
 		    func(inout[x]);
@@ -126,9 +132,9 @@ class Kernel {
 		}
 		
 		template <typename T, typename R, typename F>
-		__global__ void mkt::kernel::map_index(T* in, R* out, size_t size, size_t offset, F func)
+		__global__ void mkt::kernel::map_index(T* in, R* out, unsigned int size, unsigned int offset, F func)
 		{
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (x < size) {
 		    out[x] = func(x + offset, in[x]);
@@ -136,9 +142,9 @@ class Kernel {
 		}
 		
 		template <typename T, typename F>
-		__global__ void mkt::kernel::map_index_in_place(T* inout, size_t size, size_t offset, F func)
+		__global__ void mkt::kernel::map_index_in_place(T* inout, unsigned int size, unsigned int offset, F func)
 		{
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		  
 		  if (x < size) {
 		    func(x + offset, inout[x]);
@@ -146,10 +152,10 @@ class Kernel {
 		}
 		
 		template <typename T, typename R, typename F>
-		__global__ void mkt::kernel::map_index(T* in, R* out, size_t rows, size_t columns, size_t row_offset, size_t column_offset, F func)
+		__global__ void mkt::kernel::map_index(T* in, R* out, unsigned int rows, unsigned int columns, unsigned int row_offset, unsigned int column_offset, F func)
 		{
-		  size_t y = blockIdx.y * blockDim.y + threadIdx.y;
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (y < rows) {
 		    if (x < columns) {
@@ -158,11 +164,11 @@ class Kernel {
 		  }
 		}
 		
-		template <typename T, typename R, typename F>
-		__global__ void mkt::kernel::map_index_in_place(T* inout, size_t rows, size_t columns, size_t row_offset, size_t column_offset, F func)
+		template <typename T, typename F>
+		__global__ void mkt::kernel::map_index_in_place(T* inout, unsigned int rows, unsigned int columns, unsigned int row_offset, unsigned int column_offset, F func)
 		{
-		  size_t y = blockIdx.y * blockDim.y + threadIdx.y;
-		  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		  unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
+		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (y < rows) {
 		    if (x < columns) {
@@ -174,13 +180,13 @@ class Kernel {
 	
 	def static generateFoldKernelDefinitions() '''
 	template<typename T, typename F>
-	void mkt::kernel::fold_call(size_t size, T* d_idata, T* d_odata, int threads, int blocks, T identity, F& f, cudaStream_t& stream, int gpu) {
+	void mkt::kernel::fold_call(unsigned int size, T* d_idata, T* d_odata, int threads, int blocks, T identity, F& f, cudaStream_t& stream, int gpu) {
 	  cudaSetDevice(gpu);
 	  dim3 dimBlock(threads, 1, 1);
 	  dim3 dimGrid(blocks, 1, 1);
 	  // when there is only one warp per block, we need to allocate two warps
 	  // worth of shared memory so that we don't index shared memory out of bounds
-	  size_t smemSize =
+	  unsigned int smemSize =
 	      (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 	
 	    switch (threads) {
@@ -231,15 +237,15 @@ class Kernel {
 	    }
 	  }
 	
-		template<typename T, typename F, size_t blockSize>
-		__global__ void mkt::kernel::fold(T *g_idata, T *g_odata, size_t n, T identity, F func) {
+		template<typename T, typename F, unsigned int blockSize>
+		__global__ void mkt::kernel::fold(T *g_idata, T *g_odata, unsigned int n, T identity, F func) {
 		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
-		  size_t tid = threadIdx.x;
-		  size_t i = blockIdx.x * blockSize + threadIdx.x;
-		  size_t gridSize = blockSize * gridDim.x;
+		  unsigned int tid = threadIdx.x;
+		  unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+		  unsigned int gridSize = blockSize * gridDim.x;
 		
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
@@ -320,16 +326,18 @@ class Kernel {
 		«generateReduceCallDefinition("max", "float", "mkt::kernel::reduce_max", false)»
 		«generateReduceCallDefinition("max", "double", "mkt::kernel::reduce_max", false)»
 		
+		«generateMapReduceCallDefinition("plus", "", "mkt::kernel::map_reduce_plus", true)»
+		
 		    
-		template<typename T, size_t blockSize>
-		__global__ void mkt::kernel::reduce_plus(T *g_idata, T *g_odata, size_t n) {
+		template<typename T, unsigned int blockSize>
+		__global__ void mkt::kernel::reduce_plus(T *g_idata, T *g_odata, unsigned int n) {
 		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
-		  size_t tid = threadIdx.x;
-		  size_t i = blockIdx.x * blockSize + threadIdx.x;
-		  size_t gridSize = blockSize * gridDim.x;
+		  unsigned int tid = threadIdx.x;
+		  unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+		  unsigned int gridSize = blockSize * gridDim.x;
 		
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
@@ -399,15 +407,15 @@ class Kernel {
 		  }
 		}
 		
-		template<typename T, size_t blockSize>
-		__global__ void mkt::kernel::reduce_multiply(T *g_idata, T *g_odata, size_t n) {
+		template<typename T, unsigned int blockSize>
+		__global__ void mkt::kernel::reduce_multiply(T *g_idata, T *g_odata, unsigned int n) {
 		  extern __shared__ T sdata_t[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
-		  size_t tid = threadIdx.x;
-		  size_t i = blockIdx.x * blockSize + threadIdx.x;
-		  size_t gridSize = blockSize * gridDim.x;
+		  unsigned int tid = threadIdx.x;
+		  unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+		  unsigned int gridSize = blockSize * gridDim.x;
 		
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
@@ -484,18 +492,97 @@ class Kernel {
 		«generateReduceWithFunctionAndType("min", "min", "int", "INT_MAX")»
 		«generateReduceWithFunctionAndType("min", "fminf", "float", "FLT_MAX")»
 		«generateReduceWithFunctionAndType("min", "fmin", "double", "DBL_MAX")»
+		
+		//// MapReduce
+		template<typename T, typename R, unsigned int blockSize, typename Functor>
+		__global__ void mkt::kernel::map_reduce_plus(T *g_idata, R *g_odata, unsigned int n, Functor f) {
+		  extern __shared__ R sdata_t[];
+		
+		  // perform first level of reduction,
+		  // reading from global memory, writing to shared memory
+		  unsigned int tid = threadIdx.x;
+		  unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+		  unsigned int gridSize = blockSize * gridDim.x;
+		
+		  // we reduce multiple elements per thread.  The number is determined by the
+		  // number of active thread blocks (via gridDim). More blocks will result
+		  // in a larger gridSize and therefore fewer elements per thread.
+		  sdata_t[tid] = static_cast<R>(0);
+		
+		  while (i < n) {
+		    sdata_t[tid] += f(g_idata[i]);
+		    i += gridSize;
+		  }
+		  __syncthreads();
+		
+		  // perform reduction in shared memory
+		  if ((blockSize >= 1024) && (tid < 512)) {
+		    sdata_t[tid] += sdata_t[tid + 512];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 512) && (tid < 256)) {
+		    sdata_t[tid] += sdata_t[tid + 256];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 256) && (tid < 128)) {
+		    sdata_t[tid] += sdata_t[tid + 128];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 128) && (tid < 64)) {
+		    sdata_t[tid] += sdata_t[tid + 64];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 64) && (tid < 32)) {
+		    sdata_t[tid] += sdata_t[tid + 32];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 32) && (tid < 16)) {
+		    sdata_t[tid] += sdata_t[tid + 16];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 16) && (tid < 8)) {
+		    sdata_t[tid] += sdata_t[tid + 8];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 8) && (tid < 4)) {
+		    sdata_t[tid] += sdata_t[tid + 4];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 4) && (tid < 2)) {
+		    sdata_t[tid] += sdata_t[tid + 2];
+		  }
+		  __syncthreads();
+		
+		  if ((blockSize >= 2) && (tid < 1)) {
+		    sdata_t[tid] += sdata_t[tid + 1];
+		  }
+		  __syncthreads();
+		
+		  // write result for this block to global mem
+		  if (tid == 0) {
+		    g_odata[blockIdx.x] = sdata_t[0];
+		  }
+		}
 	'''
 	
 	def static generateReduceWithFunctionAndType(String reduction_name, String function, String type, String identity)'''
-		template<size_t blockSize>
-		__global__ void mkt::kernel::reduce_«reduction_name»(«type» *g_idata, «type» *g_odata, size_t n) {
+		template<unsigned int blockSize>
+		__global__ void mkt::kernel::reduce_«reduction_name»(«type» *g_idata, «type» *g_odata, unsigned int n) {
 		  extern __shared__ «type» sdata_«type»[];
 		
 		  // perform first level of reduction,
 		  // reading from global memory, writing to shared memory
-		  size_t tid = threadIdx.x;
-		  size_t i = blockIdx.x * blockSize + threadIdx.x;
-		  size_t gridSize = blockSize * gridDim.x;
+		  unsigned int tid = threadIdx.x;
+		  unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+		  unsigned int gridSize = blockSize * gridDim.x;
 		
 		  // we reduce multiple elements per thread.  The number is determined by the
 		  // number of active thread blocks (via gridDim). More blocks will result
@@ -568,13 +655,13 @@ class Kernel {
 	
 	def static generateReduceCallDefinition(String name, String type, String function, boolean template)'''
 		«IF template»template<typename T>«ENDIF»
-		void reduce_«name»_call(size_t size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu) {
+		void mkt::kernel::reduce_«name»_call(unsigned int size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»T«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, cudaStream_t& stream, int gpu) {
 		  cudaSetDevice(gpu);
 		  dim3 dimBlock(threads, 1, 1);
 		  dim3 dimGrid(blocks, 1, 1);
 		  // when there is only one warp per block, we need to allocate two warps
 		  // worth of shared memory so that we don't index shared memory out of bounds
-		  size_t smemSize = (threads <= 32) ? 2 * threads * sizeof(«IF template»T«ELSE»«type»«ENDIF») : threads * sizeof(«IF template»T«ELSE»«type»«ENDIF»);
+		  unsigned int smemSize = (threads <= 32) ? 2 * threads * sizeof(«IF template»T«ELSE»«type»«ENDIF») : threads * sizeof(«IF template»T«ELSE»«type»«ENDIF»);
 		
 		    switch (threads) {
 		      case 1024:
@@ -609,6 +696,54 @@ class Kernel {
 		        break;
 		      case 1:
 		        «function»<«IF template»T, «ENDIF»1> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size);
+		        break;
+		    }
+		}
+	'''
+	
+	def static generateMapReduceCallDefinition(String name, String type, String function, boolean template)'''
+		template<«IF template»typename T, typename R, «ENDIF»typename Functor>
+		void mkt::kernel::map_reduce_«name»_call(unsigned int size, «IF template»T«ELSE»«type»«ENDIF»* d_idata, «IF template»R«ELSE»«type»«ENDIF»* d_odata, int threads, int blocks, Functor f, cudaStream_t& stream, int gpu) {
+		  cudaSetDevice(gpu);
+		  dim3 dimBlock(threads, 1, 1);
+		  dim3 dimGrid(blocks, 1, 1);
+		  // when there is only one warp per block, we need to allocate two warps
+		  // worth of shared memory so that we don't index shared memory out of bounds
+		  unsigned int smemSize = (threads <= 32) ? 2 * threads * sizeof(«IF template»R«ELSE»«type»«ENDIF») : threads * sizeof(«IF template»R«ELSE»«type»«ENDIF»);
+		
+		    switch (threads) {
+		      case 1024:
+		        «function»<«IF template»T, R,«ENDIF»1024, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 512:
+		        «function»<«IF template»T, R,«ENDIF»512, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 256:
+		        «function»<«IF template»T, R,«ENDIF»256, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 128:
+		        «function»<«IF template»T, R,«ENDIF»128, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 64:
+		        «function»<«IF template»T, R,«ENDIF»64, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 32:
+		        «function»<«IF template»T, R,«ENDIF»32, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 16:
+		        «function»<«IF template»T, R,«ENDIF»16, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 8:
+		        «function»<«IF template»T, R,«ENDIF»8, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 4:
+		        «function»<«IF template»T, R,«ENDIF»4, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 2:
+		        «function»<«IF template»T, R,«ENDIF»2, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
+		        break;
+		      case 1:
+		        «function»<«IF template»T, R,«ENDIF»1, Functor> <<<dimGrid, dimBlock, smemSize, stream>>>(d_idata, d_odata, size, f);
 		        break;
 		    }
 		}

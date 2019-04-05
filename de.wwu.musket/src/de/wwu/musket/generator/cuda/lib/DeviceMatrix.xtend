@@ -30,10 +30,10 @@ class DeviceMatrix {
 		  
 		// Getter and Setter
 		
-		  const T& get_data_device(size_t device_index) const;
-		  const T& get_data_device(size_t device_row, size_t device_column) const;
+		  __device__ const T& get_data_device(size_t device_index) const;
+		  __device__ const T& get_data_device(size_t device_row, size_t device_column) const;
 
-		  const T& get_data_local(size_t local_row, size_t local_column) const;
+		  __device__ const T& get_data_local(size_t local_row, size_t local_column) const;
 		  
 «««		  int get_row_offset() const;
 «««		  int get_column_offset() const;
@@ -72,8 +72,8 @@ class DeviceMatrix {
 		  size_t _device_row_offset;
 		  size_t _device_column_offset;
 
-		  Distribution _dist;
-		  Distribution _device_dist;
+		  mkt::Distribution _dist;
+		  mkt::Distribution _device_dist;
 
 		  T* _device_data;
 		
@@ -90,11 +90,15 @@ class DeviceMatrix {
 		      _size_device(dm.get_size_gpu()),
 		      _rows_device(dm.get_rows_gpu()),
 		      _columns_device(dm.get_number_of_columns_local()),
+		      _bytes_device(dm.get_bytes_gpu()),
 		      _row_offset(dm.get_row_offset()),
 		      _column_offset(dm.get_column_offset()),
+		      _device_row_offset(0),
+		      _device_column_offset(0),
 		      _dist(dm.get_distribution()),
 		      _device_dist(dm.get_device_distribution()) 
 		{
+			_device_data = nullptr;
 			for(int i = 0; i < «Config.gpus»; ++i){
 				_gpu_data[i] = dm.get_device_pointer(i);
 			}
@@ -107,8 +111,11 @@ class DeviceMatrix {
 		      _size_device(dm._size_device),
 		      _rows_device(dm._rows_device),
 		      _columns_device(dm._columns_device),
+		      _bytes_device(dm._bytes_device),
 		      _row_offset(dm._row_offset),
 		      _column_offset(dm._column_offset),
+		      _device_row_offset(dm._device_row_offset),
+		      _device_column_offset(dm._device_column_offset),
 		      _dist(dm._dist),
 		      _device_dist(dm._device_dist) 
 		{
@@ -124,7 +131,7 @@ class DeviceMatrix {
 		
 		template<typename T>
 		void mkt::DeviceMatrix<T>::init(int gpu) {
-			if(_device_dist == Distribution::COPY){
+			if(_device_dist == mkt::Distribution::COPY){
 				_device_row_offset = 0;
 				_device_column_offset = 0;
 			} else {
@@ -136,17 +143,17 @@ class DeviceMatrix {
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_index) const {
+		__device__ const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_index) const {
 		  return _device_data[device_index];
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_row, size_t device_column) const {
+		__device__ const T& mkt::DeviceMatrix<T>::get_data_device(size_t device_row, size_t device_column) const {
 		  return this->get_data_device(device_row * _columns_device + device_column);
 		}
 		
 		template<typename T>
-		const T& mkt::DeviceMatrix<T>::get_data_local(size_t local_row, size_t local_column) const {
+		__device__ const T& mkt::DeviceMatrix<T>::get_data_local(size_t local_row, size_t local_column) const {
 		  return this->get_data_device(local_row - _device_row_offset, local_column - _device_column_offset);
 		}
 

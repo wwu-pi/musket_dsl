@@ -20,7 +20,7 @@ class DArray {
 		 public:
 		
 		  // CONSTRUCTORS / DESTRUCTOR
-		  DArray(int pid, size_t size, size_t size_local, T init_value, int partitions, int partition_pos, size_t offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
+		  DArray(int pid, size_t size, size_t size_local, T init_value, int partitions, int partition_pos, size_t offset, mkt::Distribution d = DIST, mkt::Distribution device_dist = DIST);
 		  ~ DArray();
 		  
 		  template<std::size_t N> 
@@ -50,8 +50,8 @@ class DArray {
 		
 		  size_t get_offset() const;
 				
-		  Distribution get_distribution() const;
-		  Distribution get_device_distribution() const;
+		  mkt::Distribution get_distribution() const;
+		  mkt::Distribution get_device_distribution() const;
 				
 		  T* get_data();
 		  const T* get_data() const;
@@ -88,8 +88,8 @@ class DArray {
 		  size_t _offset;
 		
 		  // checks whether data is copy distributed among all processes
-		  Distribution _dist;
-		  Distribution _device_dist;
+		  mkt::Distribution _dist;
+		  mkt::Distribution _device_dist;
 		
 		  T* _data;
 		  std::array<T*, «Config.gpus»> _host_data;
@@ -99,7 +99,7 @@ class DArray {
 	
 	def static generateDArrayDefinition() '''
 		template<typename T>
-		mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, int partitions, int partition_pos, size_t offset, Distribution d, Distribution device_dist)
+		mkt::DArray<T>::DArray(int pid, size_t size, size_t size_local, T init_value, int partitions, int partition_pos, size_t offset, mkt::Distribution d, mkt::Distribution device_dist)
 		    : _pid(pid),
 		      _size(size),
 		      _size_local(size_local),
@@ -162,7 +162,7 @@ class DArray {
 				
 		template<typename T>
 		void mkt::DArray<T>::update_self() {
-			if(_device_dist == Distribution::DIST){
+			if(_device_dist == mkt::Distribution::DIST){
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					cudaSetDevice(gpu);
 					cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);

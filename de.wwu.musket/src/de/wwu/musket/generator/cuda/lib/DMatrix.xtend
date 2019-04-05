@@ -24,7 +24,7 @@ class DMatrix {
 		  DMatrix(int pid, size_t number_of_rows, size_t number_of_columns, size_t number_of_rows_local, 
 		          size_t number_of_columns_local, size_t size, size_t size_local, T init_value, 
 		          int partitions_in_row, int partitions_in_column, int partition_x_pos, int partition_y_pos, 
-		          size_t row_offset, size_t column_offset, Distribution d = DIST, Distribution device_dist = DIST);
+		          size_t row_offset, size_t column_offset, mkt::Distribution d = DIST, mkt::Distribution device_dist = DIST);
 		  ~DMatrix();
 		  
 		  void update_self();
@@ -72,8 +72,8 @@ class DMatrix {
 		  int get_partition_x_pos() const;
 		  int get_partition_y_pos() const;
 		  
-		  Distribution get_distribution() const;
-		  Distribution get_device_distribution() const;
+		  mkt::Distribution get_distribution() const;
+		  mkt::Distribution get_device_distribution() const;
 
 		  T* get_data();
 		  const T* get_data() const;
@@ -144,8 +144,8 @@ class DMatrix {
 		  size_t _column_offset;
 		
 		  // checks whether data is copy distributed among all processes
-		  Distribution _dist;
-		  Distribution _device_dist;
+		  mkt::Distribution _dist;
+		  mkt::Distribution _device_dist;
 		
 		  T* _data;
 		  std::array<T*, «Config.gpus»> _host_data;
@@ -159,7 +159,7 @@ class DMatrix {
 		mkt::DMatrix<T>::DMatrix(int pid, size_t number_of_rows, size_t number_of_columns, size_t number_of_rows_local, 
 		                         size_t number_of_columns_local, size_t size, size_t size_local, T init_value, 
 		                         int partitions_in_row, int partitions_in_column, int partition_x_pos, int partition_y_pos, 
-		                         size_t row_offset, size_t column_offset, Distribution d, Distribution device_dist)
+		                         size_t row_offset, size_t column_offset, mkt::Distribution d, mkt::Distribution device_dist)
 		    : _pid(pid),
 		      _number_of_rows(number_of_rows),
 		      _number_of_columns(number_of_columns),
@@ -221,7 +221,7 @@ class DMatrix {
 				
 		template<typename T>
 		void mkt::DMatrix<T>::update_self() {
-			if(_device_dist == Distribution::DIST){
+			if(_device_dist == mkt::Distribution::DIST){
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 					cudaSetDevice(gpu);
 					cudaMemcpyAsync(_host_data[gpu], _gpu_data[gpu], _bytes_gpu, cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
@@ -342,6 +342,12 @@ class DMatrix {
 		size_t mkt::DMatrix<T>::get_rows_gpu() const {
 		  return _rows_gpu;
 		}
+		
+		template<typename T>
+		size_t mkt::DMatrix<T>::get_bytes_gpu() const {
+		  return _bytes_gpu;
+		}
+		
 		
 		template<typename T>
 		size_t mkt::DMatrix<T>::get_row_offset() const {
