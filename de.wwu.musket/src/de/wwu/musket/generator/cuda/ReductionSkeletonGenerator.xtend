@@ -153,7 +153,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 
 					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 						cudaSetDevice(gpu);
-						cudaMalloc((void**) &d_odata[i], blocks * sizeof(«cppType»));
+						cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(«cppType»));
 						«cppType»* devptr = a.get_device_pointer(gpu);
 						
 						mkt::kernel::reduce_«ro.name»_call<«cppType»>(gpu_elements, devptr, d_odata[gpu], threads, blocks, mkt::cuda_streams[gpu], gpu);
@@ -286,7 +286,7 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 
 					for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 						cudaSetDevice(gpu);
-						cudaMalloc((void**) &d_odata[i], blocks * sizeof(«out_cppType»));
+						cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(«out_cppType»));
 						«in_cppType»* devptr = a.get_device_pointer(gpu);
 						
 						mkt::kernel::map_reduce_«ro.name»_call<«in_cppType», «out_cppType», «functorType»>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);
