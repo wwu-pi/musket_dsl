@@ -564,7 +564,7 @@
 				std::array<double*,4> d_odata;
 				std::array<double, 4> gpu_results;
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
@@ -578,7 +578,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-			      int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+			      int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 			      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  for(int gpu = 0; gpu < 4; ++gpu){
 				      cudaSetDevice(gpu);
@@ -605,7 +605,7 @@
 				}
 			}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 				cudaSetDevice(0);
 				double* d_odata;
@@ -616,7 +616,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-				  int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+				  int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  mkt::kernel::reduce_plus_call<double>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
 				  blocks = blocks_2;
@@ -644,7 +644,7 @@
 				std::array<double*,4> d_odata;
 				std::array<double, 4> gpu_results;
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
@@ -658,7 +658,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-			      int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+			      int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 			      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  for(int gpu = 0; gpu < 4; ++gpu){
 				      cudaSetDevice(gpu);
@@ -685,7 +685,7 @@
 				}
 			}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 				cudaSetDevice(0);
 				double* d_odata;
@@ -696,7 +696,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-				  int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+				  int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  mkt::kernel::reduce_max_call<double>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
 				  blocks = blocks_2;
@@ -724,7 +724,7 @@
 				std::array<double*,4> d_odata;
 				std::array<double, 4> gpu_results;
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
@@ -738,7 +738,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-			      int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+			      int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 			      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  for(int gpu = 0; gpu < 4; ++gpu){
 				      cudaSetDevice(gpu);
@@ -765,7 +765,7 @@
 				}
 			}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 				cudaSetDevice(0);
 				double* d_odata;
@@ -776,7 +776,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-				  int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+				  int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  mkt::kernel::reduce_plus_call<double>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
 				  blocks = blocks_2;
@@ -863,7 +863,7 @@
 				std::array<double*,4> d_odata;
 				std::array<double, 4> gpu_results;
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
@@ -877,7 +877,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-			      int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+			      int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 			      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  for(int gpu = 0; gpu < 4; ++gpu){
 				      cudaSetDevice(gpu);
@@ -904,7 +904,7 @@
 				}
 			}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 				cudaSetDevice(0);
 				double* d_odata;
@@ -915,7 +915,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-				  int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+				  int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  mkt::kernel::reduce_plus_call<double>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
 				  blocks = blocks_2;
@@ -1002,7 +1002,7 @@
 				std::array<double*,4> d_odata;
 				std::array<double, 4> gpu_results;
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
@@ -1016,7 +1016,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-			      int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+			      int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 			      int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  for(int gpu = 0; gpu < 4; ++gpu){
 				      cudaSetDevice(gpu);
@@ -1043,7 +1043,7 @@
 				}
 			}else if(a.get_device_distribution() == mkt::Distribution::COPY){ // use only gpu 0, since all have the same data
 				const int gpu_elements = a.get_size_gpu();
-				int threads = gpu_elements < 256 ? gpu_elements : 256; // nextPow2
+				int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
 				int blocks = (gpu_elements + threads - 1) / threads;
 				cudaSetDevice(0);
 				double* d_odata;
@@ -1054,7 +1054,7 @@
 				
 				// fold on gpus: step 2
 				while(blocks > 1){
-				  int threads_2 = blocks < 256 ? blocks : 256; // nextPow2
+				  int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
 				  int blocks_2 = (blocks + threads_2 - 1) / threads_2;
 				  mkt::kernel::reduce_max_call<double>(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
 				  blocks = blocks_2;

@@ -450,7 +450,7 @@ void mkt::map(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, f);
 	}
@@ -474,7 +474,7 @@ void mkt::map_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor f) {
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, gpu_offset, f);
 	}
@@ -497,7 +497,7 @@ void mkt::map_local_index(const mkt::DArray<T>& in, mkt::DArray<R>& out, Functor
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, gpu_offset, f);
 	}
@@ -514,7 +514,7 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, f);
 	}
@@ -537,7 +537,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 	}
@@ -559,7 +559,7 @@ void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
 
 		size_t smem_bytes = f.get_smem_bytes();
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
 		mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 	}

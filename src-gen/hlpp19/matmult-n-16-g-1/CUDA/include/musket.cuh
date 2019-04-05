@@ -607,7 +607,7 @@ void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 	    dim3 dimGrid((gpu_elements + dimBlock.x - 1) / dimBlock.x);
 	    mkt::kernel::map<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, gpu_elements, f);
 	}
@@ -636,7 +636,7 @@ void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) 
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		dim3 dimBlock(16, 16);
+		dim3 dimBlock(32, 32);
 	    dim3 dimGrid((columns_local + dimBlock.x - 1) / dimBlock.x, (rows_on_gpu + dimBlock.y - 1) / dimBlock.y);
 	    mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, rows_on_gpu, columns_local, gpu_row_offset, gpu_column_offset, f);
 	}
@@ -663,7 +663,7 @@ void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Funct
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		dim3 dimBlock(16, 16);
+		dim3 dimBlock(32, 32);
 	    dim3 dimGrid((columns_local + dimBlock.x - 1) / dimBlock.x, (rows_on_gpu + dimBlock.y - 1) / dimBlock.y);
 	    mkt::kernel::map_index<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(in_devptr, out_devptr, rows_on_gpu, columns_local, gpu_row_offset, gpu_column_offset, f);
 	}
@@ -678,7 +678,7 @@ void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
 		f.init(gpu);
 		T* m_devptr = m.get_device_pointer(gpu);
 		
-		dim3 dimBlock(256);
+		dim3 dimBlock(1024);
 	    dim3 dimGrid((gpu_elements + dimBlock.x - 1) / dimBlock.x);
 	    mkt::kernel::map_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(m_devptr, gpu_elements, f);
 	}
@@ -706,7 +706,7 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		dim3 dimBlock(16, 16);
+		dim3 dimBlock(32, 32);
 	    dim3 dimGrid((columns_local + dimBlock.x - 1) / dimBlock.x, (rows_on_gpu + dimBlock.y - 1) / dimBlock.y);
 	    mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(m_devptr, rows_on_gpu, columns_local, gpu_row_offset, gpu_column_offset, f);
 	}
@@ -732,7 +732,7 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		dim3 dimBlock(16, 16);
+		dim3 dimBlock(32, 32);
 	    dim3 dimGrid((columns_local + dimBlock.x - 1) / dimBlock.x, (rows_on_gpu + dimBlock.y - 1) / dimBlock.y);
 	    mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(m_devptr, rows_on_gpu, columns_local, gpu_row_offset, gpu_column_offset, f);
 	}
