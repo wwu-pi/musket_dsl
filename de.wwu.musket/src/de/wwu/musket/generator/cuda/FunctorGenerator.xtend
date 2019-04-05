@@ -79,7 +79,7 @@ class FunctorGenerator {
 			
 			~«f.name.toFirstUpper»_«skelName»_«coName»_functor() {}
 			
-			__device__
+			__host__ __device__
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
 				«IF f.containsRandCall»
 					curandState_t curand_state; // performance could be improved by creating states before
