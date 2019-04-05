@@ -1,4 +1,4 @@
-#config PLATFORM GPU CPU_MPMD
+#config PLATFORM GPU CPU_MPMD CUDA
 #config PROCESSES 1
 #config GPUS 1
 #config CORES 24

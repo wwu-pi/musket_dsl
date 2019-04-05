@@ -708,11 +708,12 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 		}
 		
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
-		for(unsigned int i = 0; i < gpu_elements; ++i) {
-			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			unsigned int row_index = gpu_row_offset + (i / columns_local);
-			unsigned int column_index = i % columns_local;
-			f(row_index, column_index, devptr[i]);
+		for(unsigned int i = 0; i < rows_on_gpu; ++i) {
+			#pragma acc loop
+			for(unsigned int j = 0; j < columns_local; ++j) {
+				f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
+				f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
+			}
 		}
 	}
 }
@@ -726,9 +727,12 @@ mkt::DeviceMatrix<T>::DeviceMatrix(const DMatrix<T>& dm)
       _columns_device(dm.get_number_of_columns_local()),
       _row_offset(dm.get_row_offset()),
       _column_offset(dm.get_column_offset()),
+      _device_row_offset(0),
+      _device_column_offset(0),
       _dist(dm.get_distribution()),
       _device_dist(dm.get_device_distribution()) 
 {
+	_device_data = nullptr;
 	for(int i = 0; i < 4; ++i){
 		_gpu_data[i] = dm.get_device_pointer(i);
 	}
@@ -743,6 +747,8 @@ mkt::DeviceMatrix<T>::DeviceMatrix(const DeviceMatrix<T>& dm)
       _columns_device(dm._columns_device),
       _row_offset(dm._row_offset),
       _column_offset(dm._column_offset),
+      _device_row_offset(dm._device_row_offset),
+      _device_column_offset(dm._device_column_offset),
       _dist(dm._dist),
       _device_dist(dm._device_dist) 
 {
@@ -751,6 +757,7 @@ mkt::DeviceMatrix<T>::DeviceMatrix(const DeviceMatrix<T>& dm)
 		_gpu_data[i] = dm._gpu_data[i];
 	}
 }
+
 
 template<typename T>
 mkt::DeviceMatrix<T>::~DeviceMatrix(){

@@ -28,13 +28,13 @@
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
-	// __global__ void setup_kernel(curandState *state)
-	// {
-	// 	int id = threadIdx.x + blockIdx.x * 1024;
-	// 	/* Each thread gets same seed, a different sequence 
-	// 	   number, no offset */
-	// 	curand_init(1234, id, 0, &state[id]);
-	// }
+	__global__ void setup_kernel(curandState *state)
+	{
+		int id = threadIdx.x + blockIdx.x * blockDim.x;
+		/* Each thread gets same seed, a different sequence 
+		   number, no offset */
+		curand_init(1234, id, 0, &state[id]);
+	}
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
@@ -135,16 +135,17 @@
 	}	
 	
 	int main(int argc, char** argv) {
+		mkt::init_mkt();
 		
-		//curandState* devStates[4];
+		curandState* devStates[1];
 		
 		// #pragma omp parallel for
-		// for(int gpu = 0; gpu < 4; ++gpu){
-		// 	cudaSetDevice(gpu);
-		// 	cudaMalloc((void **)&devStates[gpu], 64 * 1024 * sizeof(curandState)));
-		// 	setup_kernel<<<64, 1024>>>(devStates[gpu]);
-		// }
-		mkt::init_mkt();
+		for(int gpu = 0; gpu < 1; ++gpu){
+			cudaSetDevice(gpu);
+			cudaMalloc((void **)&devStates[gpu], 64 * 1024 * sizeof(curandState)));
+			setup_kernel<<<64, 1024, mkt::cuda_streams[gpu]>>>(devStates[gpu]);
+		}
+		
 		mkt::DArray<Particle> P(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DArray<Particle> oldP(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 

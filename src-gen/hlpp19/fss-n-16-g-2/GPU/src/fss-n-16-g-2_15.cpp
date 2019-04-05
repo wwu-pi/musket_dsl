@@ -46,9 +46,25 @@
 	const int NUMBER_OF_FISH = 2048;
 	const int ITERATIONS = 5000;
 	const int DIMENSIONS = 512;
-	mkt::DArray<Fish> population(15, 2048, 128, Fish{}, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_candidate_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_candidate_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_displacement(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_fitness_variation(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_weight(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_best_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> population_best_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> instinctive_movement_vector_copy(15, 512, 512, 0.0, 1, 15, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<Fish> weighted_fishes(15, 2048, 128, Fish{}, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_candidate_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_candidate_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_displacement(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_fitness_variation(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_weight(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_best_position(15, 1048576, 65536, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
+	mkt::DArray<double> weighted_fishes_best_fitness(15, 2048, 128, 0.0, 4, 15, 1920, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> barycenter_copy(15, 512, 512, 0.0, 1, 15, 0, mkt::COPY, mkt::COPY);
 	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}

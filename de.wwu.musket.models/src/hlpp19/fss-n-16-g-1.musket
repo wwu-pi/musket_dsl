@@ -1,4 +1,4 @@
-#config PLATFORM GPU 
+#config PLATFORM GPU CUDA
 #config PROCESSES 16
 #config CORES 24
 #config GPUS 1

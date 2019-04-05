@@ -34,8 +34,22 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(4, 500000, 31250, Particle{}, 4, 4, 125000, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(4, 500000, 500000, Particle{}, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> P_x(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_y(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_z(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vx(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vy(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_vz(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_mass(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> P_charge(4, 500000, 31250, 0.0f, 4, 4, 125000, mkt::DIST, mkt::DIST);
+	mkt::DArray<float> oldP_x(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_y(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_z(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vx(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vy(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_vz(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_mass(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<float> oldP_charge(4, 500000, 500000, 0.0f, 1, 4, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
