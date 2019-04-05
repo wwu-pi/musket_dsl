@@ -60,6 +60,9 @@ import org.apache.log4j.Logger
 import java.util.List
 import java.util.Set
 import de.wwu.musket.musket.MusketFunctionName
+import de.wwu.musket.musket.Skeleton
+import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
+import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
 
 class FunctorGenerator {
 	
@@ -71,7 +74,7 @@ class FunctorGenerator {
 		«se.getFunctorName(spi)» «se.getFunctorObjectName(spi)»{«FOR co : referencedCollections SEPARATOR ", "»«co.name»«ENDFOR»};
 	'''
 
-	def static generateFunctor(Function f, String skelName, String coName, int freeParameter, int processId) '''
+	def static generateFunctor(Skeleton skel, Function f, String skelName, String coName, int freeParameter, int processId) '''
 		«val referencedCollections = f.referencedCollections»
 		struct «f.name.toFirstUpper»_«skelName»_«coName»_functor{
 			
@@ -79,7 +82,7 @@ class FunctorGenerator {
 			
 			~«f.name.toFirstUpper»_«skelName»_«coName»_functor() {}
 			
-			__host__ __device__
+			«IF (skel instanceof ShiftPartitionsHorizontallySkeleton || skel instanceof ShiftPartitionsVerticallySkeleton)»__host__«ELSE»__device__«ENDIF»
 			auto operator()(«FOR p : f.params.drop(freeParameter) SEPARATOR ", "»«p.generateParameter»«ENDFOR»){
 				«IF f.containsRandCall»
 					curandState_t curand_state; // performance could be improved by creating states before

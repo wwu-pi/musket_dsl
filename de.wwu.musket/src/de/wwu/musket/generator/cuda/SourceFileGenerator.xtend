@@ -177,7 +177,7 @@ class SourceFileGenerator {
 				if (!generated.contains(skelContainerName -> func.name)) {
 					generated.add(skelContainerName -> func.name)
 					result +=
-						FunctorGenerator.generateFunctor(func, skel.skeletonName.toString,
+						FunctorGenerator.generateFunctor(skel, func, skel.skeletonName.toString,
 							skeletonExpression.obj.collectionContainerName.toString,
 							skeletonExpression.getNumberOfFreeParameters(func), processId)
 				}
@@ -187,7 +187,7 @@ class SourceFileGenerator {
 					if (!generated.contains(skelContainerName -> mapFunction.name)) {
 						generated.add(skelContainerName -> mapFunction.name)
 						result +=
-							FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
+							FunctorGenerator.generateFunctor(skel, mapFunction, skel.skeletonName.toString,
 								skeletonExpression.obj.collectionContainerName.toString,
 								skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
 					}
@@ -203,7 +203,7 @@ class SourceFileGenerator {
 			if (!generated.contains(skelContainerName -> mapFunction.name)) {
 				generated.add(skelContainerName -> mapFunction.name)
 				result +=
-					FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
+					FunctorGenerator.generateFunctor(skel, mapFunction, skel.skeletonName.toString,
 						skeletonExpression.obj.collectionContainerName.toString,
 						skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
 			}
