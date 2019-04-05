@@ -35,7 +35,7 @@
 		
 		~Init_map_index_in_place_matrix_functor() {}
 		
-		__device__
+		__host__ __device__
 		auto operator()(int x, int y, double& a){
 			a = static_cast<double>((((x) + (y)) + 1));
 		}
@@ -56,7 +56,7 @@
 		
 		~Square_map_reduce_matrix_functor() {}
 		
-		__device__
+		__host__ __device__
 		auto operator()(double a){
 			a = ((a) * (a));
 			return (a);
