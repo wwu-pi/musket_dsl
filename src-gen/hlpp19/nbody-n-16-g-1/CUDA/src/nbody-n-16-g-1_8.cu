@@ -40,7 +40,7 @@
 		
 		~Init_particles_map_index_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(int i, Particle& p){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -71,7 +71,7 @@
 		
 		~Calc_force_map_index_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(int curIndex, Particle& curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;

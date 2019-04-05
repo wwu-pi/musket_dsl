@@ -32,7 +32,7 @@
 		
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(int i, int j, float& Cij){
 			for(int k = 0; ((k) < 16384); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
@@ -59,7 +59,7 @@
 		
 		~Square_map_in_place_matrix_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(float& a){
 			a = ((a) * (a));
 		}

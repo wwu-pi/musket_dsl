@@ -37,7 +37,7 @@
 		
 		~Negate_shift_partitions_horizontally_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return -((a));
 		}
@@ -58,7 +58,7 @@
 		
 		~Negate_shift_partitions_vertically_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return -((a));
 		}
@@ -79,7 +79,7 @@
 		
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(int i, int j, float& Cij){
 			for(int k = 0; ((k) < 8192); k++){
 				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
@@ -106,7 +106,7 @@
 		
 		~MinusOne_shift_partitions_horizontally_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return -(1);
 		}
@@ -127,7 +127,7 @@
 		
 		~MinusOne_shift_partitions_vertically_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return -(1);
 		}
@@ -148,7 +148,7 @@
 		
 		~Identity_shift_partitions_horizontally_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return (a);
 		}
@@ -169,7 +169,7 @@
 		
 		~Identity_shift_partitions_vertically_matrix_functor() {}
 		
-		__host__ __device__
+		__host__
 		auto operator()(int a){
 			return (a);
 		}
@@ -190,7 +190,7 @@
 		
 		~Square_map_in_place_matrix_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(float& a){
 			a = ((a) * (a));
 		}

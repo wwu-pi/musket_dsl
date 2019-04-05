@@ -54,7 +54,7 @@
 		
 		~InitFish_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -88,7 +88,7 @@
 		
 		~EvaluateFitness_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			double sum = 0.0;
 			for(int j = 0; ((j) < (DIMENSIONS)); ++j){
@@ -121,7 +121,7 @@
 		
 		~IndividualMovement_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -186,7 +186,7 @@
 		
 		~Feeding_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			
 			if(((max_fitness_variation) != 0.0)){
@@ -219,7 +219,7 @@
 		
 		~CalcDisplacementMap_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				fi.displacement[(i)] *= (fi).fitness_variation;
@@ -242,7 +242,7 @@
 		
 		~CalcInstinctiveMovementVector_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(double& x){
 			double result = (x);
 			
@@ -269,7 +269,7 @@
 		
 		~InstinctiveMovement_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				double new_position = ((fi).position[(i)] + instinctive_movement_vector_copy.get_data_local((i)));
@@ -302,7 +302,7 @@
 		
 		~CalcWeightedFish_map_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(const Fish& fi){
 			Fish _fi{fi};
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
@@ -327,7 +327,7 @@
 		
 		~CalcBarycenterMap_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(double& x){
 			double result = (x);
 			
@@ -354,7 +354,7 @@
 		
 		~VolitiveMovement_map_in_place_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish& fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -410,7 +410,7 @@
 		
 		~Lambda21_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).weight;
 		}
@@ -431,7 +431,7 @@
 		
 		~Lambda22_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).fitness_variation;
 		}
@@ -452,7 +452,7 @@
 		
 		~Lambda23_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).fitness_variation;
 		}
@@ -473,7 +473,7 @@
 		
 		~Lambda24_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).displacement;
 		}
@@ -494,7 +494,7 @@
 		
 		~Lambda25_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).weight;
 		}
@@ -515,7 +515,7 @@
 		
 		~Lambda26_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).position;
 		}
@@ -536,7 +536,7 @@
 		
 		~Lambda27_map_reduce_array_functor() {}
 		
-		__host__ __device__
+		__device__
 		auto operator()(Fish fi){
 			return (fi).best_fitness;
 		}
