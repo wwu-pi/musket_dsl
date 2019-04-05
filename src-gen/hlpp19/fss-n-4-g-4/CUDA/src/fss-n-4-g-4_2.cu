@@ -569,7 +569,7 @@
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
 					cudaSetDevice(gpu);
-					cudaMalloc((void**) &d_odata[i], blocks * sizeof(double));
+					cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(double));
 					Fish* devptr = a.get_device_pointer(gpu);
 					
 					mkt::kernel::map_reduce_plus_call<Fish, double, Lambda35_map_reduce_array_functor>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);
@@ -649,7 +649,7 @@
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
 					cudaSetDevice(gpu);
-					cudaMalloc((void**) &d_odata[i], blocks * sizeof(double));
+					cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(double));
 					Fish* devptr = a.get_device_pointer(gpu);
 					
 					mkt::kernel::map_reduce_max_call<Fish, double, Lambda36_map_reduce_array_functor>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);
@@ -729,7 +729,7 @@
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
 					cudaSetDevice(gpu);
-					cudaMalloc((void**) &d_odata[i], blocks * sizeof(double));
+					cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(double));
 					Fish* devptr = a.get_device_pointer(gpu);
 					
 					mkt::kernel::map_reduce_plus_call<Fish, double, Lambda37_map_reduce_array_functor>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);
@@ -868,7 +868,7 @@
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
 					cudaSetDevice(gpu);
-					cudaMalloc((void**) &d_odata[i], blocks * sizeof(double));
+					cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(double));
 					Fish* devptr = a.get_device_pointer(gpu);
 					
 					mkt::kernel::map_reduce_plus_call<Fish, double, Lambda39_map_reduce_array_functor>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);
@@ -1007,7 +1007,7 @@
 		
 				for(int gpu = 0; gpu < 4; ++gpu){
 					cudaSetDevice(gpu);
-					cudaMalloc((void**) &d_odata[i], blocks * sizeof(double));
+					cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(double));
 					Fish* devptr = a.get_device_pointer(gpu);
 					
 					mkt::kernel::map_reduce_max_call<Fish, double, Lambda41_map_reduce_array_functor>(gpu_elements, devptr, d_odata[gpu], threads, blocks, f, mkt::cuda_streams[gpu], gpu);

@@ -91,7 +91,7 @@
 	
 			for(int gpu = 0; gpu < 4; ++gpu){
 				cudaSetDevice(gpu);
-				cudaMalloc((void**) &d_odata[i], blocks * sizeof(float));
+				cudaMalloc((void**) &d_odata[gpu], blocks * sizeof(float));
 				float* devptr = a.get_device_pointer(gpu);
 				
 				mkt::kernel::reduce_plus_call<float>(gpu_elements, devptr, d_odata[gpu], threads, blocks, mkt::cuda_streams[gpu], gpu);
