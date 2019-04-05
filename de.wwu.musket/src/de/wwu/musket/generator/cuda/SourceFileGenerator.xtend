@@ -127,7 +127,7 @@ class SourceFileGenerator {
 		#include <vector>
 		#include <sstream>
 		#include <chrono>
-		#include <random>
+		#include <curand_kernel.h>
 		#include <limits>
 		#include <memory>
 		#include <cstddef>
@@ -316,10 +316,9 @@ class SourceFileGenerator {
 			if(«Config.var_mpi_procs» != «Config.var_np» || «Config.var_mpi_rank» != «Config.var_pid»){
 				MPI_Finalize();
 				return EXIT_FAILURE;
-			}			
-			
-			mkt::init();
+			}				
 		«ENDIF»
+		mkt::init();
 	'''
 
 	/**
