@@ -13,12 +13,14 @@ set(CMAKE_CUDA_HOST_LINKER_FLAGS " -Xlinker ")
 
 # packages
 find_package(MPI REQUIRED)
+string(REPLACE " " "," MPI_CXX_LINK_FLAG ${MPI_CXX_LINK_FLAGS})
+
 foreach (flag ${MPI_CXX_COMPILE_OPTIONS})
 	string(APPEND CMAKE_CUDA_HOST_FLAGS ",${flag}")
 endforeach (flag ${MPI_CXX_COMPILE_OPTIONS})
-foreach (flag ${MPI_CXX_LINK_FLAGS})
+foreach (flag ${MPI_CXX_LINK_FLAG})
 	string(APPEND CMAKE_CUDA_HOST_LINKER_FLAGS ",${flag}")
-endforeach (flag ${MPI_CXX_LINK_FLAGS})
+endforeach (flag ${MPI_CXX_LINK_FLAG})
 find_package(OpenMP REQUIRED)
 foreach (flag ${OpenMP_CXX_FLAGS})
 	string(APPEND CMAKE_CUDA_HOST_FLAGS ",${flag}")
