@@ -45,7 +45,7 @@ class SlurmGenerator {
 		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
 		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
-		#SBATCH --time 00:05:00
+		#SBATCH --time 01:00:00
 		#SBATCH -A p_algcpugpu
 		#SBATCH --gres gpu:4
 		
