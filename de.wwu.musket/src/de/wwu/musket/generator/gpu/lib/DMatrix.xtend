@@ -649,7 +649,7 @@ class DMatrix {
 				
 				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
 				for(unsigned int i = 0; i < rows_on_gpu; ++i) {
-					#pragma acc loop
+					#pragma acc loop independent
 					for(unsigned int j = 0; j < columns_local; ++j) {
 						f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 						f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
