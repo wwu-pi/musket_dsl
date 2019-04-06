@@ -325,16 +325,6 @@ class MusketType {
 			}
 		} else if(structName !== null) {
 			'''«structName»{}'''			
-		}else if(type !== null){
-			switch (this.type) {
-				case this.type == PrimitiveTypeLiteral.INT: '''0'''
-				case this.type == PrimitiveTypeLiteral.DOUBLE: '''0.0'''
-				case this.type == PrimitiveTypeLiteral.FLOAT: '''0.0f'''
-				case this.type == PrimitiveTypeLiteral.BOOL: '''false'''
-				case this.type == PrimitiveTypeLiteral.STRING: '''""'''
-				default:
-					'''/*getCXXDefaultValue: primitiveType*/'''
-			}
 		}else{
 			'''/*getCXXDefaultValue: else*/'''
 		}

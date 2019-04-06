@@ -89,7 +89,7 @@ class DArray {
 		  std::array<T*, «Config.gpus»> _gpu_data;
 		};
 	'''
-		
+	
 	def static generateDArrayDefinition() '''
 		template<typename T>
 		mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, Distribution d, Distribution device_dist)
