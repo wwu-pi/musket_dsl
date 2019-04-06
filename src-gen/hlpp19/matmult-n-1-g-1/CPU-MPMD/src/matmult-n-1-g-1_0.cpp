@@ -27,9 +27,11 @@
 	
 	struct DotProduct_map_local_index_in_place_matrix_functor{
 		auto operator()(int i, int j, float& Cij) const{
+			float sum = 0.0f;
 			for(int k = 0; ((k) < 4096); k++){
-				Cij += (as[(i) * 16384 + (k)] * bs[(k) * 16384 + (j)]);
+				sum += (as[(i) * 16384 + (k)] * bs[(k) * 16384 + (j)]);
 			}
+			Cij = (sum);
 		}
 		
 	};

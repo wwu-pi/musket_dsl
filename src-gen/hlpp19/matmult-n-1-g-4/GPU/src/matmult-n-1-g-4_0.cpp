@@ -37,9 +37,11 @@
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
 		auto operator()(int i, int j, float& Cij){
+			float sum = 0.0f;
 			for(int k = 0; ((k) < 16384); k++){
-				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
+				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
+			Cij = (sum);
 		}
 	
 		void init(int gpu){
