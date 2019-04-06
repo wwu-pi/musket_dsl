@@ -97,7 +97,7 @@ class SlurmGenerator {
 	
 	def static NvprofJobConfContent(Resource resource) '''
 		«FOR p : 0 ..< Config.processes»
-			«p» nvprof -f -o «Config.out_path»«resource.ProjectName»-nodes-«resource.ConfigBlock.processes»-gpu-«resource.ConfigBlock.gpus»-nvprof-%p.out --annotate-mpi openmpi --openacc-profiling on --cpu-thread-tracing on --devices all «Config.build_path»nvprof/bin/«resource.ProjectName»_«p»
+			«p» nvprof -f -o ~/out/mnp/«resource.ProjectName»-gpu-%p.out --annotate-mpi openmpi --openacc-profiling on ~/build/mnp/«resource.ProjectName»/gpu/bin/«resource.ProjectName»_«p»
 		«ENDFOR»
 	'''
 }
