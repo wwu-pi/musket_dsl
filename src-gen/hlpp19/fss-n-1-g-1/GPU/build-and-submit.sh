@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/musket-build/hlpp19/fss-n-1-g-1/GPU/build/benchmark && \
 
 # run cmake
 cd /home/fwrede/musket-build/hlpp19/fss-n-1-g-1/GPU/build/benchmark && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=pgc++ ${source_folder} && \
 
 make fss-n-1-g-1_0 && \
 cd ${source_folder} && \

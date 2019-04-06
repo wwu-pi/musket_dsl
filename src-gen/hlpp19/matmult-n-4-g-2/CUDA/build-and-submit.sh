@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/musket-build/hlpp19/matmult-n-4-g-2/CUDA/build/benchmark &
 
 # run cmake
 cd /home/fwrede/musket-build/hlpp19/matmult-n-4-g-2/CUDA/build/benchmark && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 make matmult-n-4-g-2_0 && \
 make matmult-n-4-g-2_1 && \

@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/musket-build/hlpp19/frobenius-n-16-g-2/CUDA/build/benchmar
 
 # run cmake
 cd /home/fwrede/musket-build/hlpp19/frobenius-n-16-g-2/CUDA/build/benchmark && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 make frobenius-n-16-g-2_0 && \
 make frobenius-n-16-g-2_1 && \
