@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/fss-n-4-g-2/CUDA/nvprof-job.conf
+	srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/fss-n-4-g-2/CUDA/nvprof-job.conf
 done

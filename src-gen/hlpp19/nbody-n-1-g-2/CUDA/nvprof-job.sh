@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/nbody-n-1-g-2/CUDA/nvprof-job.conf
+	nvprof ~/out/mnp/nbody-n-1-g-2-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/nbody-n-1-g-2/cuda/bin/nbody-n-1-g-2_0
 done

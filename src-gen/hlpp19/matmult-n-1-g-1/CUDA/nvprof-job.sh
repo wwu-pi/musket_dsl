@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/matmult-n-1-g-1/CUDA/nvprof-job.conf
+	nvprof ~/out/mnp/matmult-n-1-g-1-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/matmult-n-1-g-1/cuda/bin/matmult-n-1-g-1_0
 done
