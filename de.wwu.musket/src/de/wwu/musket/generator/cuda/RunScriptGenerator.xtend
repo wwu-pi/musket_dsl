@@ -93,11 +93,11 @@ class RunScriptGenerator {
 		
 		# remove files and create folder
 		mkdir -p «Config.out_path» && \
-		rm -rf -- «Config.build_path»nvprof && \
-		mkdir -p «Config.build_path»nvprof && \
+		rm -rf -- ~/build/mnp/«resource.ProjectName»/cuda && \
+		mkdir -p ~/build/mnp/«resource.ProjectName»/cuda && \
 		
 		# run cmake
-		cd «Config.build_path»nvprof && \
+		cd ~/build/mnp/«resource.ProjectName»/cuda && \
 		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Nvprof -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 		«FOR p: 0 ..< Config.processes»
