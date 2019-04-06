@@ -75,7 +75,7 @@ class RunScriptGenerator {
 		
 		# run cmake
 		cd «Config.build_path»benchmark && \
-		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 		«FOR p: 0 ..< Config.processes»
 			make «resource.ProjectName»_«p» && \
