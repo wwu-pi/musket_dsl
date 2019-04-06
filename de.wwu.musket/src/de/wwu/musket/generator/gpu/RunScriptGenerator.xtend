@@ -25,6 +25,7 @@ class RunScriptGenerator {
 		logger.info("Generate run scripts.")
 		fsa.generateFile(Config.base_path + "build-and-run.sh", BuildAndRunScriptContent(resource))
 		fsa.generateFile(Config.base_path + "build-and-submit.sh", BuildAndSubmitScriptContent(resource))
+		fsa.generateFile(Config.base_path + "nvprof.sh", NvprofScriptContent(resource))
 		logger.info("Generation of run scripts done.")
 	}
 
@@ -83,6 +84,28 @@ class RunScriptGenerator {
 		cd ${source_folder} && \
 
 		sbatch job.sh
+	'''
+	
+	def static NvprofScriptContent(Resource resource) '''
+		#!/bin/bash
+
+		source_folder=${PWD} && \
+		
+		# remove files and create folder
+		mkdir -p «Config.out_path» && \
+		rm -rf -- «Config.build_path»nvprof && \
+		mkdir -p «Config.build_path»nvprof && \
+		
+		# run cmake
+		cd «Config.build_path»nvprof && \
+		cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Nvprof -D CMAKE_CXX_COMPILER=pgc++ ${source_folder} && \
+
+		«FOR p: 0 ..< Config.processes»
+			make «resource.ProjectName»_«p» && \
+		«ENDFOR»
+		cd ${source_folder} && \
+
+		sbatch nvprof-job.sh
 	'''
 
 }
