@@ -32,10 +32,11 @@ int minusOne(int a){
 }
 
 float dotProduct(int i, int j, float Cij){
+	float sum = 0.0f
 	for (int k = 0; k < cs.columnsLocal(); k++) {
-		Cij += as[[i,k]] * bs[[k,j]];
+		sum += as[[i,k]] * bs[[k,j]];
 	}
-
+	Cij = sum;
 	return Cij;
 }
 
