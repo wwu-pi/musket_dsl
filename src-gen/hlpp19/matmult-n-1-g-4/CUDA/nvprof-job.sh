@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-	nvprof ~/out/mnp/matmult-n-1-g-4-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/matmult-n-1-g-4/cuda/bin/matmult-n-1-g-4_0
+	srun nvprof /home/fwrede/out/mnp/matmult-n-1-g-4-cuda-%p.out /home/fwrede/build/mnp/matmult-n-1-g-4/cuda/bin/matmult-n-1-g-4_0
 done

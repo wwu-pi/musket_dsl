@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-	nvprof ~/out/mnp/fss-n-1-g-1-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/fss-n-1-g-1/cuda/bin/fss-n-1-g-1_0
+	srun nvprof /home/fwrede/out/mnp/fss-n-1-g-1-cuda-%p.out /home/fwrede/build/mnp/fss-n-1-g-1/cuda/bin/fss-n-1-g-1_0
 done
