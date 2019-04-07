@@ -86,7 +86,7 @@ class SlurmGenerator {
 		RUNS=1
 		for ((i=1;i<=RUNS;i++)); do
 			«IF Config.processes == 1»
-				nvprof ~/out/mnp/«resource.ProjectName»-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/«resource.ProjectName»/cuda/bin/«resource.ProjectName»_0
+				srun nvprof /home/fwrede/out/mnp/«resource.ProjectName»-cuda-%p.out /home/fwrede/build/mnp/«resource.ProjectName»/cuda/bin/«resource.ProjectName»_0
 			«ELSE»
 				srun --multi-prog «Config.home_path_source»«Config.base_path»nvprof-job.conf
 			«ENDIF»
@@ -95,7 +95,7 @@ class SlurmGenerator {
 	
 	def static NvprofJobConfContent(Resource resource) '''
 		«FOR p : 0 ..< Config.processes»
-			«p» ~/out/mnp/«resource.ProjectName»-cuda-%p.out --annotate-mpi openmpi ~/build/mnp/«resource.ProjectName»/cuda/bin/«resource.ProjectName»_«p»
+			«p» /home/fwrede/out/mnp/«resource.ProjectName»-cuda-%p.out --annotate-mpi openmpi /home/fwrede/build/mnp/«resource.ProjectName»/cuda/bin/«resource.ProjectName»_«p»
 		«ENDFOR»
 	'''
 }

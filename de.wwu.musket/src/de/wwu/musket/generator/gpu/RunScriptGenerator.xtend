@@ -107,5 +107,4 @@ class RunScriptGenerator {
 
 		sbatch nvprof-job.sh
 	'''
-
 }
