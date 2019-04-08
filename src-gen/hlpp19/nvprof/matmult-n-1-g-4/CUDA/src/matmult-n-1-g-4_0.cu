@@ -18,10 +18,10 @@
 	
 	
 			
-	const int dim = 256;
-	mkt::DMatrix<float> as(0, 256, 256, 256, 256, 65536, 65536, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 256, 256, 256, 256, 65536, 65536, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 256, 256, 256, 256, 65536, 65536, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 1024;
+	mkt::DMatrix<float> as(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -35,7 +35,7 @@
 		__device__
 		auto operator()(int i, int j, float& Cij){
 			float sum = 0.0f;
-			for(int k = 0; ((k) < 256); k++){
+			for(int k = 0; ((k) < 1024); k++){
 				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 			Cij = (sum);

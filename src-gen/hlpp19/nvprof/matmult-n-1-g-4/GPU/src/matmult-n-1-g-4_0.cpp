@@ -21,10 +21,10 @@
 	
 	
 			
-	const int dim = 16384;
-	mkt::DMatrix<float> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	const int dim = 1024;
+	mkt::DMatrix<float> as(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 1024, 1024, 1024, 1024, 1048576, 1048576, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -38,7 +38,7 @@
 		
 		auto operator()(int i, int j, float& Cij){
 			float sum = 0.0f;
-			for(int k = 0; ((k) < 16384); k++){
+			for(int k = 0; ((k) < 1024); k++){
 				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 			Cij = (sum);
