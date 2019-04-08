@@ -6,7 +6,7 @@
 	#include <vector>
 	#include <sstream>
 	#include <chrono>
-	#include <curand_kernel.h>
+	//#include <curand_kernel.h>
 	#include <limits>
 	#include <memory>
 	#include <cstddef>
@@ -22,8 +22,7 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
+
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -37,12 +36,12 @@
 		
 		__device__
 		auto operator()(int i, Particle& p){
-			curandState_t curand_state; // performance could be improved by creating states before
-			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
-			curand_init(clock64(), id, 0, &curand_state);
-			p.x = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.y = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.z = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			//curandState_t curand_state; // performance could be improved by creating states before
+			//size_t id = blockIdx.x * blockDim.x + threadIdx.x;
+			//curand_init(clock64(), id, 0, &curand_state);
+			p.x = 0.2f;//(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.y = 0.3f;//(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.z = 0.77f;//(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
@@ -131,6 +130,8 @@
 	int main(int argc, char** argv) {
 		mkt::init();
 		
+		mkt::DArray<Particle> P(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 50000, 50000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
