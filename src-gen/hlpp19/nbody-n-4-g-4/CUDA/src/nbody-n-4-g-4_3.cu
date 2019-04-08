@@ -77,7 +77,7 @@
 			float ay = 0.0f;
 			float az = 0.0f;
 			for(int j = 0; ((j) < 500000); j++){
-				
+				Particle oldPj = oldP.get_data_local(j);
 				if(((j) != (curIndex))){
 				float dx;
 				float dy;
@@ -85,9 +85,9 @@
 				float r2;
 				float r;
 				float qj_by_r3;
-				dx = ((curParticle).x - oldP.get_data_local((j)).x);
-				dy = ((curParticle).y - oldP.get_data_local((j)).y);
-				dz = ((curParticle).z - oldP.get_data_local((j)).z);
+				dx = ((curParticle).x - oldPj.x);
+				dy = ((curParticle).y - oldPj.y);
+				dz = ((curParticle).z - oldPj.z);
 				r2 = ((((dx) * (dx)) + ((dy) * (dy))) + ((dz) * (dz)));
 				r = sqrtf((r2));
 				
@@ -95,7 +95,7 @@
 				qj_by_r3 = 0.0f;
 				}
 				 else {
-						qj_by_r3 = (oldP.get_data_local((j)).charge / ((r2) * (r)));
+						qj_by_r3 = (oldPj.charge / ((r2) * (r)));
 					}
 				ax += ((qj_by_r3) * (dx));
 				ay += ((qj_by_r3) * (dy));
