@@ -4,9 +4,9 @@ current_folder=${PWD} && \
 
 #build
 for benchmark in frobenius matmult nbody; do
-  for node in 1 4 16; do
-    for gpu in 1 2 4; do
-      DIR="${benchmark}-n-${node}-g-${gpu}/CUDA"
+  for node in 1; do
+    for gpu in 4; do
+      DIR="nvprof/${benchmark}-n-${node}-g-${gpu}/CUDA"
       if [ -d "${DIR}" ]; then
         cd ${DIR} && \
     	  chmod +x nvprof.sh && \
