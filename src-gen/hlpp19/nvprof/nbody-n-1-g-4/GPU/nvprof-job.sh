@@ -17,5 +17,5 @@ export OMP_NUM_THREADS=24
 
 RUNS=1
 for ((i=1;i<=RUNS;i++)); do
-    srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/nbody-n-1-g-4/GPU/nvprof-job.conf
+    srun nvprof -f -o ~/out/mnp/nbody-n-1-g-4-gpu.out --analysis-metrics --openacc-profiling on ~/build/mnp/nbody-n-1-g-4/gpu/bin/nbody-n-1-g-4_0
 done
