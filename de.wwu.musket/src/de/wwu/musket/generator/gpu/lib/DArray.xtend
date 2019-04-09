@@ -349,7 +349,7 @@ class DArray {
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				const unsigned int gpu_elements = in.get_size_gpu();
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					out_devptr[i] = f(in_devptr[i]);
@@ -374,7 +374,7 @@ class DArray {
 					gpu_offset += gpu * gpu_elements;
 				}
 				
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
@@ -397,7 +397,7 @@ class DArray {
 				if(in.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_offset = gpu * gpu_elements;
 				}
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					out_devptr[i] = f(i + gpu_offset, in_devptr[i]);
@@ -415,7 +415,7 @@ class DArray {
 			f.init(gpu);
 			T* devptr = a.get_device_pointer(gpu);
 			
-			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 		  	for(unsigned int i = 0; i < gpu_elements; ++i) {
 		  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 		    	f(devptr[i]);
@@ -438,7 +438,7 @@ class DArray {
 				if(a.get_device_distribution() == mkt::Distribution::DIST){
 					gpu_offset += gpu * gpu_elements;
 				}
-				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 			  	for(unsigned int i = 0; i < gpu_elements; ++i) {
 			  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			    	f(i + gpu_offset, devptr[i]);
@@ -460,7 +460,7 @@ class DArray {
 			if(a.get_device_distribution() == mkt::Distribution::DIST){
 				gpu_offset = gpu * gpu_elements;
 			}
-			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+			#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 		  	for(unsigned int i = 0; i < gpu_elements; ++i) {
 		  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 		    	f(i + gpu_offset, devptr[i]);

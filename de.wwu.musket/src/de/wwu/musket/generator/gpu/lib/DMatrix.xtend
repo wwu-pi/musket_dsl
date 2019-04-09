@@ -505,14 +505,13 @@ class DMatrix {
 	def static generateDMatrixSkeletonDefinitions() '''
 		template<typename T, typename R, typename Functor>
 		void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
-			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
 				T* in_devptr = in.get_device_pointer(gpu);
 				R* out_devptr = out.get_device_pointer(gpu);
 				const unsigned int gpu_elements = in.get_size_gpu();
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					out_devptr[i] = f(in_devptr[i]);
@@ -528,7 +527,6 @@ class DMatrix {
 
 		  	unsigned int gpu_elements = in.get_size_gpu();
 		  	unsigned int rows_on_gpu = in.get_rows_gpu();
-			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -542,7 +540,7 @@ class DMatrix {
 					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					unsigned int row_index = gpu_row_offset + (i / columns_local);
@@ -559,7 +557,6 @@ class DMatrix {
 		  	unsigned int gpu_elements = in.get_size_gpu();
 		  	unsigned int rows_on_gpu = in.get_rows_gpu();
 		  	
-			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -571,7 +568,7 @@ class DMatrix {
 					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
-				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					unsigned int row_index = gpu_row_offset + (i / columns_local);
@@ -583,13 +580,12 @@ class DMatrix {
 
 		template<typename T, typename Functor>
 		void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
-			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
 				T* devptr = m.get_device_pointer(gpu);
 				const unsigned int gpu_elements = m.get_size_gpu();
-				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					f(devptr[i]);
@@ -605,7 +601,6 @@ class DMatrix {
 
 		  	unsigned int gpu_elements = m.get_size_gpu();
 		  	unsigned int rows_on_gpu = m.get_rows_gpu();
-			//«IF Config.cores > 1»#pragma omp parallel for firstprivate(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -618,7 +613,7 @@ class DMatrix {
 					gpu_row_offset += gpu * rows_on_gpu;
 				}
 				
-				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 				for(unsigned int i = 0; i < gpu_elements; ++i) {
 					f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 					unsigned int row_index = gpu_row_offset + (i / columns_local);
@@ -635,7 +630,6 @@ class DMatrix {
 		  	unsigned int gpu_elements = m.get_size_gpu();
 		  	unsigned int rows_on_gpu = m.get_rows_gpu();
 		  	
-			//«IF Config.cores > 1»#pragma omp parallel for shared(f)«ENDIF»
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
 				acc_set_device_num(gpu, acc_device_not_host);
 				f.init(gpu);
@@ -647,7 +641,7 @@ class DMatrix {
 					gpu_row_offset = gpu * rows_on_gpu;
 				}
 				
-				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+				#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector collapse(2) async(0)
 				for(unsigned int i = 0; i < rows_on_gpu; ++i) {
 					#pragma acc loop independent
 					for(unsigned int j = 0; j < columns_local; ++j) {
