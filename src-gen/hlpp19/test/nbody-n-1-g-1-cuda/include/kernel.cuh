@@ -106,7 +106,8 @@ __global__ void mkt::kernel::map_index_in_place(T* inout, unsigned int size, uns
   unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
   
   if (x < size) {
-    inout[x] = func(x + offset, inout[x]);
+    //inout[x] = func(x + offset, inout[x]);
+    func(x + offset, inout[x]);
   }
 }
 

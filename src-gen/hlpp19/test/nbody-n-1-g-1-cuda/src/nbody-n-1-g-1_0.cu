@@ -36,7 +36,7 @@
 		~Init_particles_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int i, Particle p){
+		auto operator()(int i, Particle& p){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			curand_init(clock64(), id, 0, &curand_state);
@@ -48,7 +48,7 @@
 			p.vz = 0.0f;
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
-			return p;
+			//return p;
 		}
 	
 		void init(int device){
@@ -68,7 +68,7 @@
 		~Calc_force_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int curIndex, Particle curParticle){
+		auto operator()(int curIndex, Particle& curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
@@ -108,7 +108,7 @@
 			curParticle.x += ((((vx0) + (curParticle).vx) * (DT)) * 0.5f);
 			curParticle.y += ((((vy0) + (curParticle).vy) * (DT)) * 0.5f);
 			curParticle.z += ((((vz0) + (curParticle).vz) * (DT)) * 0.5f);
-			return curParticle;
+			//return curParticle;
 		}
 	
 		void init(int device){
