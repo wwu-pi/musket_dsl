@@ -1,88 +1,78 @@
-	
+	#include <cuda.h>
 	#include <omp.h>
-	#include <openacc.h>
 	#include <stdlib.h>
 	#include <math.h>
 	#include <array>
 	#include <vector>
 	#include <sstream>
 	#include <chrono>
-	#include <random>
+	#include <curand_kernel.h>
 	#include <limits>
 	#include <memory>
 	#include <cstddef>
 	#include <type_traits>
-	#include <cuda.h>
-	//#include <openacc_curand.h>
-	#include <curand_kernel.h>
 	
-	#include "../include/musket.hpp"
-	#include "../include/nbody-n-1-g-1_0.hpp"
-		
+	
+	#include "../include/musket.cuh"
+	#include "../include/nbody-n-1-g-1_0.cuh"
+	
+	
 			
-	const int dim = 5000;
+	const int dim = 500000;
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-
+	mkt::DArray<Particle> P(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
-	__global__ void setup_kernel(curandState *state)
-	{
-		int id = threadIdx.x + blockIdx.x * blockDim.x;
-		/* Each thread gets same seed, a different sequence 
-		   number, no offset */
-		curand_init(1234, id, 0, &state[id]);
-	}
+
 	
 	struct Init_particles_map_index_in_place_array_functor{
 		
-		__host__
-		Init_particles_map_index_in_place_array_functor(){
-			printf("init constructor.\n");
-		}
+		Init_particles_map_index_in_place_array_functor(){}
 		
-		__host__
-		~Init_particles_map_index_in_place_array_functor() {printf("init destructor.\n");}
+		~Init_particles_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int i, Particle& p){
-			curandState_t curand_state;
+		auto operator()(int i, Particle p){
+			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
-			curand_init(1234, id, 0, &curand_state);
-			// p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			// p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			// p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f + 0.999999) + 0.0f);
-			p.x = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.y = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
-			p.z = static_cast<float>(curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			curand_init(clock64(), id, 0, &curand_state);
+			p.x = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.y = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
+			p.z = (curand_uniform(&curand_state) * (1.0f - 0.0f) + 0.0f);
 			p.vx = 0.0f;
 			p.vy = 0.0f;
 			p.vz = 0.0f;
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
-			//printf("p.x = %.5f\n", p.x);
+			return p;
 		}
 	
-		__host__
-		void init(int gpu){
-
+		void init(int device){
 		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		
 	};
 	struct Calc_force_map_index_in_place_array_functor{
 		
-		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){
-		}
+		Calc_force_map_index_in_place_array_functor(const mkt::DArray<Particle>& _oldP) : oldP(_oldP){}
 		
 		~Calc_force_map_index_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(int curIndex, Particle& curParticle){
+		auto operator()(int curIndex, Particle curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
-			for(int j = 0; ((j) < 5000); j++){
+			for(int j = 0; ((j) < 500000); j++){
 				
 				if(((j) != (curIndex))){
 				float dx;
@@ -118,98 +108,53 @@
 			curParticle.x += ((((vx0) + (curParticle).vx) * (DT)) * 0.5f);
 			curParticle.y += ((((vy0) + (curParticle).vy) * (DT)) * 0.5f);
 			curParticle.z += ((((vz0) + (curParticle).vz) * (DT)) * 0.5f);
+			return curParticle;
 		}
 	
-		void init(int gpu){
-			oldP.init(gpu);
+		void init(int device){
+			oldP.init(device);
 		}
-			
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
 		
 		mkt::DeviceArray<Particle> oldP;
-
 	};
 	
 	
-	void showParticle(Particle p) {
-		printf("x: %.5f, y: %.5f, z: %.5f, vx: %.5f, vy: %.5f, vz: %.5f, mass: %.5f, charge: %.5f \n", p.x, p.y, p.z, p.vx, p.vy, p.vz, p.mass, p.charge);
-	}	
+	
+	
+	
+	
 	
 	int main(int argc, char** argv) {
-		mkt::init_mkt();
+		mkt::init();
 		
-		curandState* devStates[1];
 		
-		// #pragma omp parallel for
-		for(int gpu = 0; gpu < 1; ++gpu){
-			cudaSetDevice(gpu);
-			cudaMalloc((void **)&devStates[gpu], 64 * 1024 * sizeof(curandState)));
-			setup_kernel<<<64, 1024, mkt::cuda_streams[gpu]>>>(devStates[gpu]);
-		}
-		
-		mkt::DArray<Particle> P(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-		mkt::DArray<Particle> oldP(0, 5000, 5000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
-
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
+		
 				
-		printf("init start.\n");
+		
 		mkt::map_index_in_place<Particle, Init_particles_map_index_in_place_array_functor>(P, init_particles_map_index_in_place_array_functor);
 		mkt::gather<Particle>(P, oldP);
 		mkt::sync_streams();
-		printf("init end.\n");
-printf("input:\n");
-		Particle in_particlep = P.get_global(0);
-		showParticle(in_particlep);
-		Particle in_particle = oldP.get_global(0);
-		showParticle(in_particle);
-		
-
-		double gather_time = 0.0;
-		double map_time = 0.0;
-
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		//for(int i = 0; ((i) < (steps)); ++i){
-		for(int i = 0; ((i) < (2)); ++i){
-			mkt::sync_streams();
-			std::chrono::high_resolution_clock::time_point map_timer_start = std::chrono::high_resolution_clock::now();
+		for(int i = 0; ((i) < (steps)); ++i){
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
-
-			mkt::sync_streams();
-			std::chrono::high_resolution_clock::time_point map_timer_end = std::chrono::high_resolution_clock::now();
-
-			map_time += std::chrono::duration<double>(map_timer_end - map_timer_start).count();
-
-			std::chrono::high_resolution_clock::time_point gather_timer_start = std::chrono::high_resolution_clock::now();
-
 			mkt::gather<Particle>(P, oldP);
-			mkt::sync_streams();
-
-			std::chrono::high_resolution_clock::time_point gather_timer_end = std::chrono::high_resolution_clock::now();
-
-			gather_time += std::chrono::duration<double>(gather_timer_end - gather_timer_start).count();
 		}
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
-		printf("output:\n");
-		Particle out_particlep = P.get_global(0);
-		showParticle(out_particlep);
-		Particle out_particle = oldP.get_global(0);
-		showParticle(out_particle);
-
+		
 		printf("Execution time: %.5fs\n", seconds);
-
-		printf("map time: %.5fs\n", map_time);
-		printf("gather time: %.5fs\n", gather_time);
-
 		printf("Threads: %i\n", omp_get_max_threads());
 		printf("Processes: %i\n", 1);
 		
-		// #pragma omp parallel for
-		// for(int gpu = 0; gpu < 4; ++gpu){
-		// 	cudaSetDevice(gpu);
-		// 	cudaFree(devStates[gpu]);
-		// }
 		return EXIT_SUCCESS;
 		}
