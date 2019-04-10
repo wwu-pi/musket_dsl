@@ -77,7 +77,7 @@ class MusketPreprocessor {
 			new ModelSimplificationTransformation(factory),
 			new MapFusionTransformation(factory),
 			new SkeletonFusionTransformation(factory), // after MapFusion
-			new MapVariantTransformation(factory), // after MapFusion, SkeletonFusion
+			//new MapVariantTransformation(factory), // after MapFusion, SkeletonFusion
 			new DummyTransformation(factory)]
 				
 		transformations.forEach[it.run(workingModel)]

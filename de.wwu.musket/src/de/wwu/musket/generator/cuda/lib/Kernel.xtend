@@ -127,7 +127,7 @@ class Kernel {
 		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		
 		  if (x < size) {
-		    func(inout[x]);
+		    inout[x] = func(inout[x]);
 		  }
 		}
 		
@@ -147,7 +147,7 @@ class Kernel {
 		  unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 		  
 		  if (x < size) {
-		    func(x + offset, inout[x]);
+		    inout[x] = func(x + offset, inout[x]);
 		  }
 		}
 		
@@ -172,7 +172,7 @@ class Kernel {
 		
 		  if (y < rows) {
 		    if (x < columns) {
-		      func(y + row_offset, x + column_offset, inout[y * columns + x]);
+		      inout[y * columns + x] = func(y + row_offset, x + column_offset, inout[y * columns + x]);
 		    }
 		  }
 		}
