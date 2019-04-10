@@ -34,8 +34,9 @@
 		
 		~Init_map_index_in_place_matrix_functor() {}
 		
-		auto operator()(int x, int y, double& a){
+		auto operator()(int x, int y, double a){
 			a = static_cast<double>((((x) + (y)) + 1));
+			return (a);
 		}
 	
 		void init(int gpu){

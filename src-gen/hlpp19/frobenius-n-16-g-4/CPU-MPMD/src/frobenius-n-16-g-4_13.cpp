@@ -29,8 +29,9 @@
 
 	
 	struct Init_map_index_in_place_matrix_functor{
-		auto operator()(int x, int y, double& a) const{
+		auto operator()(int x, int y, double a) const{
 			a = static_cast<double>((((x) + (y)) + 1));
+			return (a);
 		}
 		
 	};

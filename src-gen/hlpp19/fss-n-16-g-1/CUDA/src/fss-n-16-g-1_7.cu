@@ -55,7 +55,7 @@
 		~InitFish_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			curand_init(clock64(), id, 0, &curand_state);
@@ -70,6 +70,7 @@
 				fi.displacement[(i)] = 0.0;
 				fi.best_position[(i)] = 0.0;
 			}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -89,7 +90,7 @@
 		~EvaluateFitness_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			double sum = 0.0;
 			for(int j = 0; ((j) < (DIMENSIONS)); ++j){
 				double value = (fi).position[(j)];
@@ -103,6 +104,7 @@
 				fi.best_position[(k)] = (fi).position[(k)];
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -122,7 +124,7 @@
 		~IndividualMovement_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			curand_init(clock64(), id, 0, &curand_state);
@@ -167,6 +169,7 @@
 						fi.displacement[(k)] = 0.0;
 					}
 				}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -187,7 +190,7 @@
 		~Feeding_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			
 			if(((max_fitness_variation) != 0.0)){
 			double result = ((fi).weight + ((fi).fitness_variation / (max_fitness_variation)));
@@ -200,6 +203,7 @@
 			}
 			fi.weight = (result);
 			}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -220,10 +224,11 @@
 		~CalcDisplacementMap_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				fi.displacement[(i)] *= (fi).fitness_variation;
 			}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -243,13 +248,14 @@
 		~CalcInstinctiveMovementVector_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_fitness_variation) != 0.0)){
 			result = ((x) / (sum_fitness_variation));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int device){
@@ -270,7 +276,7 @@
 		~InstinctiveMovement_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				double new_position = ((fi).position[(i)] + instinctive_movement_vector_copy.get_data_local((i)));
 				
@@ -282,6 +288,7 @@
 				}
 				fi.position[(i)] = (new_position);
 			}
+			return (fi);
 		}
 	
 		void init(int device){
@@ -303,12 +310,11 @@
 		~CalcWeightedFish_map_array_functor() {}
 		
 		__device__
-		auto operator()(const Fish& fi){
-			Fish _fi{fi};
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
-				_fi.position[(i)] *= (_fi).weight;
+				fi.position[(i)] *= (fi).weight;
 			}
-			return (_fi);
+			return (fi);
 		}
 	
 		void init(int device){
@@ -328,13 +334,14 @@
 		~CalcBarycenterMap_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_weight) != 0)){
 			result = ((x) / (sum_weight));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int device){
@@ -355,7 +362,7 @@
 		~VolitiveMovement_map_in_place_array_functor() {}
 		
 		__device__
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			curandState_t curand_state; // performance could be improved by creating states before
 			size_t id = blockIdx.x * blockDim.x + threadIdx.x;
 			curand_init(clock64(), id, 0, &curand_state);
@@ -387,6 +394,7 @@
 				fi.position[(i)] = (new_position);
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int device){

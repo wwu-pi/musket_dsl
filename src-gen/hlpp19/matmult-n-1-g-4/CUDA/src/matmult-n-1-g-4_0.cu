@@ -33,12 +33,13 @@
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
 		__device__
-		auto operator()(int i, int j, float& Cij){
+		auto operator()(int i, int j, float Cij){
 			float sum = 0.0f;
 			for(int k = 0; ((k) < 16384); k++){
 				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
 			Cij = (sum);
+			return (Cij);
 		}
 	
 		void init(int device){
@@ -62,8 +63,9 @@
 		~Square_map_in_place_matrix_functor() {}
 		
 		__device__
-		auto operator()(float& a){
+		auto operator()(float a){
 			a = ((a) * (a));
+			return (a);
 		}
 	
 		void init(int device){

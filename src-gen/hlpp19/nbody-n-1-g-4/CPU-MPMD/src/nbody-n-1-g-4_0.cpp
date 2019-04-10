@@ -31,7 +31,7 @@
 
 	
 	struct Init_particles_map_index_in_place_array_functor{
-		auto operator()(int i, Particle& p) const{
+		auto operator()(int i, Particle p) const{
 			p.x = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
 			p.y = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
 			p.z = rand_dist_float_0_0f_1_0f[omp_get_thread_num()](random_engines[omp_get_thread_num()]);
@@ -40,11 +40,12 @@
 			p.vz = 0.0f;
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
+			return (p);
 		}
 		
 	};
 	struct Calc_force_map_index_in_place_array_functor{
-		auto operator()(int curIndex, Particle& curParticle) const{
+		auto operator()(int curIndex, Particle curParticle) const{
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
@@ -84,6 +85,7 @@
 			curParticle.x += ((((vx0) + (curParticle).vx) * (DT)) * 0.5f);
 			curParticle.y += ((((vy0) + (curParticle).vy) * (DT)) * 0.5f);
 			curParticle.z += ((((vz0) + (curParticle).vz) * (DT)) * 0.5f);
+			return (curParticle);
 		}
 		
 	};

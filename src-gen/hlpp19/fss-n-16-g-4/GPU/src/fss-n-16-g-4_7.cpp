@@ -66,7 +66,7 @@
 		
 		~InitFish_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -87,6 +87,7 @@
 				fi.displacement[(i)] = 0.0;
 				fi.best_position[(i)] = 0.0;
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -120,7 +121,7 @@
 		
 		~EvaluateFitness_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			double sum = 0.0;
 			for(int j = 0; ((j) < (DIMENSIONS)); ++j){
 				double value = (fi).position[(j)];
@@ -134,6 +135,7 @@
 				fi.best_position[(k)] = (fi).position[(k)];
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -163,7 +165,7 @@
 		
 		~IndividualMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -214,6 +216,7 @@
 						fi.displacement[(k)] = 0.0;
 					}
 				}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -248,7 +251,7 @@
 		
 		~Feeding_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			
 			if(((max_fitness_variation) != 0.0)){
 			double result = ((fi).weight + ((fi).fitness_variation / (max_fitness_variation)));
@@ -261,6 +264,7 @@
 			}
 			fi.weight = (result);
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -287,10 +291,11 @@
 		
 		~CalcDisplacementMap_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				fi.displacement[(i)] *= (fi).fitness_variation;
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -316,13 +321,14 @@
 		
 		~CalcInstinctiveMovementVector_map_in_place_array_functor() {}
 		
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_fitness_variation) != 0.0)){
 			result = ((x) / (sum_fitness_variation));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int gpu){
@@ -349,7 +355,7 @@
 		
 		~InstinctiveMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				double new_position = ((fi).position[(i)] + instinctive_movement_vector_copy.get_data_local((i)));
 				
@@ -361,6 +367,7 @@
 				}
 				fi.position[(i)] = (new_position);
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -388,12 +395,11 @@
 		
 		~CalcWeightedFish_map_array_functor() {}
 		
-		auto operator()(const Fish& fi){
-			Fish _fi{fi};
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
-				_fi.position[(i)] *= (_fi).weight;
+				fi.position[(i)] *= (fi).weight;
 			}
-			return (_fi);
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -419,13 +425,14 @@
 		
 		~CalcBarycenterMap_map_in_place_array_functor() {}
 		
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_weight) != 0)){
 			result = ((x) / (sum_weight));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int gpu){
@@ -456,7 +463,7 @@
 		
 		~VolitiveMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -494,6 +501,7 @@
 				fi.position[(i)] = (new_position);
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){

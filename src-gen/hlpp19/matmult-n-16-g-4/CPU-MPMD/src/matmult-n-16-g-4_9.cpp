@@ -43,12 +43,13 @@
 		
 	};
 	struct DotProduct_map_local_index_in_place_matrix_functor{
-		auto operator()(int i, int j, float& Cij) const{
+		auto operator()(int i, int j, float Cij) const{
 			float sum = 0.0f;
 			for(int k = 0; ((k) < 4096); k++){
 				sum += (as[(i) * 4096 + (k)] * bs[(k) * 4096 + (j)]);
 			}
 			Cij = (sum);
+			return (Cij);
 		}
 		
 	};
@@ -77,8 +78,9 @@
 		
 	};
 	struct Square_map_in_place_matrix_functor{
-		auto operator()(float& a) const{
+		auto operator()(float a) const{
 			a = ((a) * (a));
+			return (a);
 		}
 		
 	};
