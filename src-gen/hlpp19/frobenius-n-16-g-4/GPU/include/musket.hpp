@@ -644,7 +644,7 @@ void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			f(devptr[i]);
+			devptr[i] = f(devptr[i]);
 		}
 	}
 }
@@ -674,7 +674,7 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			unsigned int row_index = gpu_row_offset + (i / columns_local);
 			unsigned int column_index = gpu_column_offset + (i % columns_local);
-			f(row_index, column_index, devptr[i]);
+			devptr[i] = f(row_index, column_index, devptr[i]);
 		}
 	}
 }	
@@ -702,7 +702,7 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			#pragma acc loop independent
 			for(unsigned int j = 0; j < columns_local; ++j) {
 				f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-				f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
+				devptr[i * columns_local + j] = f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
 			}
 		}
 	}

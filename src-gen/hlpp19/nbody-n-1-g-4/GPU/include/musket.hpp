@@ -457,7 +457,7 @@ void mkt::map_in_place(mkt::DArray<T>& a, Functor f){
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
   	for(unsigned int i = 0; i < gpu_elements; ++i) {
   		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-    	f(devptr[i]);
+    	devptr[i] = f(devptr[i]);
   	}
   }
 }
@@ -480,7 +480,7 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 	  	for(unsigned int i = 0; i < gpu_elements; ++i) {
 	  		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-	    	f(i + gpu_offset, devptr[i]);
+	    	devptr[i] = f(i + gpu_offset, devptr[i]);
 	  	}
   	}
 }
@@ -502,7 +502,7 @@ void mkt::map_local_index_in_place(mkt::DArray<T>& a, Functor f){
 	#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
   	for(unsigned int i = 0; i < gpu_elements; ++i) {
   		f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-    	f(i + gpu_offset, devptr[i]);
+    	devptr[i] = f(i + gpu_offset, devptr[i]);
   	}
   }
 }
