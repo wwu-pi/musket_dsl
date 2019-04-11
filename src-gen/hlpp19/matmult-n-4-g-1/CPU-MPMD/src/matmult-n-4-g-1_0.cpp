@@ -48,7 +48,7 @@
 			for(int k = 0; ((k) < 16384); k++){
 				sum += (as[(i) * 8192 + (k)] * bs[(k) * 8192 + (j)]);
 			}
-			Cij = (sum);
+			Cij += (sum);
 			return (Cij);
 		}
 		

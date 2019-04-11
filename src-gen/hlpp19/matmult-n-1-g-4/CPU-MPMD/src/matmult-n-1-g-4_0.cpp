@@ -31,7 +31,7 @@
 			for(int k = 0; ((k) < 16384); k++){
 				sum += (as[(i) * 16384 + (k)] * bs[(k) * 16384 + (j)]);
 			}
-			Cij = (sum);
+			Cij += (sum);
 			return (Cij);
 		}
 		

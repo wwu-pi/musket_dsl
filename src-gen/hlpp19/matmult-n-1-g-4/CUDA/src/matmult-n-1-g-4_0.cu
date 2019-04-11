@@ -38,7 +38,7 @@
 			for(int k = 0; ((k) < 16384); k++){
 				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
-			Cij = (sum);
+			Cij += (sum);
 			return (Cij);
 		}
 	

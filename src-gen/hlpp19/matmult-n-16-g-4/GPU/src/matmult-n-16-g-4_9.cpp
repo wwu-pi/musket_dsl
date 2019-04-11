@@ -100,7 +100,7 @@
 			for(int k = 0; ((k) < 4096); k++){
 				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
-			Cij = (sum);
+			Cij += (sum);
 			return (Cij);
 		}
 	
