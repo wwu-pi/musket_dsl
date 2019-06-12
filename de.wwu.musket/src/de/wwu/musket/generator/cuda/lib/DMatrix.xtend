@@ -202,7 +202,7 @@ class DMatrix {
 				
 				
 			}
-			for(size_t i = 0; i < _size_gpu; ++i){
+			for(size_t i = 0; i < _size_local; ++i){
 			  _data[i] = init_value;
 			}
 			update_devices();
