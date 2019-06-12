@@ -320,7 +320,7 @@ mkt::DMatrix<T>::DMatrix(int pid, size_t number_of_rows, size_t number_of_column
 		
 		
 	}
-	for(size_t i = 0; i < _size_gpu; ++i){
+	for(size_t i = 0; i < _size_local; ++i){
 	  _data[i] = init_value;
 	}
 	update_devices();

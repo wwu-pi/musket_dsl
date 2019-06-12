@@ -9,13 +9,13 @@
 #SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
 #SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
-#SBATCH --time 00:05:00
+#SBATCH --time 02:00:00
 #SBATCH -A p_algcpugpu
 #SBATCH --gres gpu:4
 
 export OMP_NUM_THREADS=24
 
-RUNS=1
+RUNS=10
 for ((i=1;i<=RUNS;i++)); do
     srun --multi-prog /home/fwrede/musket/src-gen/hlpp19/nbody-n-16-g-2/CUDA/job.conf
 done
