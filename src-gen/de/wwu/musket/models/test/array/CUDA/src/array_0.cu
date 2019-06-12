@@ -18,14 +18,6 @@
 	
 	
 			
-	const int dim = 16;
-	mkt::DArray<int> ads(0, 16, 16, 1, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<int> bds(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<int> acs(0, 16, 16, 7, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<int> bcs(0, 16, 16, 0, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<int> temp(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<int> temp_copy(0, 16, 16, 0, 1, 0, 0, mkt::COPY, mkt::COPY);
-	
 	
 
 	
@@ -61,6 +53,14 @@
 	int main(int argc, char** argv) {
 		mkt::init();
 		
+		
+		const int dim = 16;
+		mkt::DArray<int> ads(0, 16, 16, 1, 1, 0, 0, mkt::DIST, mkt::COPY);
+		mkt::DArray<int> bds(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
+		mkt::DArray<int> acs(0, 16, 16, 7, 1, 0, 0, mkt::COPY, mkt::COPY);
+		mkt::DArray<int> bcs(0, 16, 16, 0, 1, 0, 0, mkt::COPY, mkt::COPY);
+		mkt::DArray<int> temp(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
+		mkt::DArray<int> temp_copy(0, 16, 16, 0, 1, 0, 0, mkt::COPY, mkt::COPY);
 		
 		PlusX_map_array_functor plusX_map_array_functor{};
 		

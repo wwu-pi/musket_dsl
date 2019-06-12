@@ -23,13 +23,6 @@
 	int mpi_world_size = 0;
 	
 			
-	const int dim = 500000;
-	const int steps = 5;
-	const float EPSILON = 1.0E-10f;
-	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 500000, 31250, Particle{}, 4, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
-	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
 
@@ -148,6 +141,13 @@
 		mkt::init();
 		
 		printf("Run Nbody-n-16-g-4\n\n");
+		
+		const int dim = 500000;
+		const int steps = 5;
+		const float EPSILON = 1.0E-10f;
+		const float DT = 0.01f;
+		mkt::DArray<Particle> P(0, 500000, 31250, Particle{}, 4, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};

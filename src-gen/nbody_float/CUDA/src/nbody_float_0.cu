@@ -18,13 +18,6 @@
 	
 	
 			
-	const int dim = 32;
-	const int steps = 5;
-	const float EPSILON = 1.0E-10f;
-	const float DT = 0.01f;
-	mkt::DArray<Particle> P(0, 32, 32, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(0, 32, 32, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
-	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
 
@@ -133,6 +126,13 @@
 	int main(int argc, char** argv) {
 		mkt::init();
 		
+		
+		const int dim = 32;
+		const int steps = 5;
+		const float EPSILON = 1.0E-10f;
+		const float DT = 0.01f;
+		mkt::DArray<Particle> P(0, 32, 32, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(0, 32, 32, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};

@@ -23,11 +23,6 @@
 	int mpi_world_size = 0;
 	
 			
-	const int dim = 4;
-	mkt::DMatrix<float> as(3, 4, 4, 2, 2, 16, 4, 1.0f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(3, 4, 4, 2, 2, 16, 4, 0.001f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(3, 4, 4, 2, 2, 16, 4, 0.0f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::DIST);
-	
 	
 
 	
@@ -425,6 +420,11 @@
 		}				
 		mkt::init();
 		
+		
+		const int dim = 4;
+		mkt::DMatrix<float> as(3, 4, 4, 2, 2, 16, 4, 1.0f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::DIST);
+		mkt::DMatrix<float> bs(3, 4, 4, 2, 2, 16, 4, 0.001f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::COPY);
+		mkt::DMatrix<float> cs(3, 4, 4, 2, 2, 16, 4, 0.0f, 2, 2, 1, 1, 2, 2, mkt::DIST, mkt::DIST);
 		
 		Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
 		Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};

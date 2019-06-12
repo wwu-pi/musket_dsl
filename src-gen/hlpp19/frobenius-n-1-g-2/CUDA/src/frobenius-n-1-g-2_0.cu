@@ -18,9 +18,6 @@
 	
 	
 			
-	const int dim = 16384;
-	mkt::DMatrix<double> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	
 	
 
 	
@@ -152,6 +149,9 @@
 	int main(int argc, char** argv) {
 		mkt::init();
 		
+		
+		const int dim = 16384;
+		mkt::DMatrix<double> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
 		Square_map_reduce_matrix_functor square_map_reduce_matrix_functor{};

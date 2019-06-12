@@ -23,27 +23,6 @@
 	int mpi_world_size = 0;
 	
 			
-	const double PI = 3.141592653589793;
-	const double EULER = 2.718281828459045;
-	const double UPPER_BOUND = 5.12;
-	const double LOWER_BOUND = -5.12;
-	const double PROBLEM_RANGE = 10.24;
-	const double INIT_UPPER_BOUND = 5.12;
-	const double INIT_LOWER_BOUND = -5.12;
-	const double WEIGHT_UPPER_BOUND = 5000.0;
-	const double WEIGHT_LOWER_BOUND = 1.0;
-	const double STEP_SIZE_INITIAL = 0.1;
-	const double STEP_SIZE_FINAL = 1.0E-5;
-	const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
-	const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
-	const int NUMBER_OF_FISH = 2048;
-	const int ITERATIONS = 5000;
-	const int DIMENSIONS = 512;
-	mkt::DArray<Fish> population(7, 2048, 128, Fish{}, 4, 7, 896, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> instinctive_movement_vector_copy(7, 512, 512, 0.0, 1, 7, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<Fish> weighted_fishes(7, 2048, 128, Fish{}, 4, 7, 896, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> barycenter_copy(7, 512, 512, 0.0, 1, 7, 0, mkt::COPY, mkt::COPY);
-	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}
 	
 
@@ -1096,6 +1075,27 @@
 		}				
 		mkt::init();
 		
+		
+		const double PI = 3.141592653589793;
+		const double EULER = 2.718281828459045;
+		const double UPPER_BOUND = 5.12;
+		const double LOWER_BOUND = -5.12;
+		const double PROBLEM_RANGE = 10.24;
+		const double INIT_UPPER_BOUND = 5.12;
+		const double INIT_LOWER_BOUND = -5.12;
+		const double WEIGHT_UPPER_BOUND = 5000.0;
+		const double WEIGHT_LOWER_BOUND = 1.0;
+		const double STEP_SIZE_INITIAL = 0.1;
+		const double STEP_SIZE_FINAL = 1.0E-5;
+		const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
+		const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
+		const int NUMBER_OF_FISH = 2048;
+		const int ITERATIONS = 5000;
+		const int DIMENSIONS = 512;
+		mkt::DArray<Fish> population(7, 2048, 128, Fish{}, 4, 7, 896, mkt::DIST, mkt::COPY);
+		mkt::DArray<double> instinctive_movement_vector_copy(7, 512, 512, 0.0, 1, 7, 0, mkt::COPY, mkt::COPY);
+		mkt::DArray<Fish> weighted_fishes(7, 2048, 128, Fish{}, 4, 7, 896, mkt::DIST, mkt::COPY);
+		mkt::DArray<double> barycenter_copy(7, 512, 512, 0.0, 1, 7, 0, mkt::COPY, mkt::COPY);
 		
 		InitFish_map_in_place_array_functor initFish_map_in_place_array_functor{};
 		EvaluateFitness_map_in_place_array_functor evaluateFitness_map_in_place_array_functor{};
