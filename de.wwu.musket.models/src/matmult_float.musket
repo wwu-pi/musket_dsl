@@ -1,5 +1,5 @@
 #config PLATFORM GPU CPU_MPMD CUDA
-#config PROCESSES 1
+#config PROCESSES 4
 #config GPUS 1
 #config CORES 4
 #config MODE release
@@ -32,10 +32,11 @@ int minusOne(int a){
 }
 
 float dotProduct(int i, int j, float Cij){
+	float sum = 0.0f;
 	for (int k = 0; k < cs.columnsLocal(); k++) {
-		Cij += as[[i,k]] * bs[[k,j]];
+		sum += as[[i,k]] * bs[[k,j]];
 	}
-
+	Cij += sum;
 	return Cij;
 }
 
@@ -45,8 +46,8 @@ float square(float a){
 }
 
 main{
-	as.mapIndexInPlace(initA());
-	bs.mapIndexInPlace(initB());
+	//as.mapIndexInPlace(initA());
+	//bs.mapIndexInPlace(initB());
 	
 	as.show();
 	bs.show();
