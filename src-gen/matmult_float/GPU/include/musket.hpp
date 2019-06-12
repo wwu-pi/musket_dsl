@@ -209,6 +209,9 @@ class DeviceMatrix {
 
 template<typename T>
 void print(const std::string& name, const mkt::DMatrix<T>& a);
+void print_dist_as(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
+void print_dist_bs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
+void print_dist_cs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -216,11 +219,15 @@ void print(std::ostringstream& stream, const T& a);
 
 	
 template<typename T>
-void gather(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+void gather(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
 	
 template<typename T>
 void scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+template<typename T, typename Functor>
+void shift_partitions_horizontally(mkt::DMatrix<T>& m, Functor& f);
 
+template<typename T, typename Functor>
+void shift_partitions_vertically(mkt::DMatrix<T>& m, Functor& f);
 
 template<typename T>
 T reduce_plus(mkt::DMatrix<T>& m);
@@ -563,14 +570,13 @@ int mkt::DMatrix<T>::get_gpu_by_global_index(int global_index) const {
 }
 template<typename T, typename R, typename Functor>
 void mkt::map(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) {
-	//#pragma omp parallel for firstprivate(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
 		T* in_devptr = in.get_device_pointer(gpu);
 		R* out_devptr = out.get_device_pointer(gpu);
 		const unsigned int gpu_elements = in.get_size_gpu();
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			out_devptr[i] = f(in_devptr[i]);
@@ -586,7 +592,6 @@ void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) 
 
   	unsigned int gpu_elements = in.get_size_gpu();
   	unsigned int rows_on_gpu = in.get_rows_gpu();
-	//#pragma omp parallel for firstprivate(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
@@ -600,7 +605,7 @@ void mkt::map_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Functor f) 
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			unsigned int row_index = gpu_row_offset + (i / columns_local);
@@ -617,7 +622,6 @@ void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Funct
   	unsigned int gpu_elements = in.get_size_gpu();
   	unsigned int rows_on_gpu = in.get_rows_gpu();
   	
-	//#pragma omp parallel for firstprivate(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
@@ -629,7 +633,7 @@ void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Funct
 			gpu_row_offset = gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(in_devptr, out_devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			unsigned int row_index = gpu_row_offset + (i / columns_local);
@@ -641,16 +645,15 @@ void mkt::map_local_index(const mkt::DMatrix<T>& in, mkt::DMatrix<R>& out, Funct
 
 template<typename T, typename Functor>
 void mkt::map_in_place(mkt::DMatrix<T>& m, Functor f) {
-	//#pragma omp parallel for firstprivate(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
 		T* devptr = m.get_device_pointer(gpu);
 		const unsigned int gpu_elements = m.get_size_gpu();
-		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-			f(devptr[i]);
+			devptr[i] = f(devptr[i]);
 		}
 	}
 }
@@ -663,7 +666,6 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 
   	unsigned int gpu_elements = m.get_size_gpu();
   	unsigned int rows_on_gpu = m.get_rows_gpu();
-	//#pragma omp parallel for firstprivate(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
@@ -676,12 +678,12 @@ void mkt::map_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			gpu_row_offset += gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector async(0)
 		for(unsigned int i = 0; i < gpu_elements; ++i) {
 			f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
 			unsigned int row_index = gpu_row_offset + (i / columns_local);
 			unsigned int column_index = gpu_column_offset + (i % columns_local);
-			f(row_index, column_index, devptr[i]);
+			devptr[i] = f(row_index, column_index, devptr[i]);
 		}
 	}
 }	
@@ -693,7 +695,6 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
   	unsigned int gpu_elements = m.get_size_gpu();
   	unsigned int rows_on_gpu = m.get_rows_gpu();
   	
-	//#pragma omp parallel for shared(f)
 	for(int gpu = 0; gpu < 1; ++gpu){
 		acc_set_device_num(gpu, acc_device_not_host);
 		f.init(gpu);
@@ -705,12 +706,12 @@ void mkt::map_local_index_in_place(mkt::DMatrix<T>& m, Functor f){
 			gpu_row_offset = gpu * rows_on_gpu;
 		}
 		
-		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) async(0)
+		#pragma acc parallel loop deviceptr(devptr) firstprivate(f) gang vector collapse(2) async(0)
 		for(unsigned int i = 0; i < rows_on_gpu; ++i) {
-			#pragma acc loop
+			#pragma acc loop independent
 			for(unsigned int j = 0; j < columns_local; ++j) {
 				f.set_id(__pgi_gangidx(), __pgi_workeridx(),__pgi_vectoridx());
-				f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
+				devptr[i * columns_local + j] = f(i + gpu_row_offset, j, devptr[i * columns_local + j]);
 			}
 		}
 	}
@@ -814,24 +815,77 @@ void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
   stream << std::endl;
   printf("%s", stream.str().c_str());
 }
+void mkt::print_dist_as(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "as" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
+void mkt::print_dist_bs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "bs" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
+void mkt::print_dist_cs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "cs" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
 
 
 template<>
-void mkt::gather<float>(mkt::DMatrix<float>& in, mkt::DMatrix<float>& out){
+void mkt::gather<float>(mkt::DMatrix<float>& in, mkt::DMatrix<float>& out, const MPI_Datatype& dt){
 	in.update_self();
-	#pragma omp parallel for  simd
-	for(int counter = 0; counter < in.get_size(); ++counter){
-	  out[counter] = in[counter];
-	}
+	MPI_Allgatherv(in.get_data(), 4, MPI_FLOAT, out.get_data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, MPI_COMM_WORLD);
 	out.update_devices();
 }
 	
 template<typename T>
 void mkt::scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
 	in.update_self();
-	#pragma omp parallel for  simd
-	for(unsigned int counter = 0; counter < in.get_size(); ++counter){
-	  out.set_local(counter, in.get_local(counter));
+	int row_offset = out.get_row_offset();
+	int column_offset = out.get_column_offset();
+	#pragma omp parallel for
+	for(unsigned int i = 0; i < out.get_number_of_rows_local(); ++i){
+	  #pragma omp simd
+	  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
+	    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
+	  }
 	}
 	out.update_devices();
 }

@@ -40,7 +40,7 @@
 		
 		~Init_map_index_matrix_functor() {}
 		
-		auto operator()(const int row, const int col, const int x){
+		auto operator()(int row, int col, int x){
 			return (((row) * 4) + (col));
 		}
 	

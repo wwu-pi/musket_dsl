@@ -86,7 +86,7 @@ __global__ void mkt::kernel::map_in_place(T* inout, unsigned int size, F func)
   unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (x < size) {
-    func(inout[x]);
+    inout[x] = func(inout[x]);
   }
 }
 
@@ -106,7 +106,7 @@ __global__ void mkt::kernel::map_index_in_place(T* inout, unsigned int size, uns
   unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
   
   if (x < size) {
-    func(x + offset, inout[x]);
+    inout[x] = func(x + offset, inout[x]);
   }
 }
 
@@ -131,7 +131,7 @@ __global__ void mkt::kernel::map_index_in_place(T* inout, unsigned int rows, uns
 
   if (y < rows) {
     if (x < columns) {
-      func(y + row_offset, x + column_offset, inout[y * columns + x]);
+      inout[y * columns + x] = func(y + row_offset, x + column_offset, inout[y * columns + x]);
     }
   }
 }

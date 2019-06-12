@@ -41,25 +41,9 @@
 	const int NUMBER_OF_FISH = 1024;
 	const int ITERATIONS = 50;
 	const int DIMENSIONS = 512;
-	mkt::DArray<double> population_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_candidate_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_candidate_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_displacement(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_fitness_variation(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_weight(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_best_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> population_best_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DArray<Fish> population(0, 1024, 1024, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> instinctive_movement_vector_copy(0, 512, 512, 0.0, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_candidate_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_candidate_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_displacement(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_fitness_variation(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_weight(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_best_position(0, 524288, 524288, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> weighted_fishes_best_fitness(0, 1024, 1024, 0.0, 1, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DArray<Fish> weighted_fishes(0, 1024, 1024, Fish{}, 1, 0, 0, mkt::DIST, mkt::COPY);
 	mkt::DArray<double> barycenter_copy(0, 512, 512, 0.0, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}
@@ -77,7 +61,7 @@
 		
 		~InitFish_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -98,6 +82,7 @@
 				fi.displacement[(i)] = 0.0;
 				fi.best_position[(i)] = 0.0;
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -131,7 +116,7 @@
 		
 		~EvaluateFitness_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			double sum = 0.0;
 			for(int j = 0; ((j) < (DIMENSIONS)); ++j){
 				double value = (fi).position[(j)];
@@ -145,6 +130,7 @@
 				fi.best_position[(k)] = (fi).position[(k)];
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -174,7 +160,7 @@
 		
 		~IndividualMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -225,6 +211,7 @@
 						fi.displacement[(k)] = 0.0;
 					}
 				}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -259,7 +246,7 @@
 		
 		~Feeding_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			
 			if(((max_fitness_variation) != 0.0)){
 			double result = ((fi).weight + ((fi).fitness_variation / (max_fitness_variation)));
@@ -272,6 +259,7 @@
 			}
 			fi.weight = (result);
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -298,10 +286,11 @@
 		
 		~CalcDisplacementMap_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				fi.displacement[(i)] *= (fi).fitness_variation;
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -327,13 +316,14 @@
 		
 		~CalcInstinctiveMovementVector_map_in_place_array_functor() {}
 		
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_fitness_variation) != 0.0)){
 			result = ((x) / (sum_fitness_variation));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int gpu){
@@ -360,7 +350,7 @@
 		
 		~InstinctiveMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
 				double new_position = ((fi).position[(i)] + instinctive_movement_vector_copy.get_data_local((i)));
 				
@@ -372,6 +362,7 @@
 				}
 				fi.position[(i)] = (new_position);
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -399,12 +390,11 @@
 		
 		~CalcWeightedFish_map_array_functor() {}
 		
-		auto operator()(const Fish& fi){
-			Fish _fi{fi};
+		auto operator()(Fish fi){
 			for(int i = 0; ((i) < (DIMENSIONS)); ++i){
-				_fi.position[(i)] *= (_fi).weight;
+				fi.position[(i)] *= (fi).weight;
 			}
-			return (_fi);
+			return (fi);
 		}
 	
 		void init(int gpu){
@@ -430,13 +420,14 @@
 		
 		~CalcBarycenterMap_map_in_place_array_functor() {}
 		
-		auto operator()(double& x){
+		auto operator()(double x){
 			double result = (x);
 			
 			if(((sum_weight) != 0)){
 			result = ((x) / (sum_weight));
 			}
 			x = (result);
+			return (x);
 		}
 	
 		void init(int gpu){
@@ -467,7 +458,7 @@
 		
 		~VolitiveMovement_map_in_place_array_functor() {}
 		
-		auto operator()(Fish& fi){
+		auto operator()(Fish fi){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -505,6 +496,7 @@
 				fi.position[(i)] = (new_position);
 			}
 			}
+			return (fi);
 		}
 	
 		void init(int gpu){

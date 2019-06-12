@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/musket-build/nbody_float/GPU/build/benchmark && \
 
 # run cmake
 cd /home/fwrede/musket-build/nbody_float/GPU/build/benchmark && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=pgc++ ${source_folder} && \
 
 make nbody_float_0 && \
 cd ${source_folder} && \

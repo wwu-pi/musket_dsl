@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name matmult_float-GPU-nodes-1-gpu-1
-#SBATCH --ntasks 1
-#SBATCH --nodes 1
+#SBATCH --job-name matmult_float-GPU-nodes-4-gpu-1
+#SBATCH --ntasks 4
+#SBATCH --nodes 4
 #SBATCH --ntasks-per-node 1
 #SBATCH --partition gpu2
 #SBATCH --exclusive
-#SBATCH --output /home/fwrede/musket-build/matmult_float/CUDA/out/matmult_float-nodes-1-gpu-1.out
+#SBATCH --output /home/fwrede/musket-build/matmult_float/CUDA/out/matmult_float-nodes-4-gpu-1.out
 #SBATCH --cpus-per-task 24
 #SBATCH --mail-type ALL
 #SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de

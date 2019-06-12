@@ -1,3 +1,4 @@
+	#include <mpi.h>
 	#include <cuda.h>
 	#include <omp.h>
 	#include <stdlib.h>
@@ -16,25 +17,29 @@
 	#include "../include/musket.cuh"
 	#include "../include/matmult_float_0.cuh"
 	
+	const size_t number_of_processes = 4;
+	const size_t process_id = 0;
+	int mpi_rank = -1;
+	int mpi_world_size = 0;
 	
 			
 	const int dim = 4;
-	mkt::DMatrix<float> as(0, 4, 4, 4, 4, 16, 16, 1.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 4, 4, 4, 4, 16, 16, 0.001f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 4, 4, 4, 4, 16, 16, 0.0f, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> as(0, 4, 4, 2, 2, 16, 4, 1.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DMatrix<float> bs(0, 4, 4, 2, 2, 16, 4, 0.001f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+	mkt::DMatrix<float> cs(0, 4, 4, 2, 2, 16, 4, 0.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
 	
-	struct InitA_map_index_in_place_matrix_functor{
+	struct Negate_shift_partitions_horizontally_matrix_functor{
 		
-		InitA_map_index_in_place_matrix_functor(){}
+		Negate_shift_partitions_horizontally_matrix_functor(){}
 		
-		~InitA_map_index_in_place_matrix_functor() {}
+		~Negate_shift_partitions_horizontally_matrix_functor() {}
 		
-		__device__
-		auto operator()(int a, int b, float& x){
-			x = ((static_cast<float>((a)) * 4) + (b));
+		__host__
+		auto operator()(int a){
+			return -((a));
 		}
 	
 		void init(int device){
@@ -47,15 +52,15 @@
 		
 		
 	};
-	struct InitB_map_index_in_place_matrix_functor{
+	struct Negate_shift_partitions_vertically_matrix_functor{
 		
-		InitB_map_index_in_place_matrix_functor(){}
+		Negate_shift_partitions_vertically_matrix_functor(){}
 		
-		~InitB_map_index_in_place_matrix_functor() {}
+		~Negate_shift_partitions_vertically_matrix_functor() {}
 		
-		__device__
-		auto operator()(int a, int b, float& x){
-			x = ((static_cast<float>(16) + ((a) * 4)) + (b));
+		__host__
+		auto operator()(int a){
+			return -((a));
 		}
 	
 		void init(int device){
@@ -75,10 +80,13 @@
 		~DotProduct_map_local_index_in_place_matrix_functor() {}
 		
 		__device__
-		auto operator()(int i, int j, float& Cij){
-			for(int k = 0; ((k) < 4); k++){
-				Cij += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
+		auto operator()(int i, int j, float Cij){
+			float sum = 0.0f;
+			for(int k = 0; ((k) < 2); k++){
+				sum += (as.get_data_local((i), (k)) * bs.get_data_local((k), (j)));
 			}
+			Cij += (sum);
+			return (Cij);
 		}
 	
 		void init(int device){
@@ -95,6 +103,90 @@
 		mkt::DeviceMatrix<float> as;
 		mkt::DeviceMatrix<float> bs;
 	};
+	struct MinusOne_shift_partitions_horizontally_matrix_functor{
+		
+		MinusOne_shift_partitions_horizontally_matrix_functor(){}
+		
+		~MinusOne_shift_partitions_horizontally_matrix_functor() {}
+		
+		__host__
+		auto operator()(int a){
+			return -(1);
+		}
+	
+		void init(int device){
+		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		
+	};
+	struct MinusOne_shift_partitions_vertically_matrix_functor{
+		
+		MinusOne_shift_partitions_vertically_matrix_functor(){}
+		
+		~MinusOne_shift_partitions_vertically_matrix_functor() {}
+		
+		__host__
+		auto operator()(int a){
+			return -(1);
+		}
+	
+		void init(int device){
+		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		
+	};
+	struct Identity_shift_partitions_horizontally_matrix_functor{
+		
+		Identity_shift_partitions_horizontally_matrix_functor(){}
+		
+		~Identity_shift_partitions_horizontally_matrix_functor() {}
+		
+		__host__
+		auto operator()(int a){
+			return (a);
+		}
+	
+		void init(int device){
+		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		
+	};
+	struct Identity_shift_partitions_vertically_matrix_functor{
+		
+		Identity_shift_partitions_vertically_matrix_functor(){}
+		
+		~Identity_shift_partitions_vertically_matrix_functor() {}
+		
+		__host__
+		auto operator()(int a){
+			return (a);
+		}
+	
+		void init(int device){
+		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		
+	};
 	struct Square_map_in_place_matrix_functor{
 		
 		Square_map_in_place_matrix_functor(){}
@@ -102,8 +194,9 @@
 		~Square_map_in_place_matrix_functor() {}
 		
 		__device__
-		auto operator()(float& a){
+		auto operator()(float a){
 			a = ((a) * (a));
+			return (a);
 		}
 	
 		void init(int device){
@@ -123,6 +216,7 @@
 	template<>
 	float mkt::reduce_plus<float>(mkt::DMatrix<float>& a){
 		float local_result = 0.0f;
+		float global_result = 0.0f;
 					
 		const int gpu_elements = a.get_size_gpu();
 		int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
@@ -147,39 +241,247 @@
 		  mkt::sync_streams();
 		cudaFree(d_odata);
 		
-		return local_result;
+		if(a.get_distribution() == mkt::Distribution::DIST){
+			MPI_Allreduce(&local_result, &global_result, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+			return global_result;
+		}else if(a.get_distribution() == mkt::Distribution::COPY){
+			return local_result;
+		}
 	}
 	
+	template<>
+	void mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, Negate_shift_partitions_horizontally_matrix_functor& f){
+		int steps = f(m.get_partition_x_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		
+		int target = ((((m.get_partition_y_pos() + steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+		int source = ((((m.get_partition_y_pos() - steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+			
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
 	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.begin());
+			m.update_devices();
+		}
+	}
+	template<>
+	void mkt::shift_partitions_horizontally<float, MinusOne_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, MinusOne_shift_partitions_horizontally_matrix_functor& f){
+		int steps = f(m.get_partition_x_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		
+		int target = ((((m.get_partition_y_pos() + steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+		int source = ((((m.get_partition_y_pos() - steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+			
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
+	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.begin());
+			m.update_devices();
+		}
+	}
+	template<>
+	void mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(mkt::DMatrix<float>& m, Identity_shift_partitions_horizontally_matrix_functor& f){
+		int steps = f(m.get_partition_x_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		
+		int target = ((((m.get_partition_y_pos() + steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+		int source = ((((m.get_partition_y_pos() - steps) % partitions_in_row) + partitions_in_row) % partitions_in_row) + (m.get_partition_x_pos() * partitions_in_row);
+			
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
+	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.begin());
+			m.update_devices();
+		}
+	}
+	
+	template<>
+	void mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, Negate_shift_partitions_vertically_matrix_functor& f){
+		int steps = f(m.get_partition_y_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		int partitions_in_column = m.get_partitions_in_column();
+		
+		int target = ((((m.get_partition_x_pos() + steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		int source = ((((m.get_partition_x_pos() - steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		
+		
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
+	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.get_data());
+			m.update_devices();
+		}
+	}
+	template<>
+	void mkt::shift_partitions_vertically<float, MinusOne_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, MinusOne_shift_partitions_vertically_matrix_functor& f){
+		int steps = f(m.get_partition_y_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		int partitions_in_column = m.get_partitions_in_column();
+		
+		int target = ((((m.get_partition_x_pos() + steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		int source = ((((m.get_partition_x_pos() - steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		
+		
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
+	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.get_data());
+			m.update_devices();
+		}
+	}
+	template<>
+	void mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(mkt::DMatrix<float>& m, Identity_shift_partitions_vertically_matrix_functor& f){
+		int steps = f(m.get_partition_y_pos());
+		
+		int partitions_in_row = m.get_partitions_in_row();
+		int partitions_in_column = m.get_partitions_in_column();
+		
+		int target = ((((m.get_partition_x_pos() + steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		int source = ((((m.get_partition_x_pos() - steps) % partitions_in_column) + partitions_in_column) % partitions_in_column) * partitions_in_row + m.get_partition_y_pos();
+		
+		
+		if(target != mpi_rank){
+			m.update_self();
+			MPI_Request requests[2];
+			MPI_Status statuses[2];
+			auto buffer = std::make_unique<std::vector<float>>(m.get_size_local());
+	
+			int tag_rec = ((source + mpi_rank) * (source + mpi_rank + 1)) / 2 + mpi_rank;
+			int tag_send = ((mpi_rank + target) * (mpi_rank + target + 1)) / 2 + target;
+			
+			MPI_Irecv(buffer->data(), m.get_size_local(), MPI_FLOAT, source, tag_rec, MPI_COMM_WORLD, &requests[1]);
+			MPI_Isend(m.get_data(), m.get_size_local(), MPI_FLOAT, target, tag_send, MPI_COMM_WORLD, &requests[0]);
+			MPI_Waitall(2, requests, statuses);
+			
+			std::move(buffer->begin(), buffer->end(), m.get_data());
+			m.update_devices();
+		}
+	}
 	
 	int main(int argc, char** argv) {
+		MPI_Init(&argc, &argv);
+		
+		MPI_Comm_size(MPI_COMM_WORLD, &mpi_world_size);
+		MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+		
+		if(mpi_world_size != number_of_processes || mpi_rank != process_id){
+			MPI_Finalize();
+			return EXIT_FAILURE;
+		}				
 		mkt::init();
 		
+		printf("Run Matmult_float\n\n");
 		
-		InitA_map_index_in_place_matrix_functor initA_map_index_in_place_matrix_functor{};
-		InitB_map_index_in_place_matrix_functor initB_map_index_in_place_matrix_functor{};
+		Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
+		Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
 		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
+		MinusOne_shift_partitions_horizontally_matrix_functor minusOne_shift_partitions_horizontally_matrix_functor{};
+		MinusOne_shift_partitions_vertically_matrix_functor minusOne_shift_partitions_vertically_matrix_functor{};
+		Identity_shift_partitions_horizontally_matrix_functor identity_shift_partitions_horizontally_matrix_functor{};
+		Identity_shift_partitions_vertically_matrix_functor identity_shift_partitions_vertically_matrix_functor{};
 		Square_map_in_place_matrix_functor square_map_in_place_matrix_functor{};
 		
 		
 				
+			
+			
+			MPI_Datatype as_partition_type;
+			MPI_Type_vector(2, 2, 4, MPI_FLOAT, &as_partition_type);
+			MPI_Type_create_resized(as_partition_type, 0, sizeof(float) * 2, &as_partition_type_resized);
+			MPI_Type_free(&as_partition_type);
+			MPI_Type_commit(&as_partition_type_resized);
+			MPI_Datatype bs_partition_type;
+			MPI_Type_vector(2, 2, 4, MPI_FLOAT, &bs_partition_type);
+			MPI_Type_create_resized(bs_partition_type, 0, sizeof(float) * 2, &bs_partition_type_resized);
+			MPI_Type_free(&bs_partition_type);
+			MPI_Type_commit(&bs_partition_type_resized);
+			MPI_Datatype cs_partition_type;
+			MPI_Type_vector(2, 2, 4, MPI_FLOAT, &cs_partition_type);
+			MPI_Type_create_resized(cs_partition_type, 0, sizeof(float) * 2, &cs_partition_type_resized);
+			MPI_Type_free(&cs_partition_type);
+			MPI_Type_commit(&cs_partition_type_resized);
 		
-		mkt::map_index_in_place<float, InitA_map_index_in_place_matrix_functor>(as, initA_map_index_in_place_matrix_functor);
-		mkt::map_index_in_place<float, InitB_map_index_in_place_matrix_functor>(bs, initB_map_index_in_place_matrix_functor);
+			
+		
+		
 		as.update_self();
-		mkt::print("as", as);
+		mkt::print_dist_as(as, as_partition_type_resized);
+		MPI_Barrier(MPI_COMM_WORLD);
 		bs.update_self();
-		mkt::print("bs", bs);
+		mkt::print_dist_bs(bs, bs_partition_type_resized);
+		MPI_Barrier(MPI_COMM_WORLD);
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-		for(int i = 0; ((i) < 1); ++i){
+		mkt::shift_partitions_horizontally<float, Negate_shift_partitions_horizontally_matrix_functor>(as, negate_shift_partitions_horizontally_matrix_functor);
+		mkt::shift_partitions_vertically<float, Negate_shift_partitions_vertically_matrix_functor>(bs, negate_shift_partitions_vertically_matrix_functor);
+		for(int i = 0; ((i) < 2); ++i){
 			mkt::map_local_index_in_place<float, DotProduct_map_local_index_in_place_matrix_functor>(cs, dotProduct_map_local_index_in_place_matrix_functor);
+			mkt::shift_partitions_horizontally<float, MinusOne_shift_partitions_horizontally_matrix_functor>(as, minusOne_shift_partitions_horizontally_matrix_functor);
+			mkt::shift_partitions_vertically<float, MinusOne_shift_partitions_vertically_matrix_functor>(bs, minusOne_shift_partitions_vertically_matrix_functor);
 		}
+		mkt::shift_partitions_horizontally<float, Identity_shift_partitions_horizontally_matrix_functor>(as, identity_shift_partitions_horizontally_matrix_functor);
+		mkt::shift_partitions_vertically<float, Identity_shift_partitions_vertically_matrix_functor>(bs, identity_shift_partitions_vertically_matrix_functor);
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 		cs.update_self();
-		mkt::print("cs", cs);
+		mkt::print_dist_cs(cs, cs_partition_type_resized);
+		MPI_Barrier(MPI_COMM_WORLD);
 		mkt::map_in_place<float, Square_map_in_place_matrix_functor>(cs, square_map_in_place_matrix_functor);
 		double fn = 0.0;
 		fn = mkt::reduce_plus<float>(cs);
@@ -188,7 +490,8 @@
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());
-		printf("Processes: %i\n", 1);
+		printf("Processes: %i\n", mpi_world_size);
 		
+		MPI_Finalize();
 		return EXIT_SUCCESS;
 		}

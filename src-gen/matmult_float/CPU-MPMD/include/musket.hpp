@@ -142,6 +142,9 @@ void map_fold_copy(const mkt::DMatrix<T>& m, T& out, const MapFunctor& f_map, co
 
 template<typename T>
 void print(const std::string& name, const mkt::DMatrix<T>& a);
+void print_dist_as(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
+void print_dist_bs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
+void print_dist_cs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt);
 
 template<typename T>
 void print(std::ostringstream& stream, const T& a);
@@ -149,11 +152,15 @@ void print(std::ostringstream& stream, const T& a);
 
 	
 template<typename T>
-void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+void gather(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out, const MPI_Datatype& dt);
 	
 template<typename T>
 void scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
+template<typename T, typename Functor>
+void shift_partitions_horizontally(mkt::DMatrix<T>& m, const Functor& f);
 
+template<typename T, typename Functor>
+void shift_partitions_vertically(mkt::DMatrix<T>& m, const Functor& f);
 
 } // namespace mkt
 
@@ -414,20 +421,73 @@ void mkt::print(const std::string& name, const mkt::DMatrix<T>& m) {
   stream << std::endl;
   printf("%s", stream.str().c_str());
 }
+void mkt::print_dist_as(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "as" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
+void mkt::print_dist_bs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "bs" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
+void mkt::print_dist_cs(const mkt::DMatrix<float>& m, const MPI_Datatype& dt) {
+  std::array<float, 16> m_copy;
+  MPI_Gatherv(m.get_data(), 4, MPI_FLOAT, m_copy.data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, 0, MPI_COMM_WORLD);
+  std::ostringstream stream;
+  stream << "cs" << ": " << std::endl;
+  for (int i = 0; i < m.get_number_of_rows(); ++i) {
+    stream << "[";
+    for (int j = 0; j < m.get_number_of_columns() - 1; ++j) {
+      mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + j]);
+      stream << "; ";
+    }
+    mkt::print<float>(stream, m_copy[i * m.get_number_of_columns() + m.get_number_of_columns() - 1]);
+    stream << "]" << std::endl;
+  }		  
+  stream << std::endl;
+  printf("%s", stream.str().c_str());
+}
 
 
 template<>
-void mkt::gather<float>(const mkt::DMatrix<float>& in, mkt::DMatrix<float>& out){
-	#pragma omp parallel for  simd
-	for(int counter = 0; counter < in.get_size(); ++counter){
-	  out[counter] = in[counter];
-	}
+void mkt::gather<float>(const mkt::DMatrix<float>& in, mkt::DMatrix<float>& out, const MPI_Datatype& dt){
+	MPI_Allgatherv(in.get_data(), 4, MPI_FLOAT, out.get_data(), (std::array<int, 4>{1, 1, 1, 1}).data(), (std::array<int, 4>{0, 1, 4, 5}).data(), dt, MPI_COMM_WORLD);
 }
 	
 template<typename T>
 void mkt::scatter(const mkt::DMatrix<T>& in, mkt::DMatrix<T>& out){
-	#pragma omp parallel for  simd
-	for(int counter = 0; counter < in.get_size(); ++counter){
-	  out.set_local(counter, in.get_local(counter));
+	int row_offset = out.get_row_offset();
+	int column_offset = out.get_column_offset();
+	#pragma omp parallel for
+	for(int i = 0; i < out.get_number_of_rows_local(); ++i){
+	  #pragma omp simd
+	  for(int j = 0; j < out.get_number_of_columns_local(); ++j){
+	    out.set_local(i, j, in.get_local(i + row_offset, j + column_offset));
+	  }
 	}
 }

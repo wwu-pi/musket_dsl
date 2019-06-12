@@ -29,22 +29,8 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<float> P_x(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_y(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_z(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_vx(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_vy(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_vz(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_mass(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> P_charge(0, 32, 32, 0.0f, 1, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DArray<float> oldP_x(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_y(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_z(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_vx(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_vy(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_vz(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_mass(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<float> oldP_charge(0, 32, 32, 0.0f, 1, 0, 0, mkt::COPY, mkt::COPY);
+	mkt::DArray<Particle> P(0, 32, 32, Particle{}, 1, 0, 0, mkt::DIST, mkt::DIST);
+	mkt::DArray<Particle> oldP(0, 32, 32, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -61,7 +47,7 @@
 		
 		~Init_particles_map_index_in_place_array_functor() {}
 		
-		auto operator()(int i, Particle& p){
+		auto operator()(int i, Particle p){
 			size_t local_rns_index  = _gang + _worker + _vector + _rns_index; // this can probably be improved
 			local_rns_index  = (local_rns_index + 0x7ed55d16) + (local_rns_index << 12);
 			local_rns_index = (local_rns_index ^ 0xc761c23c) ^ (local_rns_index >> 19);
@@ -79,6 +65,7 @@
 			p.vz = 0.0f;
 			p.mass = 1.0f;
 			p.charge = (1.0f - (2.0f * static_cast<float>(((i) % 2))));
+			return (p);
 		}
 	
 		void init(int gpu){
@@ -112,7 +99,7 @@
 		
 		~Calc_force_map_index_in_place_array_functor() {}
 		
-		auto operator()(int curIndex, Particle& curParticle){
+		auto operator()(int curIndex, Particle curParticle){
 			float ax = 0.0f;
 			float ay = 0.0f;
 			float az = 0.0f;
@@ -152,6 +139,7 @@
 			curParticle.x += ((((vx0) + (curParticle).vx) * (DT)) * 0.5f);
 			curParticle.y += ((((vy0) + (curParticle).vy) * (DT)) * 0.5f);
 			curParticle.z += ((((vz0) + (curParticle).vz) * (DT)) * 0.5f);
+			return (curParticle);
 		}
 	
 		void init(int gpu){

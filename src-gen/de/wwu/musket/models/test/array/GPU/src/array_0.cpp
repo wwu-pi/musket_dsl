@@ -39,7 +39,7 @@
 		
 		~PlusX_map_array_functor() {}
 		
-		auto operator()(const int v){
+		auto operator()(int v){
 			return ((x) + (v));
 		}
 	

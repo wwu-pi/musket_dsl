@@ -29,7 +29,7 @@
 
 	
 	struct PlusX_map_array_functor{
-		auto operator()(const int v) const{
+		auto operator()(int v) const{
 			return ((x) + (v));
 		}
 		

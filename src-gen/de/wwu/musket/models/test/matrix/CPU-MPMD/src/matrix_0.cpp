@@ -30,7 +30,7 @@
 
 	
 	struct Init_map_index_matrix_functor{
-		auto operator()(const int row, const int col, const int x) const{
+		auto operator()(int row, int col, int x) const{
 			return (((row) * 4) + (col));
 		}
 		

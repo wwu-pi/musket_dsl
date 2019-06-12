@@ -36,7 +36,7 @@
 		~PlusX_map_array_functor() {}
 		
 		__device__
-		auto operator()(const int v){
+		auto operator()(int v){
 			return ((x) + (v));
 		}
 	

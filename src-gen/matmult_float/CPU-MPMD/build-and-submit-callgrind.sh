@@ -12,6 +12,9 @@ cd /home/fwrede/musket-build/matmult_float/CPU-MPMD/build/cg && \
 cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Callgrind ${source_folder} && \
 
 make matmult_float_0 && \
+make matmult_float_1 && \
+make matmult_float_2 && \
+make matmult_float_3 && \
 cd ${source_folder} && \
 
 sbatch job-callgrind.sh

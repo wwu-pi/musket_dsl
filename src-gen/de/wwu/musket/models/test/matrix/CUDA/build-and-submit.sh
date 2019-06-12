@@ -9,7 +9,7 @@ mkdir -p /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/CUDA/build/b
 
 # run cmake
 cd /home/fwrede/musket-build/de/wwu/musket/models/test/matrix/CUDA/build/benchmark && \
-cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus ${source_folder} && \
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=Benchmarktaurus -D CMAKE_CXX_COMPILER=g++ ${source_folder} && \
 
 make matrix_0 && \
 cd ${source_folder} && \

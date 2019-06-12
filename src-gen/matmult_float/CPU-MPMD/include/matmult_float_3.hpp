@@ -1,6 +1,5 @@
 #pragma once
 
-
-extern std::vector<float> as;
-extern std::vector<float> bs;
-extern std::vector<float> cs;
+extern mkt::DMatrix<float> as;
+extern mkt::DMatrix<float> bs;
+extern mkt::DMatrix<float> cs;
