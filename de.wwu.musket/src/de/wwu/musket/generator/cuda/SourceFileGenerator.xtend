@@ -71,10 +71,6 @@ class SourceFileGenerator {
 			«generateGlobalConstants(processId)»
 			«generateGlobalVariables(resource, processId)»
 					
-			«FOR d : resource.Data»
-				«d.generateObjectDefinition(processId)»
-			«ENDFOR»
-			
 			«FOR s : resource.Structs»
 				«s.generateStructDefaultConstructor»
 			«ENDFOR»
@@ -262,6 +258,10 @@ class SourceFileGenerator {
 			«IF Config.processes > 1 && processId == 0»
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
+			
+			«FOR d : resource.Data»
+				«d.generateObjectDefinition(processId)»
+			«ENDFOR»
 			
 «««			functor instantiation
 			«generateFunctorInstantiations(resource, processId)»
