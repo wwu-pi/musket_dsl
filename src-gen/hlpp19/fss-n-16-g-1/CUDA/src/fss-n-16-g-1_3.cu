@@ -814,6 +814,8 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		
 		mkt::DArray<Fish> population(3, 2048, 128, Fish{}, 4, 3, 384, mkt::DIST, mkt::COPY);
 		mkt::DArray<double> instinctive_movement_vector_copy(3, 512, 512, 0.0, 1, 3, 0, mkt::COPY, mkt::COPY);
 		mkt::DArray<Fish> weighted_fishes(3, 2048, 128, Fish{}, 4, 3, 384, mkt::DIST, mkt::COPY);
@@ -887,6 +889,8 @@
 		}
 		double global_best_fitness = 0.0;
 		global_best_fitness = mkt::map_reduce_max<Fish, double, Lambda48_map_reduce_array_functor>(population, lambda48_map_reduce_array_functor);
+		mkt::sync_streams();
+		
 		mkt::sync_streams();
 		
 		

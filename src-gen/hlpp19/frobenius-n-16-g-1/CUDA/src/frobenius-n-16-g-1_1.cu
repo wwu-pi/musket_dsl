@@ -127,6 +127,8 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		
 		mkt::DMatrix<double> as(1, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0, 4, 4, 0, 1, 0, 4096, mkt::DIST, mkt::DIST);
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
@@ -150,6 +152,8 @@
 		double fn = 0.0;
 		fn = mkt::map_reduce_plus<double, double, Square_map_reduce_matrix_functor>(as, square_map_reduce_matrix_functor);
 		fn = std::sqrt((fn));
+		mkt::sync_streams();
+		
 		mkt::sync_streams();
 		
 		

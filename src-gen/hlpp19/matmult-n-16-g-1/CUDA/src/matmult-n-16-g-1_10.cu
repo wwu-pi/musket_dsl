@@ -423,6 +423,8 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		
 		mkt::DMatrix<float> as(10, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 2, 2, 8192, 8192, mkt::DIST, mkt::DIST);
 		mkt::DMatrix<float> bs(10, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 2, 2, 8192, 8192, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<float> cs(10, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 2, 2, 8192, 8192, mkt::DIST, mkt::DIST);
@@ -474,6 +476,8 @@
 		double fn = 0.0;
 		fn = mkt::reduce_plus<float>(cs);
 		fn = std::sqrt((fn));
+		
+		mkt::sync_streams();
 		
 		
 		MPI_Finalize();

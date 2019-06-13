@@ -56,6 +56,9 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+		
 		mkt::DArray<int> ads(0, 16, 16, 1, 1, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DArray<int> bds(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DArray<int> acs(0, 16, 16, 7, 1, 0, 0, mkt::COPY, mkt::COPY);
@@ -84,6 +87,11 @@
 		mkt::map<int, int, PlusX_map_array_functor>(bcs, temp_copy, plusX_map_array_functor);
 		temp_copy.update_self();
 		mkt::print("temp_copy", temp_copy);
+		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Threads: %i\n", omp_get_max_threads());
 		printf("Processes: %i\n", 1);

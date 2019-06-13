@@ -147,6 +147,9 @@
 		
 		printf("Run Nbody-n-16-g-1\n\n");
 		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+		
 		mkt::DArray<Particle> P(0, 500000, 31250, Particle{}, 4, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DArray<Particle> oldP(0, 500000, 500000, Particle{}, 1, 0, 0, mkt::COPY, mkt::COPY);
 		
@@ -177,6 +180,11 @@
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

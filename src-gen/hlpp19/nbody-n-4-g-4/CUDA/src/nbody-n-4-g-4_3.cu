@@ -146,6 +146,8 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		
 		mkt::DArray<Particle> P(3, 500000, 125000, Particle{}, 2, 3, 375000, mkt::DIST, mkt::DIST);
 		mkt::DArray<Particle> oldP(3, 500000, 500000, Particle{}, 1, 3, 0, mkt::COPY, mkt::COPY);
 		
@@ -172,6 +174,8 @@
 			mkt::map_index_in_place<Particle, Calc_force_map_index_in_place_array_functor>(P, calc_force_map_index_in_place_array_functor);
 			mkt::gather<Particle>(P, oldP);
 		}
+		mkt::sync_streams();
+		
 		mkt::sync_streams();
 		
 		

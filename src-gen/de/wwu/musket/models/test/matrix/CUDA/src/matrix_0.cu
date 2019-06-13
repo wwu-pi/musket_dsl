@@ -54,6 +54,9 @@
 		mkt::init();
 		
 		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+		
 		mkt::DMatrix<int> ads(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<int> bds(0, 4, 4, 4, 4, 16, 16, 0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<int> acs(0, 4, 4, 4, 4, 16, 16, 7, 1, 1, 0, 0, 0, 0, mkt::COPY, mkt::COPY);
@@ -89,6 +92,11 @@
 		mkt::print("r_acs", r_acs);
 		r_bcs.update_self();
 		mkt::print("r_bcs", r_bcs);
+		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Threads: %i\n", omp_get_max_threads());
 		printf("Processes: %i\n", 1);

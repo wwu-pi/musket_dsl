@@ -128,6 +128,9 @@
 		
 		printf("Run Frobenius-n-4-g-1\n\n");
 		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+		
 		mkt::DMatrix<double> as(0, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.0, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
@@ -156,6 +159,11 @@
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
 		double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
 		printf("Frobenius norm is %.5f.\n",(fn));
+		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

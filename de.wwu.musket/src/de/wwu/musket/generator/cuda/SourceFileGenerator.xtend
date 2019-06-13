@@ -263,6 +263,11 @@ class SourceFileGenerator {
 				printf("Run «resource.ProjectName.toFirstUpper»\n\n");
 			«ENDIF»
 			
+			mkt::sync_streams();
+			«IF processId == 0»
+				std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+			«ENDIF»
+			
 			«FOR d : resource.Data»
 				«d.generateObjectDefinitionMain(processId)»
 			«ENDFOR»
@@ -294,6 +299,13 @@ class SourceFileGenerator {
 			«ENDIF»
 			
 			«generateLogic(resource.Model.main, processId)»
+			
+			mkt::sync_streams();
+			«IF processId == 0»
+				std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+				double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+				printf("Complete execution time: %.5fs\n", complete_seconds);
+			«ENDIF»
 			
 			«IF processId == 0»		
 				«IF resource.Model.main.content.exists[it instanceof MusketFunctionCall && (it as MusketFunctionCall).value == MusketFunctionName.ROI_START]»

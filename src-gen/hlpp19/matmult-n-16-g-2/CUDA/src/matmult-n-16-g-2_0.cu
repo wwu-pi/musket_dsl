@@ -469,6 +469,9 @@
 		
 		printf("Run Matmult-n-16-g-2\n\n");
 		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+		
 		mkt::DMatrix<float> as(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DMatrix<float> bs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<float> cs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
@@ -524,6 +527,11 @@
 		fn = mkt::reduce_plus<float>(cs);
 		fn = std::sqrt((fn));
 		printf("Frobenius norm of cs is %.5f.\n",(fn));
+		
+		mkt::sync_streams();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());
