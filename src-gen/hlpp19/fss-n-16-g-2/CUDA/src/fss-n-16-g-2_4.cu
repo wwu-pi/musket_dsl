@@ -22,7 +22,24 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
-			
+	
+	const double PI = 3.141592653589793;
+	const double EULER = 2.718281828459045;
+	const double UPPER_BOUND = 5.12;
+	const double LOWER_BOUND = -5.12;
+	const double PROBLEM_RANGE = 10.24;
+	const double INIT_UPPER_BOUND = 5.12;
+	const double INIT_LOWER_BOUND = -5.12;
+	const double WEIGHT_UPPER_BOUND = 5000.0;
+	const double WEIGHT_LOWER_BOUND = 1.0;
+	const double STEP_SIZE_INITIAL = 0.1;
+	const double STEP_SIZE_FINAL = 1.0E-5;
+	const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
+	const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
+	const int NUMBER_OF_FISH = 2048;
+	const int ITERATIONS = 5000;
+	const int DIMENSIONS = 512;
+	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}
 	
 
@@ -1076,22 +1093,6 @@
 		mkt::init();
 		
 		
-		const double PI = 3.141592653589793;
-		const double EULER = 2.718281828459045;
-		const double UPPER_BOUND = 5.12;
-		const double LOWER_BOUND = -5.12;
-		const double PROBLEM_RANGE = 10.24;
-		const double INIT_UPPER_BOUND = 5.12;
-		const double INIT_LOWER_BOUND = -5.12;
-		const double WEIGHT_UPPER_BOUND = 5000.0;
-		const double WEIGHT_LOWER_BOUND = 1.0;
-		const double STEP_SIZE_INITIAL = 0.1;
-		const double STEP_SIZE_FINAL = 1.0E-5;
-		const double STEP_SIZE_VOLITIVE_INITIAL = 0.2;
-		const double STEP_SIZE_VOLITIVE_FINAL = 2.0E-5;
-		const int NUMBER_OF_FISH = 2048;
-		const int ITERATIONS = 5000;
-		const int DIMENSIONS = 512;
 		mkt::DArray<Fish> population(4, 2048, 128, Fish{}, 4, 4, 512, mkt::DIST, mkt::COPY);
 		mkt::DArray<double> instinctive_movement_vector_copy(4, 512, 512, 0.0, 1, 4, 0, mkt::COPY, mkt::COPY);
 		mkt::DArray<Fish> weighted_fishes(4, 2048, 128, Fish{}, 4, 4, 512, mkt::DIST, mkt::COPY);

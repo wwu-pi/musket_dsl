@@ -22,7 +22,9 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
-			
+	
+	const int dim = 4;
+	
 	
 
 	
@@ -421,7 +423,6 @@
 		mkt::init();
 		
 		
-		const int dim = 4;
 		mkt::DMatrix<float> as(2, 4, 4, 2, 2, 16, 4, 1.0f, 2, 2, 1, 0, 2, 0, mkt::DIST, mkt::DIST);
 		mkt::DMatrix<float> bs(2, 4, 4, 2, 2, 16, 4, 0.001f, 2, 2, 1, 0, 2, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<float> cs(2, 4, 4, 2, 2, 16, 4, 0.0f, 2, 2, 1, 0, 2, 0, mkt::DIST, mkt::DIST);

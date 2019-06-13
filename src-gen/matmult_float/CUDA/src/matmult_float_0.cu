@@ -22,7 +22,9 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
-			
+	
+	const int dim = 4;
+	
 	
 
 	
@@ -422,7 +424,6 @@
 		
 		printf("Run Matmult_float\n\n");
 		
-		const int dim = 4;
 		mkt::DMatrix<float> as(0, 4, 4, 2, 2, 16, 4, 1.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DMatrix<float> bs(0, 4, 4, 2, 2, 16, 4, 0.001f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<float> cs(0, 4, 4, 2, 2, 16, 4, 0.0f, 2, 2, 0, 0, 0, 0, mkt::DIST, mkt::DIST);

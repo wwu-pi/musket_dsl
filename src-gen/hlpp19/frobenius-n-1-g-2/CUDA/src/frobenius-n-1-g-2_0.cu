@@ -17,7 +17,9 @@
 	#include "../include/frobenius-n-1-g-2_0.cuh"
 	
 	
-			
+	
+	const int dim = 16384;
+	
 	
 
 	
@@ -150,7 +152,6 @@
 		mkt::init();
 		
 		
-		const int dim = 16384;
 		mkt::DMatrix<double> as(0, 16384, 16384, 16384, 16384, 268435456, 268435456, 0.0, 1, 1, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};

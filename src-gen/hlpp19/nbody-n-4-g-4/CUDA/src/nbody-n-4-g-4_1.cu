@@ -22,7 +22,12 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
-			
+	
+	const int dim = 500000;
+	const int steps = 5;
+	const float EPSILON = 1.0E-10f;
+	const float DT = 0.01f;
+	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
 
@@ -141,10 +146,6 @@
 		mkt::init();
 		
 		
-		const int dim = 500000;
-		const int steps = 5;
-		const float EPSILON = 1.0E-10f;
-		const float DT = 0.01f;
 		mkt::DArray<Particle> P(1, 500000, 125000, Particle{}, 2, 1, 125000, mkt::DIST, mkt::DIST);
 		mkt::DArray<Particle> oldP(1, 500000, 500000, Particle{}, 1, 1, 0, mkt::COPY, mkt::COPY);
 		

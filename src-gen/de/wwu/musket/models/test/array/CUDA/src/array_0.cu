@@ -17,7 +17,9 @@
 	#include "../include/array_0.cuh"
 	
 	
-			
+	
+	const int dim = 16;
+	
 	
 
 	
@@ -54,7 +56,6 @@
 		mkt::init();
 		
 		
-		const int dim = 16;
 		mkt::DArray<int> ads(0, 16, 16, 1, 1, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DArray<int> bds(0, 16, 16, 0, 1, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DArray<int> acs(0, 16, 16, 7, 1, 0, 0, mkt::COPY, mkt::COPY);

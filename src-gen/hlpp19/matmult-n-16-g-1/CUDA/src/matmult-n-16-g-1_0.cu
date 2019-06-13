@@ -22,7 +22,9 @@
 	int mpi_rank = -1;
 	int mpi_world_size = 0;
 	
-			
+	
+	const int dim = 16384;
+	
 	
 
 	
@@ -422,7 +424,6 @@
 		
 		printf("Run Matmult-n-16-g-1\n\n");
 		
-		const int dim = 16384;
 		mkt::DMatrix<float> as(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 		mkt::DMatrix<float> bs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
 		mkt::DMatrix<float> cs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
