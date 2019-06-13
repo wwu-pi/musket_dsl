@@ -70,7 +70,11 @@ class SourceFileGenerator {
 			
 			«generateGlobalConstants(processId)»
 			«generateGlobalVariables(resource, processId)»
-					
+			
+			«FOR d : resource.Data»
+				«d.generateObjectDefinitionGlobal(processId)»
+			«ENDFOR»
+			
 			«FOR s : resource.Structs»
 				«s.generateStructDefaultConstructor»
 			«ENDFOR»
@@ -260,7 +264,7 @@ class SourceFileGenerator {
 			«ENDIF»
 			
 			«FOR d : resource.Data»
-				«d.generateObjectDefinition(processId)»
+				«d.generateObjectDefinitionMain(processId)»
 			«ENDFOR»
 			
 «««			functor instantiation
