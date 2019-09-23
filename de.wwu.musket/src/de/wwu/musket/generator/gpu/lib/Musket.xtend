@@ -44,6 +44,9 @@ class Musket {
 		#include "«resource.ProjectName»«Config.header_extension»"
 		
 		namespace mkt {
+			
+		void wait_all();
+			
 		«generateDistEnum»
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDeclaration»
@@ -120,6 +123,13 @@ class Musket {
 		
 		
 		} // namespace mkt
+		
+		void mkt::wait_all(){
+			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+				acc_set_device_num(gpu, acc_device_not_host);
+				acc_wait_all();
+			}
+		}
 		
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDefinition»
