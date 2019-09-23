@@ -3,6 +3,9 @@
 #include "nbody-n-16-g-4.hpp"
 
 namespace mkt {
+	
+void wait_all();
+	
 enum Distribution {DIST, COPY};
 template<typename T>
 class DArray {
@@ -171,6 +174,13 @@ void scatter(mkt::DArray<T>& in, mkt::DArray<T>& out);
 
 
 } // namespace mkt
+
+void mkt::wait_all(){
+	for(int gpu = 0; gpu < 4; ++gpu){
+		acc_set_device_num(gpu, acc_device_not_host);
+		acc_wait_all();
+	}
+}
 
 template<typename T>
 mkt::DArray<T>::DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, Distribution d, Distribution device_dist)

@@ -27,9 +27,6 @@
 	
 			
 	const int dim = 16384;
-	mkt::DMatrix<float> as(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -485,6 +482,13 @@
 		printf("Run Matmult-n-16-g-4\n\n");
 		
 		
+		mkt::wait_all();
+		std::chrono::high_resolution_clock::time_point complete_timer_start = std::chrono::high_resolution_clock::now();
+	
+		mkt::DMatrix<float> as(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 1.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+		mkt::DMatrix<float> bs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.001f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::COPY);
+		mkt::DMatrix<float> cs(0, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0f, 4, 4, 0, 0, 0, 0, mkt::DIST, mkt::DIST);
+		
 		Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
 		Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
 		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
@@ -542,6 +546,11 @@
 		fn = mkt::reduce_plus<float>(cs);
 		fn = std::sqrt((fn));
 		printf("Frobenius norm of cs is %.5f.\n",(fn));
+		
+		mkt::wait_all();
+		std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
+		double complete_seconds = std::chrono::duration<double>(complete_timer_end - complete_timer_start).count();
+		printf("Complete execution time: %.5fs\n", complete_seconds);
 		
 		printf("Execution time: %.5fs\n", seconds);
 		printf("Threads: %i\n", omp_get_max_threads());

@@ -27,9 +27,6 @@
 	
 			
 	const int dim = 16384;
-	mkt::DMatrix<float> as(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 1.0f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::DIST);
-	mkt::DMatrix<float> bs(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.001f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::COPY);
-	mkt::DMatrix<float> cs(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.0f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -466,6 +463,12 @@
 		
 		
 		
+		mkt::wait_all();
+	
+		mkt::DMatrix<float> as(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 1.0f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::DIST);
+		mkt::DMatrix<float> bs(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.001f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::COPY);
+		mkt::DMatrix<float> cs(3, 16384, 16384, 8192, 8192, 268435456, 67108864, 0.0f, 2, 2, 1, 1, 8192, 8192, mkt::DIST, mkt::DIST);
+		
 		Negate_shift_partitions_horizontally_matrix_functor negate_shift_partitions_horizontally_matrix_functor{};
 		Negate_shift_partitions_vertically_matrix_functor negate_shift_partitions_vertically_matrix_functor{};
 		DotProduct_map_local_index_in_place_matrix_functor dotProduct_map_local_index_in_place_matrix_functor{as, bs};
@@ -519,6 +522,8 @@
 		double fn = 0.0;
 		fn = mkt::reduce_plus<float>(cs);
 		fn = std::sqrt((fn));
+		
+		mkt::wait_all();
 		
 		
 		MPI_Finalize();

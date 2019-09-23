@@ -27,7 +27,6 @@
 	
 			
 	const int dim = 16384;
-	mkt::DMatrix<double> as(13, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0, 4, 4, 3, 1, 12288, 4096, mkt::DIST, mkt::DIST);
 	
 	
 
@@ -153,6 +152,10 @@
 		
 		
 		
+		mkt::wait_all();
+	
+		mkt::DMatrix<double> as(13, 16384, 16384, 4096, 4096, 268435456, 16777216, 0.0, 4, 4, 3, 1, 12288, 4096, mkt::DIST, mkt::DIST);
+		
 		Init_map_index_in_place_matrix_functor init_map_index_in_place_matrix_functor{};
 		Square_map_reduce_matrix_functor square_map_reduce_matrix_functor{};
 		
@@ -181,6 +184,8 @@
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
 		}
+		
+		mkt::wait_all();
 		
 		
 		MPI_Finalize();

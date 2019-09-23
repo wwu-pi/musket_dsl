@@ -3,6 +3,9 @@
 #include "frobenius-n-16-g-4.hpp"
 
 namespace mkt {
+	
+void wait_all();
+	
 enum Distribution {DIST, COPY};
 
 template<typename T>
@@ -235,6 +238,13 @@ R map_reduce_min(mkt::DMatrix<T>& m, Functor f);
 
 
 } // namespace mkt
+
+void mkt::wait_all(){
+	for(int gpu = 0; gpu < 4; ++gpu){
+		acc_set_device_num(gpu, acc_device_not_host);
+		acc_wait_all();
+	}
+}
 
 
 		

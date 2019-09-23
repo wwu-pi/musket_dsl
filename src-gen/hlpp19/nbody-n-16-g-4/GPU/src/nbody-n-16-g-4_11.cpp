@@ -34,8 +34,6 @@
 	const int steps = 5;
 	const float EPSILON = 1.0E-10f;
 	const float DT = 0.01f;
-	mkt::DArray<Particle> P(11, 500000, 31250, Particle{}, 4, 11, 343750, mkt::DIST, mkt::DIST);
-	mkt::DArray<Particle> oldP(11, 500000, 500000, Particle{}, 1, 11, 0, mkt::COPY, mkt::COPY);
 	
 	//Particle::Particle() : x(), y(), z(), vx(), vy(), vz(), mass(), charge() {}
 	
@@ -204,6 +202,11 @@
 			acc_memcpy_to_device(devptr, rns.data(), 100000 * sizeof(float));
 		}
 		
+		mkt::wait_all();
+	
+		mkt::DArray<Particle> P(11, 500000, 31250, Particle{}, 4, 11, 343750, mkt::DIST, mkt::DIST);
+		mkt::DArray<Particle> oldP(11, 500000, 500000, Particle{}, 1, 11, 0, mkt::COPY, mkt::COPY);
+		
 		Init_particles_map_index_in_place_array_functor init_particles_map_index_in_place_array_functor{rns_pointers};
 		Calc_force_map_index_in_place_array_functor calc_force_map_index_in_place_array_functor{oldP};
 		
@@ -238,6 +241,8 @@
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
 		}
+		
+		mkt::wait_all();
 		
 		
 		#pragma omp parallel for

@@ -3,6 +3,9 @@
 #include "matrix.hpp"
 
 namespace mkt {
+	
+void wait_all();
+	
 enum Distribution {DIST, COPY};
 
 template<typename T>
@@ -226,6 +229,13 @@ void scatter(mkt::DMatrix<T>& in, mkt::DMatrix<T>& out);
 
 
 } // namespace mkt
+
+void mkt::wait_all(){
+	for(int gpu = 0; gpu < 1; ++gpu){
+		acc_set_device_num(gpu, acc_device_not_host);
+		acc_wait_all();
+	}
+}
 
 
 		

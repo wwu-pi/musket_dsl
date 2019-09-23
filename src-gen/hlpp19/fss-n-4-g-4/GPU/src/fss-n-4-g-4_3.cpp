@@ -46,10 +46,6 @@
 	const int NUMBER_OF_FISH = 2048;
 	const int ITERATIONS = 5000;
 	const int DIMENSIONS = 512;
-	mkt::DArray<Fish> population(3, 2048, 512, Fish{}, 2, 3, 1536, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> instinctive_movement_vector_copy(3, 512, 512, 0.0, 1, 3, 0, mkt::COPY, mkt::COPY);
-	mkt::DArray<Fish> weighted_fishes(3, 2048, 512, Fish{}, 2, 3, 1536, mkt::DIST, mkt::COPY);
-	mkt::DArray<double> barycenter_copy(3, 512, 512, 0.0, 1, 3, 0, mkt::COPY, mkt::COPY);
 	
 	//Fish::Fish() : position(0, 0.0), fitness(), candidate_position(0, 0.0), candidate_fitness(), displacement(0, 0.0), fitness_variation(), weight(), best_position(0, 0.0), best_fitness() {}
 	
@@ -1097,6 +1093,13 @@
 			acc_memcpy_to_device(devptr, rns.data(), 100000 * sizeof(float));
 		}
 		
+		mkt::wait_all();
+	
+		mkt::DArray<Fish> population(3, 2048, 512, Fish{}, 2, 3, 1536, mkt::DIST, mkt::COPY);
+		mkt::DArray<double> instinctive_movement_vector_copy(3, 512, 512, 0.0, 1, 3, 0, mkt::COPY, mkt::COPY);
+		mkt::DArray<Fish> weighted_fishes(3, 2048, 512, Fish{}, 2, 3, 1536, mkt::DIST, mkt::COPY);
+		mkt::DArray<double> barycenter_copy(3, 512, 512, 0.0, 1, 3, 0, mkt::COPY, mkt::COPY);
+		
 		InitFish_map_in_place_array_functor initFish_map_in_place_array_functor{rns_pointers};
 		EvaluateFitness_map_in_place_array_functor evaluateFitness_map_in_place_array_functor{};
 		IndividualMovement_map_in_place_array_functor individualMovement_map_in_place_array_functor{rns_pointers};
@@ -1182,6 +1185,8 @@
 			acc_set_device_num(gpu, acc_device_not_host);
 			acc_wait_all();
 		}
+		
+		mkt::wait_all();
 		
 		
 		#pragma omp parallel for
