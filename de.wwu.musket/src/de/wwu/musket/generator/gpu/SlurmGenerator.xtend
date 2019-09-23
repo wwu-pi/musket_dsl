@@ -53,13 +53,13 @@ class SlurmGenerator {
 		#SBATCH --cpus-per-task 24
 		#SBATCH --mail-type ALL
 		#SBATCH --mail-user fabian.wrede@mailbox.tu-dresden.de
-		#SBATCH --time 01:00:00
+		#SBATCH --time 03:00:00
 		#SBATCH -A p_algcpugpu
 		#SBATCH --gres gpu:4
 		
 		export OMP_NUM_THREADS=24
 		
-		RUNS=1
+		RUNS=10
 		for ((i=1;i<=RUNS;i++)); do
 		    srun --multi-prog «Config.home_path_source»«Config.base_path»job.conf
 		done
