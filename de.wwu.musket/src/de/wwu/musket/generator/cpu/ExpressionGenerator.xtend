@@ -12,6 +12,7 @@ import de.wwu.musket.musket.Expression
 import de.wwu.musket.musket.ExternalFunctionCall
 import de.wwu.musket.musket.IndividualObject
 import de.wwu.musket.musket.IntVal
+import de.wwu.musket.musket.LeftShift
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
@@ -23,6 +24,7 @@ import de.wwu.musket.musket.PostDecrement
 import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
+import de.wwu.musket.musket.RightShift
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.Subtraction
 import de.wwu.musket.musket.TypeCast
@@ -68,6 +70,8 @@ class ExpressionGenerator {
 			Subtraction: '''(«expression.left.generateExpression(param_map)» - «expression.right.generateExpression(param_map)»)'''
 			Multiplication: '''(«expression.left.generateExpression(param_map)» * «expression.right.generateExpression(param_map)»)'''
 			Division: '''(«expression.left.generateExpression(param_map)» / «expression.right.generateExpression(param_map)»)'''
+			LeftShift: '''(«expression.left.generateExpression(param_map)» << «expression.right.generateExpression(param_map)»)'''
+			RightShift: '''(«expression.left.generateExpression(param_map)» >> «expression.right.generateExpression(param_map)»)'''
 			CompareExpression case expression.eqRight === null: '''«expression.eqLeft.generateExpression(param_map)»'''
 			CompareExpression case expression.eqRight !==
 				null: '''(«expression.eqLeft.generateExpression(param_map)» «expression.op» «expression.eqRight.generateExpression(param_map)»)'''

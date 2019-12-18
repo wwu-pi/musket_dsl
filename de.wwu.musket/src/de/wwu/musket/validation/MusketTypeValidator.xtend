@@ -12,6 +12,7 @@ import de.wwu.musket.musket.GatherSkeleton
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.IteratorForLoop
 import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.LeftShift
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
@@ -30,6 +31,7 @@ import de.wwu.musket.musket.MusketPackage
 import de.wwu.musket.musket.Parameter
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.RightShift
 import de.wwu.musket.musket.ScatterSkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
@@ -604,6 +606,24 @@ class MusketTypeValidator extends AbstractMusketValidator {
 		if(modulo.left.calculateType != MusketType.INT || modulo.right.calculateType != MusketType.INT){
 			error('Modulo operator requires two int values, ' + modulo.left.calculateType + ' and ' + modulo.right.calculateType + ' given!', 
 				modulo, null, null)
+		}
+	}
+	
+	// Check LeftShift Operator only works on ints
+	@Check
+	def checkLeftShiftOperator(LeftShift lshift) {
+		if(lshift.left.calculateType != MusketType.INT || lshift.right.calculateType != MusketType.INT){
+			error('LeftShift operator requires two int values, ' + lshift.left.calculateType + ' and ' + lshift.right.calculateType + ' given!', 
+				lshift, null, null)
+		}
+	}
+	
+	// Check RightShift Operator only works on ints
+	@Check
+	def checkRightShiftOperator(RightShift rshift) {
+		if(rshift.left.calculateType != MusketType.INT || rshift.right.calculateType != MusketType.INT){
+			error('RightShift operator requires two int values, ' + rshift.left.calculateType + ' and ' + rshift.right.calculateType + ' given!', 
+				rshift, null, null)
 		}
 	}
 	

@@ -24,6 +24,7 @@ import de.wwu.musket.musket.IfClause
 import de.wwu.musket.musket.IndividualObject
 import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IteratorForLoop
+import de.wwu.musket.musket.LeftShift
 import de.wwu.musket.musket.MatrixType
 import de.wwu.musket.musket.Modulo
 import de.wwu.musket.musket.Multiplication
@@ -36,6 +37,7 @@ import de.wwu.musket.musket.PostIncrement
 import de.wwu.musket.musket.PreDecrement
 import de.wwu.musket.musket.PreIncrement
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.RightShift
 import de.wwu.musket.musket.SignedArithmetic
 import de.wwu.musket.musket.SkeletonExpression
 import de.wwu.musket.musket.SkeletonParameterInput
@@ -301,6 +303,8 @@ class FunctorGenerator {
 			Subtraction: '''(«expression.left.generateExpression(processId)» - «expression.right.generateExpression(processId)»)'''
 			Multiplication: '''(«expression.left.generateExpression(processId)» * «expression.right.generateExpression(processId)»)'''
 			Division: '''(«expression.left.generateExpression(processId)» / «expression.right.generateExpression(processId)»)'''
+			LeftShift: '''(«expression.left.generateExpression(processId)» << «expression.right.generateExpression(processId)»)'''
+			RightShift: '''(«expression.left.generateExpression(processId)» >> «expression.right.generateExpression(processId)»)'''
 			CompareExpression case expression.eqRight === null: '''«expression.eqLeft.generateExpression(processId)»'''
 			CompareExpression case expression.eqRight !==
 				null: '''(«expression.eqLeft.generateExpression(processId)» «expression.op» «expression.eqRight.generateExpression(processId)»)'''

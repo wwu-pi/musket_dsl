@@ -525,12 +525,16 @@ And returns Expression:
 BooleanExpression returns Expression:
 	{Not} OP_CONDITION_NOT expression = BooleanExpression |
 	BoolVal |
-	AdditionSubtraction |
+	Shift |
 	StructVal |
 	CollectionInstantiation
 ;
 
 // Arithmetic expressions
+Shift returns Expression:
+	AdditionSubtraction (({LeftShift.left=current} OP_MATH_LSHIFT | {RightShift.left=current} OP_MATH_RSHIFT) right=PrefixedExpression)*
+;
+
 AdditionSubtraction returns Expression: // Top-Level arithmetic expression
 	MultiplicationDivision (({Addition.left=current} OP_MATH_PLUS | {Subtraction.left=current} OP_MATH_MINUS) right=MultiplicationDivision)*
 ;
@@ -670,6 +674,14 @@ OP_MATH_DIV:
 
 OP_MATH_MODULO:
 	'%'
+;
+
+OP_MATH_RSHIFT:
+	'lsr'
+;
+
+OP_MATH_LSHIFT:
+	'lsl'
 ;
 
 OP_CONDITION_AND:

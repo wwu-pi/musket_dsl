@@ -35,6 +35,7 @@ import de.wwu.musket.musket.IntVal
 import de.wwu.musket.musket.IntVariable
 import de.wwu.musket.musket.InternalFunctionCall
 import de.wwu.musket.musket.LambdaFunction
+import de.wwu.musket.musket.LeftShift
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.MapInPlaceSkeleton
 import de.wwu.musket.musket.MapIndexInPlaceSkeleton
@@ -62,6 +63,7 @@ import de.wwu.musket.musket.PrimitiveType
 import de.wwu.musket.musket.Ref
 import de.wwu.musket.musket.ReferableObject
 import de.wwu.musket.musket.ReturnStatement
+import de.wwu.musket.musket.RightShift
 import de.wwu.musket.musket.ScatterSkeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
@@ -378,6 +380,20 @@ class TypeHelper {
 	static dispatch def MusketType calculateType(Modulo exp){
 		if(exp.right !== null) {
 			if(exp.left.calculateType != MusketType.INT || exp.right.calculateType != MusketType.INT) return null // Modulo requires two ints 
+		}
+		return exp.left.calculateType
+	}
+	
+	static dispatch def MusketType calculateType(LeftShift exp){
+		if(exp.right !== null) {
+			if(exp.left.calculateType != MusketType.INT || exp.right.calculateType != MusketType.INT) return null // Shift requires two ints 
+		}
+		return exp.left.calculateType
+	}
+	
+	static dispatch def MusketType calculateType(RightShift exp){
+		if(exp.right !== null) {
+			if(exp.left.calculateType != MusketType.INT || exp.right.calculateType != MusketType.INT) return null // Shift requires two ints 
 		}
 		return exp.left.calculateType
 	}
