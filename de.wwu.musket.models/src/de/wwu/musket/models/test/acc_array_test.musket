@@ -1,0 +1,28 @@
+#config PLATFORM GPU CUDA CPU CPU_MPMD
+#config PROCESSES 1
+#config CORES 4
+#config GPUS 1
+#config MODE debug
+// TODO Other Platforms
+
+
+
+array<int,100,dist> simple = {5};
+
+int initSimple(int pi){
+	pi = 1;
+	return pi;
+}
+
+main{
+	simple.show();
+
+	mkt::roi_start();
+		
+	simple.mapInPlace(initSimple());
+	
+	mkt::roi_end();
+  	simple.show();
+  	//print best solution
+	mkt::print('Done: %i\n', 42);
+}
