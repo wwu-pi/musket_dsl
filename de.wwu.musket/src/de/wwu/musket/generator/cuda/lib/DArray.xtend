@@ -116,6 +116,7 @@ class DArray {
 		    	_size_gpu = size_local;
 		    }
 		    _bytes_gpu = _size_gpu * sizeof(T);
+		    
 		    cudaMallocHost((void**)&_data, _size_local * sizeof(T));
 		    
 			for(int gpu = 0; gpu < «Config.gpus»; ++gpu){

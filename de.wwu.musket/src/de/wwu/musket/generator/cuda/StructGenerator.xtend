@@ -32,8 +32,6 @@ class StructGenerator {
 					«m.calculateType.cppType» «m.name.toFirstLower»;
 				«ENDIF»
 			«ENDFOR»
-			
-			//«s.name.toFirstUpper»();
 		};
 	'''
 	
@@ -44,7 +42,7 @@ class StructGenerator {
 	 * @return the generated declaration
 	 */
 	def static generateStructDefaultConstructor(Struct s) '''
-		//«s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
+		//Check project/include/project.cuh «s.name.toFirstUpper»::«s.name.toFirstUpper»()«FOR m : s.attributes BEFORE " : " SEPARATOR ", "»«m.name.toFirstLower»«IF m.calculateType.collection»«m.calculateType.collectionType.CXXDefaultConstructorValue»«ELSE»«m.calculateType.primitiveType.CXXDefaultConstructorValue»«ENDIF»«ENDFOR» {}
 	'''
 	
 	def static generateMPIStructTypeDeclarations(Resource r) {

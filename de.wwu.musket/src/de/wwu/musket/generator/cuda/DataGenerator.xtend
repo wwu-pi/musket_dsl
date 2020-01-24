@@ -72,6 +72,14 @@ class DataGenerator {
 		}
 	}
 
+	def static dispatch generateArrayDifferentiation(CollectionObject c, int processId) {
+		if (true) {
+			'''mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
+		} else {
+			'''mkt::DeviceArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
+		}
+	}
+	
 	def static dispatch generateObjectDefinitionMain(Struct s, int processId) '''''' // this is done in StructGenerator.xtend
 
 // Generate initialization
