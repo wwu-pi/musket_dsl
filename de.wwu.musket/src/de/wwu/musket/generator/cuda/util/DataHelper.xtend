@@ -186,6 +186,24 @@ class DataHelper {
 			default: a.size.concreteValue
 		}
 	}
+
+	def static dispatch sizeLocalGpu(ArrayType a, int processId) {
+		switch a.distributionMode {
+			case DIST: a.size.concreteValue / Config.processes / Config.gpus//if(a.size.concreteValue % Config.processes > processId){ (a.size.concreteValue / Config.processes) + 1} else { a.size.concreteValue / Config.processes }
+			case COPY: a.size.concreteValue
+			default: a.size.concreteValue
+		}
+	}
+	
+	def static dispatch sizeLocalGpu(MatrixType m, int processId) {
+		switch m.distributionMode {
+			case DIST: m.cols.concreteValue * m.rows.concreteValue / Config.processes / Config.gpus
+			case COPY: m.cols.concreteValue * m.rows.concreteValue
+			case ROW_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case ROW_DIST")
+			case COLUMN_DIST: throw new UnsupportedOperationException("ObjectExtension.sizeLocal: case COLUMN_DIST")
+			default: 0
+		}
+	}
 	
 	def static globalOffset(ArrayType a, int processId) {
 		switch a.distributionMode {

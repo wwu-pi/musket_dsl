@@ -34,15 +34,16 @@ class MusketStandaloneGenerator {
 		val models = #[
 //			'../de.wwu.musket.models/src/double.musket'
 //			'../de.wwu.musket.models/src/fold.musket',
-			'../de.wwu.musket.models/src/frobenius.musket',
+//			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
-			'../de.wwu.musket.models/src/fss.musket',
+//			'../de.wwu.musket.models/src/fss.musket',
 //			'../de.wwu.musket.models/src/fss-test.musket'
 //			'../de.wwu.musket.models/src/matmult.musket',
-			'../de.wwu.musket.models/src/matmult_float.musket',
+//			'../de.wwu.musket.models/src/matmult_float.musket',
 //			'../de.wwu.musket.models/src/matmult_float_transposed.musket',
-//			'../de.wwu.musket.models/src/nbody.musket',
-			'../de.wwu.musket.models/src/nbody_float.musket',
+			//'../de.wwu.musket.models/src/nbody.musket',
+			//			'../de.wwu.musket.models/src/hlpp19/nbody-n-1-g-1.musket'
+//			'../de.wwu.musket.models/src/nbody_float.musket',
 //			'../de.wwu.musket.models/src/plus-row.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/map-function-array-matrix.musket',
@@ -50,9 +51,15 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/gather.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/shift-partitions.musket',
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/zip.musket',
-			'../de.wwu.musket.models/src/de/wwu/musket/models/test/array.musket',
-			'../de.wwu.musket.models/src/de/wwu/musket/models/test/matrix.musket'
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/array.musket',
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/matrix.musket'
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/lambda.musket'
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/struct_test.musket',
+//			'../de.wwu.musket.models/src/de/wwu/musket/models/test/acc_array_test.musket'
+//			'../de.wwu.musket.models/src/mss.musket'
+			'../de.wwu.musket.models/src/pfb.musket'
+
+//			'../de.wwu.musket.models/src/pfb.musket'
 
 		]
 
@@ -62,14 +69,14 @@ class MusketStandaloneGenerator {
 
 		var benchmark_models = newArrayList
 
-		for (name : benchmark_names) {
+		/*for (name : benchmark_names) {
 			for (n : nodes) {
 				for (g : gpus) {
 					benchmark_models.add('../de.wwu.musket.models/src/hlpp19/' + name + '-n-' + n + '-g-' + g +
 						'.musket')
 				}
 			}
-		}
+		}*/
 
 		benchmark_models.addAll(models)
  		

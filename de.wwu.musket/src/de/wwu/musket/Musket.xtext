@@ -119,23 +119,23 @@ ArrayType:
 ;
 
 IntArrayType:
-	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 DoubleArrayType:
-	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
+	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>' 
 ;
 
 FloatArrayType:
-	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
+	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>' 
 ;
 
 BoolArrayType:
-	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 	
 StructArrayType:
-	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
 ;
 
 MatrixType:
@@ -602,6 +602,10 @@ enum DistributionMode:
 
 enum PrimitiveTypeLiteral:
 	auto | int | double | float | bool | string
+;
+
+enum ViewNeccessary:
+	yes | no 
 ;
 
 AssignmentOperator:

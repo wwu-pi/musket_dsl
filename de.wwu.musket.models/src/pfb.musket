@@ -10,10 +10,10 @@ struct float2 {
 	float y;
 };
 
-array<float, 134225920, dist, yes> input;
-array<float2, 134217728, dist, no> c_input_double;
-array<float2, 134217728, dist, yes> c_output;
-array<float, 512, dist, yes> coeff;
+array<float, 134225920, dist, yes, dist> input;
+array<float2, 134217728, dist, no, dist> c_input_double;
+array<float2, 134217728, dist, yes, dist> c_output;
+array<float, 512, dist, yes, copy> coeff;
 
 float init(float x){
 	return (float) mkt::rand(100, -100);
@@ -66,7 +66,7 @@ float2 combine (int counter , int log2size , double pi , int Problemsize ,
 }
 
 float2 fetch (int counter , int log2size , int i, float2 Ti){
-	return c_output [i ^ (int) std :: pow (2, log2size -1- counter )];
+	return c_output[i * (int) std::pow (2, log2size-1-counter)];
 }
 
 main{
@@ -78,11 +78,11 @@ main{
 	coeff.mapInPlace(init());
 	
 	mkt::roi_start();
-	c_output.mapIndexInPlace(FIR(ntaps, nchans, nspectra));
+	//c_output.mapIndexInPlace(FIR(ntaps, nchans, nspectra));
 	
 	for (int j=0; j< log2size ; j++) {
 		c_input_double.mapIndexInPlace(fetch(j, log2size ));
-		c_output.mapIndexInPlace(combine(j, log2size, PI ,16));
+		c_output.mapIndexInPlace(combine(j, log2size, PI, 16));
 	}
 	mkt::roi_end();
 }
