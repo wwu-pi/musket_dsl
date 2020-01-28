@@ -14,6 +14,7 @@ import static extension de.wwu.musket.util.MusketHelper.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import static de.wwu.musket.generator.cuda.lib.DArray.*
 import static de.wwu.musket.generator.cuda.lib.DeviceArray.*
+import static de.wwu.musket.generator.cuda.lib.GPUArray.*
 import static de.wwu.musket.generator.cuda.lib.DMatrix.*
 import static de.wwu.musket.generator.cuda.lib.DeviceMatrix.*
 import de.wwu.musket.generator.cuda.Config
@@ -58,6 +59,9 @@ class Musket {
 			«generateDArrayDeclaration»
 			«generateDArraySkeletonDeclarations»
 			«generateDeviceArrayDeclaration»
+			«generateGPUArrayDeclaration»
+			«generateGPUArrayDeclarations»
+			
 		«ENDIF»
 		
 		«IF resource.Matrices.size() > 0»
@@ -159,6 +163,8 @@ class Musket {
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDefinition»
 			«generateDArraySkeletonDefinitions»
+			«generateGPUArrayDefinition»
+			«generateGPUArraySkeletonDefinitions»
 			«generateDeviceArrayDefinition»
 		«ENDIF»
 		
