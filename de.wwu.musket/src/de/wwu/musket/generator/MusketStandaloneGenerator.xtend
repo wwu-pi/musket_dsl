@@ -33,7 +33,7 @@ class MusketStandaloneGenerator {
 
 		val models = #[
 //			'../de.wwu.musket.models/src/double.musket'
-//			'../de.wwu.musket.models/src/fold.musket',
+			'../de.wwu.musket.models/src/fold.musket',
 //			'../de.wwu.musket.models/src/frobenius.musket',
 //			'../de.wwu.musket.models/src/frobenius_float.musket',
 //			'../de.wwu.musket.models/src/fss.musket',
