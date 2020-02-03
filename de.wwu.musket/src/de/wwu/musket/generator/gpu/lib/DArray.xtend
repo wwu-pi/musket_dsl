@@ -199,21 +199,22 @@ class DArray {
 		template<typename T>
 		void mkt::DArray<T>::set_local(int index, const T& v) {
 			_data[index] = v;
-			T* host_pointer = _data.data() + index;
 			if(_device_dist == mkt::Distribution::COPY){
 				#pragma omp parallel for
 				for(int gpu = 0; gpu < «Config.gpus»; ++gpu){
+					T* host_pointer = _host_data[gpu] + index;
+						acc_set_device_num(gpu, acc_device_not_host);
+						T* gpu_pointer = _gpu_data[gpu] + index;
+						acc_memcpy_to_device_async(gpu_pointer, host_pointer, sizeof(T), 0 );
+					}
+				}else if(_device_dist == mkt::Distribution::DIST){
+					int gpu = get_gpu_by_local_index(index);
+					T* host_pointer = _host_data[gpu] + index;
 					acc_set_device_num(gpu, acc_device_not_host);
-					T* gpu_pointer = _gpu_data[gpu] + index;
-					acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
+					T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
+					acc_memcpy_to_device_async(gpu_pointer, host_pointer, sizeof(T), 0 );
 				}
-			}else if(_device_dist == mkt::Distribution::DIST){
-				int gpu = get_gpu_by_local_index(index);
-				acc_set_device_num(gpu, acc_device_not_host);
-				T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
-				acc_memcpy_to_device_async(host_pointer, gpu_pointer, sizeof(T), 0 );
-			}
-			acc_wait(0);
+				acc_wait(0);
 		}
 
 		template<typename T>

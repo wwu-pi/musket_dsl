@@ -2,7 +2,7 @@
 #config PROCESSES 1
 #config CORES 24
 #config GPUS 1
-#config MODE release
+#config MODE debug
 
 const int mdim = 4;
 
