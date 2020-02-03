@@ -286,7 +286,11 @@ class MusketType {
 				return 'std::array<' + primtype + ',' + size + '>'
 			else{
 				if(isArray){
-					return 'mkt::DArray<' + primtype + '>'
+					if ((collectionType as ArrayType).getView().literal == 'no') {
+						return 'mkt::GPUArray<' + primtype + '>'
+					} else {
+						return 'mkt::DArray<' + primtype + '>'
+					}
 				}else if(isMatrix){
 					return 'mkt::DMatrix<' + primtype + '>'
 				}					

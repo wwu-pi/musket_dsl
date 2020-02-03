@@ -135,6 +135,7 @@ class FunctorGenerator {
 	}
 	
 	def static generateCollectionObjectConstructorArgument(CollectionObject co)'''const «co.calculateType.cppType.replace("0", co.calculateType.collectionType?.size.toString)»& _«co.name»'''
+	
 	def static generateCollectionObjectInitListEntry(CollectionObject co)'''«co.name»(_«co.name»)'''
 	
 	def static generateInitFunctionCall(CollectionObject co)'''«co.name».init(device)'''
