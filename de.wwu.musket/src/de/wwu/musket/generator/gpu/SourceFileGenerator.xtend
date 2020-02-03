@@ -38,6 +38,7 @@ import de.wwu.musket.musket.Function
 import de.wwu.musket.musket.SkeletonParameterInput
 import de.wwu.musket.musket.MapFoldSkeleton
 import de.wwu.musket.musket.MapReductionSkeleton
+import de.wwu.musket.musket.ArrayType
 
 /** 
  * Generates the source file of the project.
@@ -185,9 +186,12 @@ class SourceFileGenerator {
 
 				if (!generated.contains(skelContainerName -> func.name)) {
 					generated.add(skelContainerName -> func.name)
+					var colname = skeletonExpression.obj.collectionContainerName.toString;
+					if ((skeletonExpression.obj.type as ArrayType).getView().literal == 'no'){
+						colname = 'GPUArray'
+					}
 					result +=
-						FunctorGenerator.generateFunctor(func, skel.skeletonName.toString,
-							skeletonExpression.obj.collectionContainerName.toString,
+						FunctorGenerator.generateFunctor(func, skel.skeletonName.toString, colname,
 							skeletonExpression.getNumberOfFreeParameters(func), processId)
 				}
 
@@ -195,11 +199,14 @@ class SourceFileGenerator {
 					val mapFunction = (skel as MapFoldSkeleton).mapFunction.toFunction
 					if (!generated.contains(skelContainerName -> mapFunction.name)) {
 						generated.add(skelContainerName -> mapFunction.name)
+						var colname = skeletonExpression.obj.collectionContainerName.toString;
+						if ((skeletonExpression.obj.type as ArrayType).getView().literal == 'no'){
+							colname = 'GPUArray'
+						}
 						result +=
-							FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
-								skeletonExpression.obj.collectionContainerName.toString,
-								skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
-					}
+							FunctorGenerator.generateFunctor(func, skel.skeletonName.toString, colname,
+								skeletonExpression.getNumberOfFreeParameters(func), processId)
+						}
 				}
 			}
 		}
@@ -211,10 +218,13 @@ class SourceFileGenerator {
 			val mapFunction = (skel as MapReductionSkeleton).mapFunction.toFunction
 			if (!generated.contains(skelContainerName -> mapFunction.name)) {
 				generated.add(skelContainerName -> mapFunction.name)
+				var colname = skeletonExpression.obj.collectionContainerName.toString;
+				if ((skeletonExpression.obj.type as ArrayType).getView().literal == 'no'){
+					colname = 'GPUArray'
+				}
 				result +=
 					FunctorGenerator.generateFunctor(mapFunction, skel.skeletonName.toString,
-						skeletonExpression.obj.collectionContainerName.toString,
-						skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
+						colname, skeletonExpression.getNumberOfFreeParameters(mapFunction), processId)
 			}
 		}
 		return result

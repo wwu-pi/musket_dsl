@@ -1,15 +1,8 @@
 package de.wwu.musket.generator.cuda.lib
 
+import de.wwu.musket.generator.cuda.Config
 import org.apache.log4j.LogManager
 import org.apache.log4j.Logger
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess2
-import org.eclipse.xtext.generator.IGeneratorContext
-
-import static extension de.wwu.musket.generator.cuda.DataGenerator.*
-import static extension de.wwu.musket.generator.cuda.StructGenerator.*
-import static extension de.wwu.musket.generator.extensions.ModelElementAccess.*
-import de.wwu.musket.generator.cuda.Config
 
 class GPUArray {
 	private static final Logger logger = LogManager.getLogger(GPUArray)

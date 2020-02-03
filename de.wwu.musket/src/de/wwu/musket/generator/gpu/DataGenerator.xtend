@@ -67,8 +67,18 @@ class DataGenerator {
 	// Arrays objects
 	def static dispatch generateObjectDefinitionMain(CollectionObject c, int processId) {
 		switch (c.type) {
-			ArrayType: '''mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
+			ArrayType: generateArrayDifferentiation(c, processId)
 			MatrixType: '''mkt::DMatrix<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as MatrixType).rows.concreteValue», «(c.type as MatrixType).cols.concreteValue», «(c.type as MatrixType).rowsLocal()», «(c.type as MatrixType).colsLocal()», «(c.type as MatrixType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as MatrixType).blocksInRow», «(c.type as MatrixType).blocksInColumn», «(c.type as MatrixType).partitionPosition(processId).key», «(c.type as MatrixType).partitionPosition(processId).value», «(c.type as MatrixType).globalRowOffset(processId)», «(c.type as MatrixType).globalColOffset(processId)», mkt::«(c.type as MatrixType).distributionMode.toString.toUpperCase», mkt::«(c.type as MatrixType).gpuDistributionMode.toString.toUpperCase»);'''
+		}
+	}
+
+	def static generateArrayDifferentiation(CollectionObject c, int processId) {
+		if ((c.type as ArrayType).getView().literal == 'yes') {
+			'''mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
+		} else {
+			if ((c.type as ArrayType).getView().literal == 'no') {
+				'''mkt::GPUArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)»,«IF c.values.size == 1» 1«ELSE» 0«ENDIF», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
+				}
 		}
 	}
 

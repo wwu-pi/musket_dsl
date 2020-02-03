@@ -49,6 +49,7 @@ import static extension de.wwu.musket.util.CollectionHelper.*
 import static extension de.wwu.musket.util.MusketType.*
 import static extension de.wwu.musket.util.TypeHelper.*
 import de.wwu.musket.musket.MapReductionSkeleton
+import de.wwu.musket.musket.ArrayType
 
 class MusketHelper {
 	/**
@@ -136,7 +137,11 @@ class MusketHelper {
 
 	static def getFunctorName(SkeletonExpression se, SkeletonParameterInput spi) {
 		val skel = se.skeleton
-		val container = se.obj.collectionContainerName
+		var container = se.obj.collectionContainerName;
+		if ((se.obj.type as ArrayType).getView().literal == 'no'){
+			container = 'GPUArray'
+		}
+		//val container = se.obj.collectionContainerName
 		spi.functionName.toFirstUpper + "_" + skel.skeletonName + "_" + container + '_functor'
 	}
 	

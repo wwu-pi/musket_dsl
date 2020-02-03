@@ -74,7 +74,6 @@ class DataGenerator {
 	}
 
 	def static generateArrayDifferentiation(CollectionObject c, int processId) {
-		val name = c.calculateCollectionType
 		if ((c.type as ArrayType).getView().literal == 'yes') {
 			'''mkt::DArray<«c.calculateCollectionType.cppType»> «c.name»(«processId», «(c.type as ArrayType).size()», «c.type.sizeLocal(processId)», «IF c.values.size == 1»«c.values.head.ValueAsString»«ELSE»«c.calculateCollectionType.getCXXDefaultValue()»«ENDIF», «(c.type as ArrayType).blocks», «processId», «(c.type as ArrayType).globalOffset(processId)», mkt::«(c.type as ArrayType).distributionMode.toString.toUpperCase», mkt::«(c.type as ArrayType).gpuDistributionMode.toString.toUpperCase»);'''
 		} else {

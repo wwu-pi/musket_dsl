@@ -15,6 +15,7 @@ import static extension de.wwu.musket.util.TypeHelper.*
 import static de.wwu.musket.generator.gpu.lib.DArray.*
 import static de.wwu.musket.generator.gpu.lib.DeviceArray.*
 import static de.wwu.musket.generator.gpu.lib.DMatrix.*
+import static de.wwu.musket.generator.gpu.lib.GPUArray.*
 import static de.wwu.musket.generator.gpu.lib.DeviceMatrix.*
 import de.wwu.musket.generator.gpu.Config
 import java.util.List
@@ -52,6 +53,8 @@ class Musket {
 			«generateDArrayDeclaration»
 			«generateDArraySkeletonDeclarations»
 			«generateDeviceArrayDeclaration»
+			«generateGPUArrayDeclaration»
+			«generateGPUArrayDeclarations»
 		«ENDIF»
 		
 		«IF resource.Matrices.size() > 0»
@@ -135,6 +138,8 @@ class Musket {
 			«generateDArrayDefinition»
 			«generateDArraySkeletonDefinitions»
 			«generateDeviceArrayDefinition»
+			«generateGPUArrayDefinition»
+			«generateGPUArraySkeletonDefinitions»
 		«ENDIF»
 		
 		«IF resource.Matrices.size() > 0»
