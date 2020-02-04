@@ -30,6 +30,7 @@ import de.wwu.musket.musket.MultiplyReduction
 import de.wwu.musket.musket.MaxReduction
 import de.wwu.musket.musket.MinReduction
 import de.wwu.musket.musket.MapReductionSkeleton
+import de.wwu.musket.musket.ArrayType
 
 class ReductionSkeletonGenerator {
 
@@ -45,6 +46,18 @@ class ReductionSkeletonGenerator {
 						
 		template<typename T>
 		T reduce_min(mkt::DArray<T>& a);
+		
+		template<typename T>
+		T reduce_plus(mkt::GPUArray<T>& a);
+		
+		template<typename T>
+		T reduce_multiply(mkt::GPUArray<T>& a);
+				
+		template<typename T>
+		T reduce_max(mkt::GPUArray<T>& a);
+						
+		template<typename T>
+		T reduce_min(mkt::GPUArray<T>& a);
 	'''
 	
 	def static generateMapReductionSkeletonArrayFunctionDeclarations() '''
@@ -59,6 +72,18 @@ class ReductionSkeletonGenerator {
 						
 		template<typename T, typename R, typename Functor>
 		R map_reduce_min(mkt::DArray<T>& a, Functor f);
+		
+		template<typename T, typename R, typename Functor>
+		R map_reduce_plus(mkt::GPUArray<T>& a, Functor f);
+		
+		template<typename T, typename R, typename Functor>
+		R map_reduce_multiply(mkt::GPUArray<T>& a, Functor f);
+				
+		template<typename T, typename R, typename Functor>
+		R map_reduce_max(mkt::GPUArray<T>& a, Functor f);
+						
+		template<typename T, typename R, typename Functor>
+		R map_reduce_min(mkt::GPUArray<T>& a, Functor f);
 	'''
 	
 	def static generateReductionSkeletonMatrixFunctionDeclarations() '''
@@ -99,8 +124,21 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 			val operatorName = operator.name.toString
 			val pair = type -> operatorName
 			if(!typeOperatorPairs.contains(pair)){
-				if(resource.Arrays.size() > 0)
-					result += generateReductionSkeletonFunctionDefinition(mktType, operator, "DArray")
+				if(resource.Arrays.size() > 0) {
+					var genDArray = 0;
+					var genGPUArray = 0;
+					
+					for (CollectionObject a : resource.Arrays) {
+						if (genDArray == 0 && (a.type as ArrayType).getView().literal == 'no'){
+							genDArray = 1;
+							result += generateReductionSkeletonFunctionDefinition(mktType, operator, "DArray")
+						}
+						if (genGPUArray == 0 && (a.type as ArrayType).getView().literal == 'yes'){
+							genGPUArray = 1;
+							result += generateReductionSkeletonFunctionDefinition(mktType, operator, "GPUArray")
+						}
+					}
+				}
 				if(resource.Matrices.size() > 0)
 					result += generateReductionSkeletonFunctionDefinition(mktType, operator, "DMatrix")
 				typeOperatorPairs.add(pair)
@@ -122,8 +160,21 @@ def static generateMapReductionSkeletonMatrixFunctionDeclarations() '''
 			val operatorName = operator.name.toString
 			val pair = inCPPtype -> outCPPtype -> functorName -> operatorName
 			if(!typeOperatorPairs.contains(pair)){
-				if(resource.Arrays.size() > 0)
-					result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "DArray")
+				if(resource.Arrays.size() > 0){
+					var genDArray = 0;
+					var genGPUArray = 0;
+					
+					for (CollectionObject a : resource.Arrays) {
+						if (genDArray == 0 && (a.type as ArrayType).getView().literal == 'no'){
+							genDArray = 1;
+							result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "DArray")
+						}
+						if (genGPUArray == 0 && (a.type as ArrayType).getView().literal == 'yes'){
+							genGPUArray = 1;
+							result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "GPUArray")
+						}
+					}
+				}
 				if(resource.Matrices.size() > 0)
 					result += generateMapReductionSkeletonFunctionDefinition(in_type, out_type, operator, functorName, "DMatrix")
 				typeOperatorPairs.add(pair)
