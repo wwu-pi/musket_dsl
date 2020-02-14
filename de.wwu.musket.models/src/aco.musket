@@ -1,0 +1,212 @@
+#config PLATFORM GPU CUDA
+#config PROCESSES 1
+#config CORES 24
+#config GPUS 1
+#config MODE debug
+
+const int ants = 256;
+const int ncities = 256;
+const double bestroute = 99999999.9;
+const int IROULETE = 32;
+const double PHERINIT = 0.005;
+const double EVAPORATION = 0.5;
+const int ALPHA = 1;
+const int BETA = 2;
+const int TAUMAX = 2;
+const int block_size = 64;
+
+array<double,512,dist, yes> cities; // cities * 2
+array<double,65536,dist, yes> phero; // cities squared
+array<double,65536,dist, yes> distance; // cities squared
+array<int,512,dist, yes> best_sequence;
+
+array<double,65536,dist, no> d_delta_phero; // cities squared
+array<double,65536,dist, no> d_routes_distance; //n_ants*n_cities
+double d_bestRoute; 
+array<double,65536,dist, no> d_probabilities;//n_ants*n_cities
+
+array<int,8192,dist, no> d_iroulette; // IROULETTE * cities
+array<int,65536,dist, no> d_routes; //n_ants*n_cities
+int d_nants; 
+int d_ncities;
+
+int initMatrix(int x, int r, int c, int v){
+	return r + c + x;
+}
+
+double writeIndex(int i, double y){
+	return (double)i;
+}
+
+double calculate_distance(int i, double y){
+	double returner = 0.0;
+	if(i % d_ncities == 0){
+		// distance to itself is zero
+		returner = 0.0;
+	} else {
+		int j = i % d_ncities;
+		int currentcity = (int) i % d_ncities;
+		//  sqrt(pow(cities[j*2] - cities[currentcity*2],2) + pow(cities[(j*2) + 1] - cities[(currentcity*2) + 1],2));
+		// Euclidean Distance to other city.
+		double xdistance = (cities[j*2] - cities[currentcity*2])*(cities[j*2] - cities[currentcity*2]);
+		double ydistance = (cities[(j*2) + 1] - cities[(currentcity*2) + 1])*(cities[(j*2) + 1] - cities[(currentcity*2) + 1]);
+		returner = mkt::sqrt(xdistance + ydistance);
+	}
+	return returner;
+}
+
+// Returns the 32 closest cities. 
+int calculate_iroulette(int irouletteindex, int value){
+	//c_index * IROULETE + i == zurzeitiger index
+	// ergo 
+	int i = irouletteindex - (d_ncities * IROULETE);
+	int c_index = (irouletteindex-i) % IROULETE;
+	int returner = 0;
+	double citydistance = 999999.9;
+	double c_dist = 0.0;
+	int city = -1;
+
+	for(int j = 0 ;j<d_ncities;j++){
+
+		bool check = true;
+
+		for(int k = 0 ; k < i ; k++){
+			if(d_iroulette[c_index * IROULETE + k] == j){
+				check = false;
+			}
+		}
+
+		if(c_index!=j && check){
+			c_dist = distance[(c_index*d_ncities) + j];
+			if(c_dist < citydistance){
+				citydistance = c_dist;
+				city = j;
+			}
+		}
+	}
+	return city;
+}
+
+int route_kernel(int Index, int value){
+	int newroute = 0;
+	int ant_index = ants/block_size;
+	int i = Index - ((ant_index * d_ncities) - 1);
+	
+	int initialCity = 0;
+	double sum = 0.0;
+
+	int next_city = -1;
+	double ETA = 0.0;
+	double TAU = 0.0;
+
+	// Initialize startcity.
+	d_routes[Index * d_ncities] = initialCity;
+	int cityi = d_routes[Index -1];
+	int count = 0;
+	
+	for (int c = 0; c < IROULETE; c++) {
+
+		next_city =  d_iroulette[(cityi * IROULETE) + c];
+		int visited = 0;
+		// has city been visited? Vielleicht in datenstruktur abspeichern. 
+		for (int l=0; l <= i; l++) {
+			if (d_routes[ant_index*d_ncities+l] == next_city) {
+				visited = 1;
+			}
+		}
+		if (cityi != next_city && !visited){
+			int indexpath = cityi*d_ncities+ next_city;
+			ETA = (double) pow(1 / distance[indexpath], BETA);
+			TAU = (double) pow(phero[indexpath], ALPHA);
+			sum += ETA * TAU;
+		}	
+	}
+
+	for (int c = 0; c < IROULETE; c++) {
+
+		next_city = d_iroulette[(cityi * IROULETE) + c];
+		int visited = 0;
+		// has city been visited? Vielleicht in datenstruktur abspeichern. 
+		for (int l=0; l <= i; l++) {
+			if (d_routes[ant_index*d_ncities+l] == next_city) {
+				visited = 1;
+			}
+		}
+		if (cityi == next_city || visited) {
+			d_probabilities[ant_index*d_ncities+c] = 0.0;
+		}else{
+			double dista = (double)distance[cityi*d_ncities+next_city];
+			// ALPHA ist 1 BETA 2
+			double ETAij = (double) mkt::pow(1 / dista , BETA);
+			double TAUij = (double) mkt::pow(phero[(cityi * d_ncities) + next_city], ALPHA);			
+			d_probabilities[ant_index*d_ncities+c] = (ETAij * TAUij) / sum;
+			count = count++;
+		}
+	}
+
+	// deadlock --- it reaches a place where there are no further connections
+	if (0 == count) {
+		int breaknumber = 0;
+		for(int nc = 0; nc < d_ncities; nc++){
+			int visited = 0;
+			// has city been visited? Vielleicht in datenstruktur abspeichern. 
+			for (int l=0; l <= i; l++) {
+				if (d_routes[ant_index*d_ncities+l] == nc) {
+					visited = 1;
+				}
+			}
+			if(!visited){
+				breaknumber = nc;
+			}
+		}
+		newroute = breaknumber;
+	} else {
+		//city(int antK, int n_cities, double* probabilities, curandState* rand_states) {
+		double random = mkt::rand(0.0, (double)d_ncities);
+		int ii = 0;
+		double summ = d_probabilities[ant_index*d_ncities];
+	
+		//while (summ < random){ // && i < n_cities-1) {
+		//	i++;
+		//	summ += d_probabilities[ant_index*n_cities+i];
+		//}
+		// simulating while.
+		for(int check = 1; check > 0; check++){
+			ii = ii++;
+			summ += d_probabilities[ant_index*d_ncities+ii];
+			if (summ >= random){
+				check = -2;
+			}
+		}
+		int chosen_city = ii;
+		newroute = d_iroulette[cityi*IROULETE+chosen_city];
+	}
+	// datapoint we are updating routes[(ant_index * n_cities) + (i + 1)]
+	return newroute;
+}
+
+main{
+	mkt::roi_start();
+	// TODO Random Kernel Ants sind Threads cities blocks
+	// TODO Daten einlesen (copy paste)
+	// Update integer bestroute
+	// Update array phero
+	// Update integer ants
+	// Update integer n_cities
+	// Update array cities
+	
+	// TODO calculate_distance_kernel rechnet wert nur einmal und schreibt ihn an zwei Stellen
+	distance.mapIndexInPlace(calculate_distance());
+	d_iroulette.mapIndexInPlace(calculate_iroulette());
+	int iterations = 5;
+	for (int i = 0; i < iterations; i++){
+		mkt::roi_start();
+		d_routes.mapIndexInPlace(route_kernel());
+		// update pheromone | best_sequence
+		
+	}
+	// TODO calculate_iroulette_kernel d_iroulette.8192
+	cities.mapIndexInPlace(writeIndex());	
+	mkt::roi_end();
+	//mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
+}
