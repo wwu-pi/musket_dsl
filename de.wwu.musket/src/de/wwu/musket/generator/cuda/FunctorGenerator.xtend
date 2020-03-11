@@ -362,14 +362,14 @@ class FunctorGenerator {
 					«orName».get_data_local(«or.globalCollectionIndex.head.generateExpression(processId)»)«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
-					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
+					«orName».get_global(«or.globalCollectionIndex.head.generateExpression(processId)»)«or?.tail.generateTail»/* TODO: For multiple GPUs*/
 				«ENDIF»
 			«ENDIF»
 «««		MATRIX
 		«ELSEIF or.value.calculateType.isMatrix»
 «««			LOCAL REF
 			«IF or.localCollectionIndex.size == 2»
-				«orName».get_data_local(«or.localCollectionIndex.head.generateExpression(processId)», «or.localCollectionIndex.drop(1).head.generateExpression(processId)»)«or?.tail.generateTail»
+				«orName».get_data_local(«or.localCollectionIndex.head.generateExpression(processId)», «or.localCollectionIndex.drop(1).head.generateExpression(processId)»)«or?.tail.generateTail» 
 «««			GLOBAL REF
 			«ELSEIF or.globalCollectionIndex.size == 2»
 «««					COPY

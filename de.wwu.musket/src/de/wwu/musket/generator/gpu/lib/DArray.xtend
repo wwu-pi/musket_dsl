@@ -17,14 +17,14 @@ class DArray {
 	def static generateDArrayDeclaration() '''		
 		template<typename T>
 		class DArray {
-		 public:
-		
-		  // CONSTRUCTORS / DESTRUCTOR
-		  DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
-		  ~ DArray();
+		   public:
+		 
+		   // CONSTRUCTORS / DESTRUCTOR
+		   DArray(int pid, int size, int size_local, T init_value, int partitions, int partition_pos, int offset, mkt::Distribution d = DIST, Distribution device_dist = DIST);
+		   ~ DArray();
 		  
-		  template<std::size_t N> 
-		  void operator=(const std::array<T, N>& a);
+		   template<std::size_t N> 
+		   void operator=(const std::array<T, N>& a);
 		  
 		   void update_self();
 		   void update_devices();

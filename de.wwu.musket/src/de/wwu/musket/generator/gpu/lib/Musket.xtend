@@ -52,7 +52,7 @@ class Musket {
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDeclaration»
 			«generateDArraySkeletonDeclarations»
-			«generateDeviceArrayDeclaration»
+			««« «generateDeviceArrayDeclaration»
 			«generateGPUArrayDeclaration»
 			«generateGPUArrayDeclarations»
 		«ENDIF»
@@ -137,7 +137,7 @@ class Musket {
 		«IF resource.Arrays.size() > 0»
 			«generateDArrayDefinition»
 			«generateDArraySkeletonDefinitions»
-			«generateDeviceArrayDefinition»
+			««« «generateDeviceArrayDefinition»
 			«generateGPUArrayDefinition»
 			«generateGPUArraySkeletonDefinitions»
 		«ENDIF»

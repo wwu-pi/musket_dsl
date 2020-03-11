@@ -129,7 +129,7 @@ class ExpressionGenerator {
 					«orName»[«or.globalCollectionIndex.head.generateExpression(param_map, processId)»]«or?.tail.generateTail»
 «««				DIST
 				«ELSE»
-					// TODO: ExpressionGenerator.generateCollectionElementRef: Array, global indices, distributed
+					«orName».get_global(«or.globalCollectionIndex.head.generateExpression(param_map, processId)»)«or?.tail.generateTail»/* TODO: For multiple GPUs*/
 				«ENDIF»
 			«ENDIF»
 «««		MATRIX

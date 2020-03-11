@@ -13,7 +13,7 @@ const int ALPHA = 1;
 const int BETA = 2;
 const int TAUMAX = 2;
 const int block_size = 64;
-
+// TODO Implement DeviceArray to use no option.
 array<double,512,dist, yes> cities; // cities * 2
 array<double,65536,dist, yes> phero; // cities squared
 array<double,65536,dist, yes> phero_new; // cities squared
@@ -21,31 +21,28 @@ array<double,65536,dist, yes> phero_new; // cities squared
 array<double,65536,dist, yes> distance; // cities squared
 array<int,512,dist, yes> best_sequence;
 
-array<double,65536,dist, no> d_delta_phero; // cities squared
-array<double,256,dist, no> d_routes_distance; //n_ants ? TODO ask change in model
-array<double,65536,dist, no> d_probabilities;//n_ants*n_cities
+array<double,65536,dist, yes> d_delta_phero; // cities squared
+array<double,256,dist, yes> d_routes_distance; //n_ants ? TODO ask change in model
+array<double,65536,dist, yes> d_probabilities;//n_ants*n_cities
 
-array<int,8192,dist, no> d_iroulette; // IROULETTE * cities
-array<int,65536,dist, no> d_routes; //n_ants*n_cities
-
-
-int initMatrix(int x, int r, int c, int v){
-	return r + c + x;
-}
+array<int,8192,dist, yes> d_iroulette; // IROULETTE * cities
+array<int,65536,dist, yes> d_routes; //n_ants*n_cities
+// TODO we have a problem with synchronizing the calculate_iroulette kernel. Possible solution might be nested arrays or an array of structs ...
+// ... hence struct merely contain 32 int an nested array would be way more intuitive. 
+//array<array<int,32,loc,no>,256,dist,no> test_d_iroulette;
 
 double writeIndex(int i, double y){
 	return (double)i;
 }
 
 double calculate_distance(int i, double y){
+	// Distance to itself is zero
 	double returner = 0.0;
-	if(i % ncities == 0){
-		// distance to itself is zero
-		returner = 0.0;
-	} else {
+	// If it is not the distance to itself:
+	if(i % ncities != 0){
 		int j = i % ncities;
 		int currentcity = (int) i % ncities;
-		//  sqrt(pow(cities[j*2] - cities[currentcity*2],2) + pow(cities[(j*2) + 1] - cities[(currentcity*2) + 1],2));
+		// sqrt(pow(cities[j*2] - cities[currentcity*2],2) + pow(cities[(j*2) + 1] - cities[(currentcity*2) + 1],2));
 		// Euclidean Distance to other city.
 		double xdistance = (cities[j*2] - cities[currentcity*2])*(cities[j*2] - cities[currentcity*2]);
 		double ydistance = (cities[(j*2) + 1] - cities[(currentcity*2) + 1])*(cities[(j*2) + 1] - cities[(currentcity*2) + 1]);
@@ -56,8 +53,8 @@ double calculate_distance(int i, double y){
 
 // Returns the 32 closest cities. 
 int calculate_iroulette(int irouletteindex, int value){
-	//c_index * IROULETE + i == zurzeitiger index
-	// ergo 
+	// c_index * IROULETE + i == zurzeitiger index
+	// this means 
 	int i = irouletteindex - (ncities * IROULETE);
 	int c_index = (irouletteindex-i) % IROULETE;
 	int returner = 0;
@@ -115,8 +112,8 @@ int route_kernel(int Index, int value){
 		}
 		if (cityi != next_city && !visited){
 			int indexpath = cityi*ncities+ next_city;
-			ETA = (double) pow(1 / distance[indexpath], BETA);
-			TAU = (double) pow(phero[indexpath], ALPHA);
+			ETA = (double) std::pow(1 / distance[indexpath], BETA);
+			TAU = (double) std::pow(phero[indexpath], ALPHA);
 			sum += ETA * TAU;
 		}	
 	}
@@ -125,7 +122,7 @@ int route_kernel(int Index, int value){
 
 		next_city = d_iroulette[(cityi * IROULETE) + c];
 		int visited = 0;
-		// has city been visited? Vielleicht in datenstruktur abspeichern. 
+		// has city been visited? Vielleicht in Datenstruktur abspeichern. 
 		for (int l=0; l <= i; l++) {
 			if (d_routes[ant_index*ncities+l] == next_city) {
 				visited = 1;
@@ -133,11 +130,11 @@ int route_kernel(int Index, int value){
 		}
 		if (cityi == next_city || visited) {
 			d_probabilities[ant_index*ncities+c] = 0.0;
-		}else{
+		} else {
 			double dista = (double)distance[cityi*ncities+next_city];
 			// ALPHA ist 1 BETA 2
-			double ETAij = (double) mkt::pow(1 / dista , BETA);
-			double TAUij = (double) mkt::pow(phero[(cityi * ncities) + next_city], ALPHA);			
+			double ETAij = (double) std::pow(1 / dista , BETA);
+			double TAUij = (double) std::pow(phero[(cityi * ncities) + next_city], ALPHA);			
 			d_probabilities[ant_index*ncities+c] = (ETAij * TAUij) / sum;
 			count = count++;
 		}
@@ -231,11 +228,10 @@ double update_pheromones_kernel(int Index, double value) {
 }
 
 main{
+	// Set bestroute high so it is fastly replaced by the number for an existing route
 	double bestroute = 99999999.9;
 	mkt::roi_start();
-	// TODO Random Kernel Ants sind Threads cities blocks
 	// TODO Daten einlesen (copy paste)
-	// Update integer bestroute
 	// Update array phero
 	// Update integer ants
 	// Update integer n_cities
@@ -243,15 +239,14 @@ main{
 	
 	// Optional: TODO calculate_distance_kernel rechnet wert nur einmal und schreibt ihn an zwei Stellen
 	distance.mapIndexInPlace(calculate_distance());
+	// Is merely required for route kernel2. --> error - might not generate correct order.
 	d_iroulette.mapIndexInPlace(calculate_iroulette());
 	int iterations = 5;
 	for (int i = 0; i < iterations; i++){
-		mkt::roi_start();
 		d_routes.mapIndexInPlace(route_kernel());
-		// update_pheromones_kernel<<<1,1>>>(d_nants, d_ncities, d_routes, d_pheromones, d_delta_phero, d_distances, d_routes_distance, d_bestRoute, d_best_sequence);
 		d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
+		// TODO Fold Skeleton? Get not only minimum but index.
 		for (int k=0; k<ants; k++) {
-		
 			if(d_routes_distance[k] < bestroute){
 				bestroute = d_routes_distance[k];
 				for (int count = 0; count < ncities; count++) {
@@ -261,7 +256,5 @@ main{
 		}
 		phero_new.mapIndexInPlace(update_pheromones_kernel());
 	}
-	//cities.mapIndexInPlace(writeIndex());	
 	mkt::roi_end();
-	//mkt::print("a = %i; b = %i; c = %i\n", a,b,c);
 }

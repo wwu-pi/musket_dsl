@@ -185,13 +185,22 @@ class DArray {
 				
 		template<typename T>
 		T mkt::DArray<T>::get_local(size_t index) {
+			«IF Config.gpus == 1»
+			// One GPU is configured if the datastructure is up-to-date it can be returned. 
+			T* host_pointer = _data + index;
+			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
+			cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+			mkt::sync_streams();
+			return _data[index];
+			«ELSE»
 			int gpu = get_gpu_by_local_index(index);
 			cudaSetDevice(gpu);
 			T* host_pointer = _data + index;
 			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
 			cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
 			mkt::sync_streams();
-		    return _data[index];
+			return _data[index];
+		    «ENDIF»
 		}
 		
 		template<typename T>
@@ -236,17 +245,20 @@ class DArray {
 
 		template<typename T>
 		T mkt::DArray<T>::get_global(size_t index) {
-		  	// TODO
-		  	// T result;
-		  	// if(is_local(global_index)){
-		  	// 	size_t local_index = global_index - _offset;
-		  	// 	result = get_local(local_index);
-		  	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, _pid, )
-		  	// }else{
-		  	// 	int root = get_pid_by_global_index(global_index);
-		  	// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
-		  	// }
-		  	// return result;
+			«IF Config.gpus == 1»
+			// One GPU is configured if the datastructure is up-to-date it can be returned. 
+			return get_local(index);
+			«ELSE»
+			// Multiple GPUs are configured.
+			// TODO if(is_local(global_index)){
+			// 	size_t local_index = global_index - _offset;
+			// 	result = get_local(local_index);
+			// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, _pid, )
+			// }else{
+			// 	int root = get_pid_by_global_index(global_index);
+			// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
+			// }
+			«ENDIF»
 		}
 		
 		template<typename T>
