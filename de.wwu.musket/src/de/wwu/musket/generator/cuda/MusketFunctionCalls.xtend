@@ -36,6 +36,8 @@ class MusketFunctionCalls {
 				generateRand(mfc, processId)
 			case SQRT:
 				generateSqrt(mfc, processId)
+			case POW:
+				generatePow(mfc, processId)
 			case FLOAT_MIN: '''std::numeric_limits<float>::lowest()'''
 			case FLOAT_MAX: '''std::numeric_limits<float>::max()'''
 			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''
@@ -53,6 +55,21 @@ class MusketFunctionCalls {
 			case TIMER_SHOW:
 				generateTimerShow(mfc, processId)
 			default: ''''''
+		}
+	}
+
+	/**
+	 * Generates the code for the musket pow function.
+	 * 
+	 * @param mfc the musket function call
+	 * @return the generated code
+	 */
+	def static generatePow(MusketFunctionCall mfc, int processId) {
+		val p = mfc.params.head
+		if(mfc.inFunction)
+			return '''__powf(«p.generateExpression(null, processId)»)'''
+		else{
+			return '''std::pow(«p.generateExpression(null, processId)»)'''
 		}
 	}
 
@@ -101,9 +118,10 @@ class MusketFunctionCalls {
 		val type = p.calculateType
 		if(mfc.inFunction)
 			if(type.type == PrimitiveTypeLiteral.FLOAT){
-				return '''sqrtf(«p.generateExpression(null, processId)»)'''
+				// TODO: Evaluate. Fabian kept differentiated, however, I could only find the sqrtf() function.
+				return '''__sqrtf(«p.generateExpression(null, processId)»)'''
 			}else{
-				return '''sqrt(«p.generateExpression(null, processId)»)'''
+				return '''__sqrtf(«p.generateExpression(null, processId)»)'''
 			}
 		else{
 			return '''std::sqrt(«p.generateExpression(null, processId)»)'''

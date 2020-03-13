@@ -134,6 +134,7 @@ class SourceFileGenerator {
 		#include <memory>
 		#include <cstddef>
 		#include <type_traits>
+		#include <accelmath.h>
 		//#include <cuda.h>
 		//#include <openacc_curand.h>
 		

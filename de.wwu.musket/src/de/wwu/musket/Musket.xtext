@@ -497,7 +497,7 @@ enum CollectionFunctionName:
 ;
 
 enum MusketFunctionName:
-	print | rand | sqrt | double_min | double_max | float_min | float_max | roi_start | roi_end | timer_start | timer_stop | timer_resume | timer_show
+	print | rand | pow | sqrt | double_min | double_max | float_min | float_max | roi_start | roi_end | timer_start | timer_stop | timer_resume | timer_show 
 ;
 
 // Expression tree

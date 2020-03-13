@@ -31,6 +31,8 @@ class MusketFunctionCalls {
 				generateRand(mfc)
 			case SQRT:
 				'''std::sqrt(«mfc.params.head.generateExpression(null, processId)»)'''
+			case POW:
+				'''std::pow(«mfc.params.head.generateExpression(null, processId)»)'''
 			case FLOAT_MIN: '''std::numeric_limits<float>::lowest()'''
 			case FLOAT_MAX: '''std::numeric_limits<float>::max()'''
 			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''

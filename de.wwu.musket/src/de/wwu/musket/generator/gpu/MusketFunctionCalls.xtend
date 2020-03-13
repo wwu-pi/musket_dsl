@@ -36,6 +36,8 @@ class MusketFunctionCalls {
 				generateRand(mfc, processId)
 			case SQRT:
 				generateSqrt(mfc, processId)
+			case POW:
+				generatePow(mfc, processId)
 			case FLOAT_MIN: '''std::numeric_limits<float>::lowest()'''
 			case FLOAT_MAX: '''std::numeric_limits<float>::max()'''
 			case DOUBLE_MIN: '''std::numeric_limits<double>::lowest()'''
@@ -55,7 +57,23 @@ class MusketFunctionCalls {
 			default: ''''''
 		}
 	}
-
+	
+	/**
+	 * Generates the code for the musket pow function.
+	 * This function cannot be called within expressions.
+	 * 
+	 * @param mfc the musket function call
+	 * @return the generated code
+	 */
+	 def static generatePow(MusketFunctionCall mfc, int processId) {
+		val p = mfc.params.head
+		if(mfc.inFunction)
+			return '''pow(«p.generateExpression(null, processId)»)'''
+		else{
+			return '''std::pow(«p.generateExpression(null, processId)»)'''
+		}
+	}
+	
 	/**
 	 * Generates the code for the musket print function.
 	 * This function cannot be called within expressions.
