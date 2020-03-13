@@ -44,7 +44,13 @@ double calculate_distance(int i, double y){
 		int currentcity = (int) i % ncities;
 		// sqrt(pow(cities[j*2] - cities[currentcity*2],2) + pow(cities[(j*2) + 1] - cities[(currentcity*2) + 1],2));
 		// Euclidean Distance to other city.
-		double xdistance = (cities[j*2] - cities[currentcity*2])*(cities[j*2] - cities[currentcity*2]);
+		double difference = cities[j*2] - cities[currentcity*2];
+		double nextdifference = cities[(j*2) + 1] - cities[(currentcity*2) + 1];
+		double pow2 = 2.0;
+		double first = mkt::pow(difference, pow2);
+		double second = mkt::pow(nextdifference, pow2);
+		
+		double xdistance = mkt::sqrt(first, second);
 		double ydistance = (cities[(j*2) + 1] - cities[(currentcity*2) + 1])*(cities[(j*2) + 1] - cities[(currentcity*2) + 1]);
 		returner = mkt::sqrt(xdistance + ydistance);
 	}
@@ -112,8 +118,9 @@ int route_kernel(int Index, int value){
 		}
 		if (cityi != next_city && !visited){
 			int indexpath = cityi*ncities+ next_city;
-			ETA = (double) std::pow(1 / distance[indexpath], BETA);
-			TAU = (double) std::pow(phero[indexpath], ALPHA);
+			double firstnumber = 1 / distance[indexpath];
+			ETA = (double) mkt::pow(firstnumber, BETA);
+			TAU = (double) mkt::pow(phero[indexpath], ALPHA);
 			sum += ETA * TAU;
 		}	
 	}
@@ -133,8 +140,8 @@ int route_kernel(int Index, int value){
 		} else {
 			double dista = (double)distance[cityi*ncities+next_city];
 			// ALPHA ist 1 BETA 2
-			double ETAij = (double) std::pow(1 / dista , BETA);
-			double TAUij = (double) std::pow(phero[(cityi * ncities) + next_city], ALPHA);			
+			double ETAij = 0.0; //(double) mkt::pow(1 / dista , BETA);
+			double TAUij = 0.0; //(double) mkt::pow(phero[(cityi * ncities) + next_city], ALPHA);			
 			d_probabilities[ant_index*ncities+c] = (ETAij * TAUij) / sum;
 			count = count++;
 		}
