@@ -243,25 +243,29 @@ main{
 	// Update integer ants
 	// Update integer n_cities
 	// Update array cities
+	mkt::print(cities);
+	cities.mapIndexInPlace(writeIndex());
+	mkt::print(cities);
 	
 	// Optional: TODO calculate_distance_kernel rechnet wert nur einmal und schreibt ihn an zwei Stellen
 	distance.mapIndexInPlace(calculate_distance());
 	// Is merely required for route kernel2. --> error - might not generate correct order.
-	d_iroulette.mapIndexInPlace(calculate_iroulette());
-	int iterations = 5;
-	for (int i = 0; i < iterations; i++){
-		d_routes.mapIndexInPlace(route_kernel());
-		d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
+	//d_iroulette.mapIndexInPlace(calculate_iroulette());
+	//int iterations = 5;
+	//for (int i = 0; i < iterations; i++){
+		//d_routes.mapIndexInPlace(route_kernel());
+		//d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
 		// TODO Fold Skeleton? Get not only minimum but index.
-		for (int k=0; k<ants; k++) {
-			if(d_routes_distance[k] < bestroute){
-				bestroute = d_routes_distance[k];
-				for (int count = 0; count < ncities; count++) {
-					best_sequence[count] = d_routes[k * ncities + count];
-				}
-			}	
-		}
-		phero_new.mapIndexInPlace(update_pheromones_kernel());
-	}
+		//for (int k=0; k<ants; k++) {
+			//if(d_routes_distance[k] < bestroute){
+				//bestroute = d_routes_distance[k];
+				//for (int count = 0; count < ncities; count++) {
+					//best_sequence[count] = d_routes[k * ncities + count];
+				//}
+			//}	
+		//}
+		//phero_new.mapIndexInPlace(update_pheromones_kernel());
+	//}
+	mkt::print(distance);
 	mkt::roi_end();
 }

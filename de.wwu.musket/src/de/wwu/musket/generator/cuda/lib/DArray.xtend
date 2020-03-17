@@ -188,8 +188,8 @@ class DArray {
 			«IF Config.gpus == 1»
 			// One GPU is configured if the datastructure is up-to-date it can be returned. 
 			T* host_pointer = _data + index;
-			T* gpu_pointer = _gpu_data[gpu] + (index % _size_gpu );
-			cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[gpu]);
+			T* gpu_pointer = _gpu_data[0] + (index % _size_gpu );
+			cudaMemcpyAsync(host_pointer, gpu_pointer, sizeof(T), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
 			mkt::sync_streams();
 			return _data[index];
 			«ELSE»

@@ -119,9 +119,9 @@ class MusketFunctionCalls {
 		if(mfc.inFunction)
 			if(type.type == PrimitiveTypeLiteral.FLOAT){
 				// TODO: Evaluate. Fabian kept differentiated, however, I could only find the sqrtf() function.
-				return '''__sqrtf(«p.generateExpression(null, processId)»)'''
+				return '''sqrtf(«p.generateExpression(null, processId)»)'''
 			}else{
-				return '''__sqrtf(«p.generateExpression(null, processId)»)'''
+				return '''sqrtf(«p.generateExpression(null, processId)»)'''
 			}
 		else{
 			return '''std::sqrt(«p.generateExpression(null, processId)»)'''

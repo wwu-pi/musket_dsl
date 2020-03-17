@@ -20,7 +20,7 @@ class DeviceArray {
 		 public:
 		
 		  // CONSTRUCTORS / DESTRUCTOR
-		  DeviceArray(const DeviceArray<T>& da);
+		  DeviceArray(const DArray<T>& da);
 		  DeviceArray(const DeviceArray<T>& da);
 		  ~DeviceArray();
 		  
@@ -30,8 +30,9 @@ class DeviceArray {
 		// Getter and Setter
 			size_t get_bytes_device() const;
 		
-			__device__ const T& get_data_device(size_t device_index) const;
-			__device__ const T& get_data_local(size_t local_index) const;
+		__device__ const T& get_data_device(size_t device_index) const;
+		__device__ const T& get_data_local(size_t local_index) const;
+		__device__ T get_global(size_t local_index);
 		
 		 private:
 		
@@ -60,7 +61,7 @@ class DeviceArray {
 	
 	def static generateDeviceArrayDefinition() '''
 		template<typename T>
-		mkt::DeviceArray<T>::DeviceArray(const DeviceArray<T>& da)
+		mkt::DeviceArray<T>::DeviceArray(const DArray<T>& da)
 		    : _size(da.get_size()),
 		      _size_local(da.get_size_local()),
 		      _size_device(da.get_size_gpu()),
@@ -77,6 +78,24 @@ class DeviceArray {
 		}
 		
 		template<typename T>
+		mkt::DeviceArray<T>::DeviceArray(const DeviceArray<T>& da)
+		    : _size(da._size),
+		      _size_local(da._size_local),
+		      _size_device(da._size_device),
+		      _bytes_device(da._bytes_device),
+		      _offset(da._offset),
+		      _device_offset(da._device_offset),
+		      _dist(da._dist),
+		      _device_dist(da._device_dist) 
+		{
+			_device_data = da._device_data;
+			for(int i = 0; i < «Config.gpus»; ++i){
+				_gpu_data[i] = da._gpu_data[i];
+			}
+		}
+
+		
+		template<typename T>
 		mkt::DeviceArray<T>::~DeviceArray(){
 		}
 		
@@ -89,6 +108,24 @@ class DeviceArray {
 			}
 			    
 			_device_data = _gpu_data[gpu];
+		}
+		
+		template<typename T>
+		__device__ T mkt::DeviceArray<T>::get_global(size_t index) {
+			«IF Config.gpus == 1»
+			// One GPU is configured if the datastructure is up-to-date it can be returned. 
+			return get_data_local(index);
+			«ELSE»
+			// Multiple GPUs are configured.
+			// TODO if(is_local(global_index)){
+			// 	size_t local_index = global_index - _offset;
+			// 	result = get_local(local_index);
+			// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, _pid, )
+			// }else{
+			// 	int root = get_pid_by_global_index(global_index);
+			// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
+			// }
+			«ENDIF»
 		}
 		
 		template<typename T>
