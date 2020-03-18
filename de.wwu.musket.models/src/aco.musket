@@ -32,16 +32,17 @@ array<int,65536,dist, yes> d_routes; //n_ants*n_cities
 //array<array<int,32,loc,no>,256,dist,no> test_d_iroulette;
 
 double writeIndex(int i, double y){
-	return (double)i;
+	return (double)mkt::rand(0.0, 10.0);
 }
 
 double calculate_distance(int i, double y){
 	// Distance to itself is zero
 	double returner = 0.0;
 	// If it is not the distance to itself:
-	if(i % ncities != 0){
-		int j = i % ncities;
-		int currentcity = (int) i % ncities;
+	
+	int j = i / ncities;
+	int currentcity = (int) i % ncities;
+	if (j != currentcity) {
 		// sqrt(pow(cities[j*2] - cities[currentcity*2],2) + pow(cities[(j*2) + 1] - cities[(currentcity*2) + 1],2));
 		// Euclidean Distance to other city.
 		double difference = cities[j*2] - cities[currentcity*2];
