@@ -33,6 +33,7 @@ class DeviceArray {
 		__device__ const T& get_data_device(size_t device_index) const;
 		__device__ const T& get_data_local(size_t local_index) const;
 		__device__ T get_global(size_t local_index);
+		__device__ T set_global(size_t local_index, T value);
 		
 		 private:
 		
@@ -126,6 +127,12 @@ class DeviceArray {
 			// 	//MPI_Bcast(&result, 1, MPI_Datatype datatype, root, )
 			// }
 			«ENDIF»
+		}
+		
+								
+		template<typename T>
+		__device__ T mkt::DeviceArray<T>::set_global(size_t local_index, T value) {
+		  _device_data[local_index] = value;
 		}
 		
 		template<typename T>

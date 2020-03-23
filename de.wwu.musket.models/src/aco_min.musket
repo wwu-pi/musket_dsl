@@ -4,9 +4,9 @@
 #config GPUS 1
 #config MODE debug
 
-const int ants = 256;
-const int ncities = 256;
-const int IROULETE = 32;
+const int ants = 4;
+const int ncities = 64;
+const int IROULETE = 8;
 const double PHERINIT = 0.005;
 const double EVAPORATION = 0.5;
 const int ALPHA = 1;
@@ -14,21 +14,21 @@ const int BETA = 2;
 const int TAUMAX = 2;
 const int block_size = 64;
 // TODO Implement DeviceArray to use no option.
-array<double,512,dist, yes> cities; // cities * 2
-array<int,256,dist, yes> city; // cities * 2
+array<double,128,dist, yes> cities; // cities * 2
+array<int,64,dist, yes> city; // pseudo array
 
-array<double,65536,dist, yes> phero; // cities squared
-array<double,65536,dist, yes> phero_new; // cities squared
+array<double,4096,dist, yes> phero; // cities squared
+array<double,4096,dist, yes> phero_new; // cities squared
 
-array<double,65536,dist, yes> distance; // cities squared
-array<int,512,dist, yes> best_sequence;
+array<double,4096,dist, yes> distance; // cities squared
+array<int,128,dist, yes> best_sequence;
 
-array<double,65536,dist, yes> d_delta_phero; // cities squared
-array<double,256,dist, yes> d_routes_distance; //n_ants ? TODO ask change in model
-array<double,65536,dist, yes> d_probabilities;//n_ants*n_cities
+array<double,4096,dist, yes> d_delta_phero; // cities squared
+array<double,64,dist, yes> d_routes_distance; //n_ants ? TODO ask change in model
+array<double,4096,dist, yes> d_probabilities;//n_ants*n_cities
 
-array<int,8192,dist, yes> d_iroulette; // IROULETTE * cities
-array<int,65536,dist, yes> d_routes; //n_ants*n_cities
+array<int,512,dist, yes> d_iroulette; // IROULETTE * cities
+array<int,4096,dist, yes> d_routes; //n_ants*n_cities
 // TODO we have a problem with synchronizing the calculate_iroulette kernel. Possible solution might be nested arrays or an array of structs ...
 // ... hence struct merely contain 32 int an nested array would be way more intuitive. 
 //array<array<int,32,loc,no>,256,dist,no> test_d_iroulette;
@@ -265,17 +265,17 @@ main{
 	int iterations = 5;
 	for (int i = 0; i < iterations; i++){
 		d_routes.mapIndexInPlace(route_kernel());
-		//d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
+		d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
 		// TODO Fold Skeleton? Get not only minimum but index.
-		//for (int k=0; k<ants; k++) {
-			//if(d_routes_distance[k] < bestroute){
-				//bestroute = d_routes_distance[k];
-				//for (int count = 0; count < ncities; count++) {
-					//best_sequence[count] = d_routes[k * ncities + count];
-				//}
-			//}	
-		//}
-		//phero_new.mapIndexInPlace(update_pheromones_kernel());
+		for (int k=0; k<ants; k++) {
+			if(d_routes_distance[k] < bestroute){
+				bestroute = d_routes_distance[k];
+				for (int count = 0; count < ncities; count++) {
+					best_sequence[count] = d_routes[k * ncities + count];
+				}
+			}	
+		}
+		phero_new.mapIndexInPlace(update_pheromones_kernel());
 	}
 	//mkt::print(distance);
 	mkt::roi_end();

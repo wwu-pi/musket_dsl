@@ -65,11 +65,12 @@ class MusketFunctionCalls {
 	 * @return the generated code
 	 */
 	def static generatePow(MusketFunctionCall mfc, int processId) {
-		val p = mfc.params.head
+		val base = mfc.params.get(0)
+		val exponent = mfc.params.get(1)
 		if(mfc.inFunction)
-			return '''__powf(«p.generateExpression(null, processId)»)'''
+			return '''__powf(«base.generateExpression(null, processId)», «exponent.generateExpression(null, processId)»)'''
 		else{
-			return '''std::pow(«p.generateExpression(null, processId)»)'''
+			return '''std::pow(«base.generateExpression(null, processId)», «exponent.generateExpression(null, processId)»)'''
 		}
 	}
 

@@ -185,11 +185,13 @@ class FunctorGenerator {
 	def static dispatch generateStatement(Assignment assignment, int processId) '''
 		«val targetName = assignment.^var.value.name»
 		«««	collection with local ref	
-		«IF !assignment.^var.localCollectionIndex.nullOrEmpty»
+	«IF !assignment.^var.localCollectionIndex.nullOrEmpty»
 			«targetName»[«assignment.^var.value.collectionType.convertLocalCollectionIndex(assignment.^var.localCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
 		«««	collection with global ref
 		«ELSEIF !assignment.^var.globalCollectionIndex.nullOrEmpty»
-			«targetName»[«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
+		«««	TODO check if we have a device array or a darray. In the first case we need set_global
+			«««targetName»[«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, null)»]«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
+«targetName».set_global(«assignment.^var.value.collectionType.convertGlobalCollectionIndex(assignment.^var.globalCollectionIndex, null)»,«assignment.^var?.tail.generateTail» «assignment.value.generateExpression(processId)»);
 		«««	no collection ref
 		«ELSE»
 			«targetName»«assignment.^var?.tail.generateTail» «assignment.operator» «assignment.value.generateExpression(processId)»;
