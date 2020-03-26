@@ -7,6 +7,7 @@
 const int ants = 4;
 const int ncities = 64;
 const int IROULETE = 8;
+double bestroute = 99999999.9;
 const double PHERINIT = 0.005;
 const double EVAPORATION = 0.5;
 const int ALPHA = 1;
@@ -16,6 +17,7 @@ const int block_size = 64;
 // TODO Implement DeviceArray to use no option.
 array<double,128,dist, yes> cities; // cities * 2
 array<int,64,dist, yes> city; // pseudo array
+array<int,4,dist, yes> antss; // pseudo array
 
 array<double,4096,dist, yes> phero; // cities squared
 array<double,4096,dist, yes> phero_new; // cities squared
@@ -102,8 +104,7 @@ int calculate_iroulette(int cityindex, int value){
 
 int route_kernel(int Index, int value){
 	int newroute = 0;
-	int ant_index = ants/block_size;
-	int i = Index - ((ant_index * ncities) - 1);
+	int ant_index = Index;
 	
 	int initialCity = 0;
 	double sum = 0.0;
@@ -114,89 +115,94 @@ int route_kernel(int Index, int value){
 
 	// Initialize startcity.
 	d_routes[Index * ncities] = initialCity;
-	int cityi = d_routes[Index -1];
-	int count = 0;
+
 	
-	for (int c = 0; c < IROULETE; c++) {
-
-		next_city =  d_iroulette[(cityi * IROULETE) + c];
-		int visited = 0;
-		// has city been visited? Vielleicht in datenstruktur abspeichern. 
-		for (int l=0; l <= i; l++) {
-			if (d_routes[ant_index*ncities+l] == next_city) {
-				visited = 1;
-			}
-		}
-		if (cityi != next_city && !visited){
-			int indexpath = cityi*ncities+ next_city;
-			double firstnumber = 1 / distance[indexpath];
-			ETA = (double) mkt::pow(firstnumber, BETA);
-			TAU = (double) mkt::pow(phero[indexpath], ALPHA);
-			sum += ETA * TAU;
-		}	
-	}
-
-	for (int c = 0; c < IROULETE; c++) {
-
-		next_city = d_iroulette[(cityi * IROULETE) + c];
-		int visited = 0;
-		// has city been visited? Vielleicht in Datenstruktur abspeichern. 
-		for (int l=0; l <= i; l++) {
-			if (d_routes[ant_index*ncities+l] == next_city) {
-				visited = 1;
-			}
-		}
-		if (cityi == next_city || visited) {
-			d_probabilities[ant_index*ncities+c] = 0.0;
-		} else {
-			double dista = (double)distance[cityi*ncities+next_city];
-			// ALPHA ist 1 BETA 2
-			double ETAij = 0.0; //(double) mkt::pow(1 / dista , BETA);
-			double TAUij = 0.0; //(double) mkt::pow(phero[(cityi * ncities) + next_city], ALPHA);			
-			d_probabilities[ant_index*ncities+c] = (ETAij * TAUij) / sum;
-			count = count++;
-		}
-	}
-
-	// deadlock --- it reaches a place where there are no further connections
-	if (0 == count) {
-		int breaknumber = 0;
-		for(int nc = 0; nc < ncities; nc++){
+	for (int i=0; i < ncities-1; i++) {
+		int cityi = d_routes[ant_index * ncities + i];
+		int count = 0;
+		for (int c = 0; c < IROULETE; c++) {
+	
+			next_city =  d_iroulette[(cityi * IROULETE) + c];
 			int visited = 0;
 			// has city been visited? Vielleicht in datenstruktur abspeichern. 
 			for (int l=0; l <= i; l++) {
-				if (d_routes[ant_index*ncities+l] == nc) {
+				if (d_routes[ant_index*ncities+l] == next_city) {
 					visited = 1;
 				}
 			}
-			if(!visited){
-				breaknumber = nc;
-			}
+			if (cityi != next_city && !visited){
+				int indexpath = (cityi * ncities) + next_city;
+				double firstnumber = 1 / distance[indexpath];
+				ETA = (double) mkt::pow(firstnumber, BETA);
+				TAU = (double) mkt::pow(phero[indexpath], ALPHA);
+				sum += ETA * TAU;
+			}	
 		}
-		newroute = breaknumber;
-	} else {
-		//city(int antK, int n_cities, double* probabilities, curandState* rand_states) {
-		double random = mkt::rand(0.0, (double)ncities);
-		int ii = 0;
-		double summ = d_probabilities[ant_index*ncities];
 	
-		//while (summ < random){ // && i < n_cities-1) {
-		//	i++;
-		//	summ += d_probabilities[ant_index*n_cities+i];
-		//}
-		// simulating while.
-		for(int check = 1; check > 0; check++){
-			ii = ii++;
-			summ += d_probabilities[ant_index*ncities+ii];
-			if (summ >= random){
-				check = -2;
+		for (int c = 0; c < IROULETE; c++) {
+	
+			next_city = d_iroulette[(cityi * IROULETE) + c];
+			int visited = 0;
+			// has city been visited? Vielleicht in Datenstruktur abspeichern. 
+			for (int l=0; l <= i; l++) {
+				if (d_routes[ant_index*ncities+l] == next_city) {
+					visited = 1;
+				}
+			}
+			if (cityi == next_city || visited) {
+				d_probabilities[ant_index*ncities+c] = 0.0;
+			} else {
+				double dista = (double)distance[cityi*ncities+next_city];
+				// ALPHA ist 1 BETA 2
+				double ETAij = (double) mkt::pow(1 / dista , BETA);
+				double TAUij = (double) mkt::pow(phero[(cityi * ncities) + next_city], ALPHA);			
+				d_probabilities[ant_index*ncities+c] = (ETAij * TAUij) / sum;
+				count = count++;
 			}
 		}
-		int chosen_city = ii;
-		newroute = d_iroulette[cityi*IROULETE+chosen_city];
+	
+		// deadlock --- it reaches a place where there are no further connections
+		if (0 == count) {
+			int breaknumber = 0;
+			for(int nc = 0; nc < ncities; nc++){
+				int visited = 0;
+				// has city been visited? Vielleicht in datenstruktur abspeichern. 
+				for (int l=0; l <= i; l++) {
+					if (d_routes[ant_index*ncities+l] == nc) {
+						visited = 1;
+					}
+				}
+				if(!visited){
+					breaknumber = nc;
+				}
+			}
+			newroute = breaknumber;
+		} else {
+			//city(int antK, int n_cities, double* probabilities, curandState* rand_states) {
+			double random = mkt::rand(0.0, (double)ncities);
+			int ii = 0;
+			double summ = d_probabilities[ant_index*ncities];
+		
+			//while (summ < random){ // && i < n_cities-1) {
+			//	i++;
+			//	summ += d_probabilities[ant_index*n_cities+i];
+			//}
+			// simulating while.
+			for(int check = 1; check > 0; check++){
+				ii = ii++;
+				summ += d_probabilities[ant_index*ncities+ii];
+				if (summ >= random){
+					check = -2;
+				}
+			}
+			int chosen_city = ii;
+			newroute = d_iroulette[cityi*IROULETE+chosen_city];
+		}
+		// datapoint we are updating routes[(ant_index * n_cities) + (i + 1)]
+		d_routes[(ant_index * ncities) + (i + 1)] = newroute;
+		sum = 0.0;
 	}
-	// datapoint we are updating routes[(ant_index * n_cities) + (i + 1)]
-	return newroute;
+	return value;
 }
 
 double update_best_sequence_kernel(int Index, double value) {
@@ -232,22 +238,74 @@ double update_best_sequence_kernel(int Index, double value) {
 	return rlength;
 }
 
-double update_pheromones_kernel(int Index, double value) {
+int update_pheromones0(int Index, int value) {
 	int Q = 11340;
 	double RO = 0.5;
-	for (int i = 0; i<ants; i++){
-		
-	}
-	// Index ncities * ncities + ncities
-	double write = (1 - RO) * phero[Index] + d_delta_phero[Index];
-	d_delta_phero[Index] = 0.0;
+	int k = Index;		
+	double sum = 0.0;
+	for (int j=0; j<ncities-1; j++) {
 
-	return write;
+		int cityii = d_routes[k*ncities+j];
+		int cityjj = d_routes[k*ncities+j+1];
+
+		sum += distance[cityii * ncities + cityjj];
+	}
+
+	int cityiii = d_routes[k*ncities+ncities-1];
+	int cityjjj = d_routes[k*ncities];
+
+	sum += distance[cityiii * ncities + cityjjj];
+		
+	double rlength = sum;
+	d_routes_distance[k] = rlength;
+
+	for (int r=0; r < ncities-1; r++) {
+
+		int cityi = d_routes[k * ncities + r];
+		int cityj = d_routes[k * ncities + r + 1];
+
+		d_delta_phero[cityi* ncities + cityj] += Q / rlength;
+		d_delta_phero[cityj* ncities + cityi] += Q / rlength;
+	}
+		
+	return value;
+}
+
+int update_pheromones1(double bestRoute, int Index, int value) {
+	int k = Index;		
+	if(d_routes_distance[k] == bestRoute){
+		bestRoute = d_routes_distance[k];
+		for (int count=0; count < ncities; count++) {
+			best_sequence[count] = d_routes[k * ncities+count];
+		}
+	}
+	return value;
+}
+
+int update_pheromones2(int Index, int value) {
+	int Q = 11340;
+	double RO = 0.5;
+	int i = Index;
+	for (int j=0; j<ncities; j++) {
+		phero[i * ncities + j] = (1 - RO) * phero[i * ncities +j] + d_delta_phero[i * ncities +j];
+		d_delta_phero[i * ncities +j] = 0.0;
+
+		phero[j * ncities + i] = (1 - RO) * phero[j * ncities +i] + d_delta_phero[j * ncities +i];
+		d_delta_phero[j * ncities +i] = 0.0;
+	}
+	return value;
+}
+
+double minimum(double a, double b) {
+	double x = a;
+	if (b < a) {
+		x = b;
+	}
+	return x;
 }
 
 main{
 	// Set bestroute high so it is fastly replaced by the number for an existing route
-	double bestroute = 99999999.9;
 	mkt::roi_start();
 	// TODO Daten einlesen (copy paste)
 	// Update array phero
@@ -260,22 +318,17 @@ main{
 	
 	// Optional: TODO calculate_distance_kernel rechnet wert nur einmal und schreibt ihn an zwei Stellen
 	distance.mapIndexInPlace(calculate_distance());
-	// Is merely required for route kernel2. --> error - might not generate correct order.
+	// Is merely required for route kernel2.
 	city.mapIndexInPlace(calculate_iroulette());
 	int iterations = 5;
 	for (int i = 0; i < iterations; i++){
-		d_routes.mapIndexInPlace(route_kernel());
+		city.mapIndexInPlace(route_kernel());
 		d_routes_distance.mapIndexInPlace(update_best_sequence_kernel());
+		antss.mapIndexInPlace(update_pheromones0());
+		bestroute = d_routes_distance.reduce(min);
+		antss.mapIndexInPlace(update_pheromones1(bestroute));
 		// TODO Fold Skeleton? Get not only minimum but index.
-		for (int k=0; k<ants; k++) {
-			if(d_routes_distance[k] < bestroute){
-				bestroute = d_routes_distance[k];
-				for (int count = 0; count < ncities; count++) {
-					best_sequence[count] = d_routes[k * ncities + count];
-				}
-			}	
-		}
-		phero_new.mapIndexInPlace(update_pheromones_kernel());
+		city.mapIndexInPlace(update_pheromones2());
 	}
 	//mkt::print(distance);
 	mkt::roi_end();

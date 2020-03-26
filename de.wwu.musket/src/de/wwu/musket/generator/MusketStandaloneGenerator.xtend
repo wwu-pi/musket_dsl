@@ -58,7 +58,8 @@ class MusketStandaloneGenerator {
 //			'../de.wwu.musket.models/src/de/wwu/musket/models/test/acc_array_test.musket'
 //			'../de.wwu.musket.models/src/mss.musket'
 //			'../de.wwu.musket.models/src/pfb.musket',
-			'../de.wwu.musket.models/src/aco.musket',
+//			'../de.wwu.musket.models/src/aco.musket',
+			'../de.wwu.musket.models/src/aco_iroulette.musket',
 			'../de.wwu.musket.models/src/aco_min.musket'
 
 //			'../de.wwu.musket.models/src/pfb.musket'
