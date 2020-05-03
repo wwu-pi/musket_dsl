@@ -1,0 +1,33 @@
+#config PLATFORM GPU CPU_MPMD CUDA
+#config PROCESSES 1
+#config GPUS 1
+#config CORES 4
+#config MODE release
+
+const int dim = 8192;
+
+matrix<double,dim,dim,dist,dist> as;
+
+double init(int x, int y, double a){
+	a = (double) (x + y + 1);
+	return a;
+}
+
+double square(double a){
+	a = a * a;
+	return a;
+}
+
+
+main{
+	as.mapIndexInPlace(init());
+	//as.show();
+	mkt::roi_start();
+	
+	double fn = as.mapReduce(square(), plus);
+	fn = mkt::sqrt(fn);
+	
+	mkt::roi_end();
+	
+	mkt::print("Frobenius norm is %.5f.\n", fn);
+}

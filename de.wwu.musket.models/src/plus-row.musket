@@ -1,0 +1,19 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 24
+#config MODE release
+
+// data structures
+matrix<int, 4, 4, dist> m = {1};
+
+// user functions
+int func(int r, int c, int i){
+	return i + r;
+}
+
+// logic
+main{
+	mkt::roi_start();
+	m.mapIndexInPlace(func());
+	mkt::roi_end();
+}

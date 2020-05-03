@@ -1,0 +1,147 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dimA = 16;
+const int dimM = 4;
+
+struct Complex{
+	float real;
+	float imaginary;
+};
+
+array<Complex,dimA,dist> ad;
+array<Complex,dimA,dist> adr;
+array<Complex,dimA,copy> ac;
+array<Complex,dimA,copy> acr;
+
+matrix<Complex,dimM,dimM,dist> md;
+matrix<Complex,dimM,dimM,dist> mdr;
+matrix<Complex,dimM,dimM,copy> mc;
+matrix<Complex,dimM,dimM,copy> mcr;
+
+Complex plusIndexA(int i, Complex x){
+	Complex result;
+	result.real = x.real + i;
+	result.imaginary = x.imaginary + (float) i / 2.0f;
+	return result;
+}
+
+Complex plusIndexM(int r, int c, Complex x){
+	Complex result;
+	result.real = x.real + r;
+	result.imaginary = x.imaginary + c;
+	return result;
+}
+
+Complex timesY(float y, Complex x){
+	Complex result;
+	result.real = x.real * y;
+	result.imaginary = x.imaginary * y;
+	return result;
+}
+
+Complex init(Complex x){
+	x.real = 42.0f;
+	x.imaginary = 17.0f;
+	return x;
+}
+
+Complex initIndexA(int i, Complex x){
+	x.real = (float) i;
+	x.imaginary = (float) i / 2.0f;
+	return x;
+}
+
+Complex initIndexM(int r, int c, Complex x){
+	x.real = (float) r;
+	x.imaginary = (float) c;
+	return x;
+}
+
+
+// should test: map, mapInPlace, mapIndex, mapLocalIndex, mapIndexInPlace, mapLocalIndexInPlace
+// for matrix and array, dist and copy
+main{
+// initial 
+mkt::print("Inital:\n");
+ad.show();
+ac.show();
+md.show();
+mc.show();
+
+// mapInPlace
+mkt::print("MapInPlace:\n");
+ad.mapInPlace(init());
+ac.mapInPlace(init());
+md.mapInPlace(init());
+mc.mapInPlace(init());
+
+ad.show();
+ac.show();
+md.show();
+mc.show();
+
+// map
+mkt::print("Map:\n");
+adr = ad.map(timesY(2.0f));
+acr = ac.map(timesY(2.0f));
+mdr = md.map(timesY(2.0f));
+mcr = mc.map(timesY(2.0f));
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+
+// mapIndexInPlace
+mkt::print("MapIndexInPlace:\n");
+ad.mapIndexInPlace(initIndexA());
+ac.mapIndexInPlace(initIndexA());
+md.mapIndexInPlace(initIndexM());
+mc.mapIndexInPlace(initIndexM());
+
+ad.show();
+ac.show();
+md.show();
+mc.show();
+
+// mapIndex
+mkt::print("MapIndex:\n");
+adr = ad.mapIndex(plusIndexA());
+acr = ac.mapIndex(plusIndexA());
+mdr = md.mapIndex(plusIndexM());
+mcr = mc.mapIndex(plusIndexM());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+// mapLocalIndexInPlace
+mkt::print("MapLocalIndexInPlace:\n");
+ad.mapLocalIndexInPlace(initIndexA());
+ac.mapLocalIndexInPlace(initIndexA());
+md.mapLocalIndexInPlace(initIndexM());
+mc.mapLocalIndexInPlace(initIndexM());
+
+ad.show();
+ac.show();
+md.show();
+mc.show();
+
+// mapLocalIndex
+mkt::print("MapLocalIndex:\n");
+adr = ad.mapLocalIndex(plusIndexA());
+acr = ac.mapLocalIndex(plusIndexA());
+mdr = md.mapLocalIndex(plusIndexM());
+mcr = mc.mapLocalIndex(plusIndexM());
+
+adr.show();
+acr.show();
+mdr.show();
+mcr.show();
+
+}

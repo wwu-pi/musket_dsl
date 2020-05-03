@@ -1,0 +1,40 @@
+#config PLATFORM GPU CPU_MPMD CUDA
+#config PROCESSES 1
+#config GPUS 1
+#config CORES 4
+#config MODE debug
+
+const int dim = 16;
+
+array<int,dim,dist> ads = {1};
+array<int,dim,dist> bds;
+//array<int,dim,dist> cds = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+array<int,dim,copy> acs = {7};
+array<int,dim,copy> bcs;
+//array<int,dim,copy> ccs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+array<int,dim,dist> temp;
+array<int,dim,copy> temp_copy;
+
+int plusX(int x, int v){
+	return x + v;
+}
+
+main{
+
+// init
+	ads.show();
+	bds.show();	
+//	cds.show();
+	acs.show();
+	bcs.show();
+//	ccs.show();	
+	
+// map
+	temp = ads.map(plusX(17));
+	temp.show();
+	
+	temp_copy = bcs.map(plusX(42));
+	temp_copy.show();
+}

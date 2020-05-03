@@ -1,0 +1,32 @@
+#config PLATFORM CPU
+#config PROCESSES 2
+#config CORES 1
+#config MODE release
+
+matrix<double,32768,32768,dist> as;
+
+double init(int x, int y, double a){
+	return (double) x + y + 1;
+}
+
+double square(double a){
+	return a * a;
+}
+
+double sum(double a, double b){
+	return a + b;
+}
+
+main{
+	as.mapIndexInPlace(init());
+
+	mkt::roi_start();
+	
+	as.mapInPlace(square());
+	double fn = as.fold(0.0, sum());
+	fn = std::sqrt(fn);
+	
+	mkt::roi_end();
+	
+	mkt::print("Frobenius norm is %.5f.\n", fn);
+}

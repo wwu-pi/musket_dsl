@@ -1,0 +1,26 @@
+#config PLATFORM GPU CPU_MPMD
+#config PROCESSES 4
+#config CORES 24
+#config GPUS 4
+#config MODE release
+
+
+//array<int,4,copy> a = {1, 2, 3, 4};
+array<int,4,dist> b;
+
+int init(int i, int x){
+	x = i;
+	return x;
+}
+
+int double_values(int i){
+	return i + i;
+}
+
+main{
+	mkt::roi_start();
+
+	a.mapInPlace(double_values(42));
+	
+	mkt::roi_end();
+}

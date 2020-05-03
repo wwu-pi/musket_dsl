@@ -1,0 +1,16 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+const int dim = 16;
+
+array<int,dim,dist> cs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+main{
+	cs.show();
+	cs.mapInPlace((int x) -> int { return x - 1;});
+	cs.show();
+	int sum = cs.fold(0, (int x, int y) -> int {return x + y;});
+	mkt::print("Sum is: %i! \n", sum);
+}

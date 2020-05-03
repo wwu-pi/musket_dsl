@@ -1,0 +1,60 @@
+#config PLATFORM CPU
+#config PROCESSES 16
+#config CORES 1
+#config MODE release
+
+matrix<float,16384,16384,dist> as = {1.0f};
+matrix<float,16384,16384,dist> bs = {0.001f};
+matrix<float,16384,16384,dist> cs = {0.0f};
+
+
+float initA(int a, int b, float x){
+	return (float) a * 4 + b;
+}
+
+float initB(int a, int b, float x){
+	return (float) 16 + a * 4 + b;
+}
+
+int negate(int a){
+	return -a;
+}
+
+int identity(int a){
+	return a;
+}
+
+int minusOne(int a){
+	return -1;
+}
+
+float dotProduct(int i, int j, float Cij){
+	float sum = Cij;
+
+	for (int k = 0; k < cs.columnsLocal(); k++) {
+		sum += as[[i,k]] * bs[[k,j]];
+	}
+
+	return sum;
+}
+
+main{
+	as.mapIndexInPlace(initA());
+	bs.mapIndexInPlace(initB());
+	
+	mkt::roi_start();
+	
+	as.shiftPartitionsHorizontally(negate());
+	bs.shiftPartitionsVertically(negate());
+	
+	for (int i = 0; i < as.blocksInRow(); ++i) {
+    	cs.mapLocalIndexInPlace(dotProduct());
+    	as.shiftPartitionsHorizontally(minusOne());
+    	bs.shiftPartitionsVertically(minusOne());
+	}
+
+	as.shiftPartitionsHorizontally(identity());
+	bs.shiftPartitionsVertically(identity());
+	
+	mkt::roi_end();
+}

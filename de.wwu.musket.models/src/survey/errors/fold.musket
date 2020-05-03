@@ -1,0 +1,13 @@
+#config PLATFORM CPU
+#config PROCESSES 2
+
+array<int,4,dist> a = {1, 2, 3, 4};
+
+int sum(int j, int i){
+  return i + j;
+}
+
+main{
+  a.fold(0, sum());
+  mkt::print("The result is %i!\n", r);
+}

@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: de.wwu.musket
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: de.wwu.musket; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.xbase,
+ org.eclipse.equinox.common;bundle-version="3.5.0",
+ org.eclipse.emf.ecore,
+ org.eclipse.xtext.xbase.lib;bundle-version="2.13.0",
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
+ org.eclipse.xtext.util,
+ org.eclipse.xtend.lib;bundle-version="2.13.0",
+ org.eclipse.emf.common
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: de.wwu.musket.scoping,
+ de.wwu.musket.generator,
+ de.wwu.musket.validation,
+ de.wwu.musket.parser.antlr.internal,
+ de.wwu.musket.parser.antlr,
+ de.wwu.musket.services,
+ de.wwu.musket,
+ de.wwu.musket.serializer,
+ de.wwu.musket.musket.impl,
+ de.wwu.musket.musket,
+ de.wwu.musket.musket.util
+Import-Package: org.apache.log4j

@@ -1,0 +1,742 @@
+grammar de.wwu.musket.Musket with org.eclipse.xtext.common.Terminals
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate musket "http://www.wwu.de/musket/Musket"
+
+Model:
+	config=ConfigBlock
+	includes+=Include*
+	data+=MusketObject*
+	functions+=RegularFunction*
+	main=MainBlock
+;
+
+//-----------------------------------------------------------
+Include:
+	'#include' name=HEADERFILE
+;
+
+//-----------------------------------------------------------
+ConfigBlock:
+	('#config' 'PLATFORM' ((platformSEQ?='SEQ')? & (platformCPU?='CPU')? & (platformCPUMPMD?='CPU_MPMD')? & (platformGPU?='GPU')? & (platformCUDA?='CUDA')?)) &
+	('#config' 'PROCESSES' processes=INT) &
+	('#config' 'CORES' cores=INT)?	&
+	('#config' 'GPUS' gpus=INT)?	&
+	('#config' 'MODE' mode=Mode)?
+;
+
+enum Mode:
+	release | debug
+;
+
+//-----------------------------------------------------------	
+ReferableObject:
+	MusketObject | Parameter
+;
+
+MusketObject:
+	Object | Struct
+;
+
+Object:
+	CollectionObject | IndividualObject;
+	
+CollectionObject:
+	type=CollectionType name=ID (',' vars+=CollectionVariableElement)* ('=' ArrayInstantiation)? ';'
+;
+
+fragment ArrayInstantiation*:
+	'{' (values+=PrimitiveVal (',' values+=PrimitiveVal)*)? '}'
+;
+	
+IndividualObject:
+	MusketVariable ';' | Constant ';'
+;
+
+IntRef:
+	(ref=[IntConstant] | value=INT)
+;
+
+CollectionVariableElement returns CollectionObject:
+	name=ID
+;
+
+Variable:
+	IntVariable | DoubleVariable | FloatVariable | BoolVariable | StructVariable
+;
+
+IntVariable:
+	'int' name=ID (',' vars+=IntVariableElement)* ('=' initExpression=Expression)?
+;
+
+IntVariableElement returns IntVariable:
+	name=ID
+;
+
+DoubleVariable:
+	'double' name=ID (',' vars+=DoubleVariableElement)* ('=' initExpression=Expression)?
+;
+
+DoubleVariableElement returns DoubleVariable:
+	name=ID
+;
+
+FloatVariable:
+	'float' name=ID (',' vars+=FloatVariableElement)* ('=' initExpression=Expression)?
+;
+
+FloatVariableElement returns FloatVariable:
+	name=ID
+;
+
+BoolVariable:
+	'bool' name=ID (',' vars+=BoolVariableElement)* ('=' initExpression=Expression)?
+;
+
+BoolVariableElement returns BoolVariable:
+	name=ID
+;
+
+StructVariable:
+	type=[Struct] name=ID (',' vars+=StructVariableElement)* (('=' initExpression=Expression)? | '(' copyFrom=ObjectRef ')')
+;
+
+StructVariableElement returns StructVariable:
+	name=ID
+;
+
+Type:
+	CollectionType | IndividualType
+;
+	
+CollectionType:
+	ArrayType | MatrixType
+;
+
+ArrayType:
+	IntArrayType | DoubleArrayType | FloatArrayType | BoolArrayType | StructArrayType
+;
+
+IntArrayType:
+	'array' '<' 'int' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
+;
+
+DoubleArrayType:
+	'array' '<' 'double' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>' 
+;
+
+FloatArrayType:
+	'array' '<' 'float' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>' 
+;
+
+BoolArrayType:
+	'array' '<' 'bool' ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
+;
+	
+StructArrayType:
+	'array' '<' type=[Struct] ',' size=IntRef ',' distributionMode=DistributionMode ',' view=ViewNeccessary (',' gpuDistributionMode=DistributionMode)? '>'
+;
+
+MatrixType:
+	IntMatrixType | DoubleMatrixType | FloatMatrixType | BoolMatrixType | StructMatrixType
+;
+
+IntMatrixType:
+	'matrix' '<' 'int' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+;
+
+DoubleMatrixType:
+	'matrix' '<' 'double' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+;
+
+FloatMatrixType:
+	'matrix' '<' 'float' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+;
+	 
+BoolMatrixType:
+	'matrix' '<' 'bool' ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>'
+;
+
+StructMatrixType:
+	'matrix' '<' type=[Struct] ',' rows=IntRef ',' cols=IntRef ',' distributionMode=DistributionMode (',' gpuDistributionMode=DistributionMode)? '>' 
+;
+
+IndividualType:
+	{PrimitiveType} type=PrimitiveTypeLiteral | 
+	{StructType} type=[Struct]
+;
+
+MusketVariable:
+	MusketIntVariable | MusketDoubleVariable | MusketFloatVariable | MusketBoolVariable | MusketStructVariable | => Variable
+;
+
+MusketIntVariable:
+	'int' name=ID (',' vars+=MusketIntVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketIntVariableElement returns MusketIntVariable:
+	name=ID
+;
+
+MusketDoubleVariable:
+	'double' name=ID (',' vars+=MusketDoubleVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketDoubleVariableElement returns MusketDoubleVariable:
+	name=ID
+;
+
+MusketFloatVariable:
+	'float' name=ID (',' vars+=MusketFloatVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketFloatVariableElement returns MusketFloatVariable:
+	name=ID
+;
+
+MusketBoolVariable:
+	'bool' name=ID (',' vars+=MusketBoolVariableElement)* '=' initExpression=SkeletonExpression
+;
+
+MusketBoolVariableElement returns MusketBoolVariable:
+	name=ID
+;
+
+MusketStructVariable:
+	type=[Struct] name=ID (',' vars+=MusketStructVariableElement)* ('=' initExpression=SkeletonExpression)?
+;
+
+MusketStructVariableElement returns MusketStructVariable:
+	name=ID
+;
+
+Constant:
+	IntConstant | DoubleConstant | FloatConstant | BoolConstant
+;
+
+IntConstant: 
+	'const' 'int' name=ID '=' value=SIGNED_INT
+;
+
+DoubleConstant:
+	'const' 'double' name=ID '=' value=SIGNED_DOUBLE
+;
+
+FloatConstant:
+	'const' 'float' name=ID '=' value=SIGNED_FLOAT
+;
+
+BoolConstant:
+	'const' 'bool' name=ID '=' value=BOOL
+;
+
+Struct:
+	'struct' name=ID '{'
+		attributes+=Object*
+	'}' ';'
+;
+	
+//-----------------------------------------------------------
+Function:
+	RegularFunction | LambdaFunction
+;
+
+RegularFunction:
+	(returnType=Type) name=ID '(' (params+=Parameter (',' params+=Parameter)*)? ')' '{'
+		(statement+=FunctionStatement)*
+	'}'
+;
+
+LambdaFunction:
+	'(' (params+=Parameter (',' params+=Parameter)*)? ')' '->' (returnType=Type) '{'
+		(statement+=FunctionStatement)*
+	'}'
+;
+
+FunctionStatement:
+	ControlStructure | Statement ';'
+;
+
+ControlStructure:
+	ForLoop | IfClause;
+	
+ForLoop:
+	ConditionalForLoop | IteratorForLoop
+;
+
+ConditionalForLoop:
+	{ConditionalForLoop} 
+	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')'
+	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
+;
+
+IteratorForLoop:
+	'for' '(' iter=Parameter ':' dataStructure=[CollectionObjectOrParam] ')'
+	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
+;
+
+IfClause:
+	ifClauses+=IfThen
+	('else' ifClauses+=IfThen)*
+	('else' '{'
+		elseStatements+=FunctionStatement+
+	'}')?
+;
+
+IfThen:
+	'if' '(' condition=CompareExpression ')' '{'
+		statements+=FunctionStatement+
+	'}' 
+;
+
+CollectionObjectOrParam:
+	CollectionObject | CollectionParameter
+;
+	
+Parameter:
+	CollectionParameter | IndividualParameter
+;
+
+CollectionParameter:
+	(const?='const')? type=CollectionType (reference?='&')? name=ID
+;
+
+IndividualParameter:
+	(const?='const')? type=IndividualType (reference?='&')? name=ID
+;
+	
+//-----------------------------------------------------------
+MainBlock:
+	'main' '{' content+=MainFunctionStatement+ '}'
+;
+
+MainFunctionStatement:
+	MusketControlStructure | MusketStatement ';'
+;
+	
+MusketControlStructure:
+	MusketForLoop | MusketIfClause;
+	
+MusketForLoop:
+	MusketConditionalForLoop | MusketIteratorForLoop
+;
+
+MusketConditionalForLoop:
+	{MusketConditionalForLoop} 
+	'for' '(' (init=Variable)? ';' (condition=CompareExpression)? ';' (increment=ArithmeticExpression)? ')' 
+	( '{' statements+=MainFunctionStatement* '}' | => statements+=MainFunctionStatement?)
+;
+
+MusketIteratorForLoop:
+	'for' '(' iter=Parameter ':' dataStructure=[CollectionObject] ')'
+	( '{' statements+=MainFunctionStatement+ '}' | => statements+=MainFunctionStatement?)
+;
+
+MusketIfClause:
+	ifClauses+=MusketIfThen
+	('else' ifClauses+=MusketIfThen)*
+	('else' '{'
+		elseStatements+=MainFunctionStatement+
+	'}')?
+;
+
+MusketIfThen:
+	'if' '(' condition=CompareExpression ')' '{'
+		statements+=MainFunctionStatement+
+	'}' 
+;
+
+MusketExpression:
+	SkeletonExpression |
+	Expression
+;
+
+SkeletonExpression:
+	obj=[CollectionObject] '.' skeleton=Skeleton
+;
+
+Skeleton:
+	MapSkeletonVariants |
+	FoldSkeletonVariants | 
+	ReductionSkeletonVariants |
+	ZipSkeletonVariants |
+	{GatherSkeleton} 'gather' '(' param=SkeletonParameterInput? ')' |
+	{ScatterSkeleton} 'scatter' '(' param=SkeletonParameterInput? ')' |
+	{ShiftPartitionsHorizontallySkeleton} 'shiftPartitionsHorizontally' '(' param=SkeletonParameterInput ')' |
+	{ShiftPartitionsVerticallySkeleton} 'shiftPartitionsVertically' '(' param=SkeletonParameterInput ')' 
+;
+
+MapSkeletonVariants:
+	{MapSkeleton} 'map' ('<' options+=MapOption (',' options+=MapOption)* '>')? '(' param=SkeletonParameterInput ')' |
+	{MapInPlaceSkeleton} 'mapInPlace' '(' param=SkeletonParameterInput ')' |
+	{MapIndexSkeleton} 'mapIndex' '(' param=SkeletonParameterInput ')' |
+	{MapLocalIndexSkeleton} 'mapLocalIndex' '(' param=SkeletonParameterInput ')' |
+	{MapIndexInPlaceSkeleton} 'mapIndexInPlace' '(' param=SkeletonParameterInput ')' |
+	{MapLocalIndexInPlaceSkeleton} 'mapLocalIndexInPlace' '(' param=SkeletonParameterInput ')'
+;
+
+FoldSkeletonVariants:
+	{FoldSkeleton} 'fold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' identity=Expression ',' param=SkeletonParameterInput ')' |
+	{FoldLocalSkeleton} 'foldLocal' '(' identity=Expression ',' param=SkeletonParameterInput ')' |
+	{MapFoldSkeleton} 'mapFold' ('<' options+=FoldOption (',' options+=FoldOption)* '>')? '(' mapFunction=SkeletonParameterInput ','  identity=Expression ',' param=SkeletonParameterInput ')'
+;
+
+ReductionSkeletonVariants:
+	{ReductionSkeleton} 'reduce' '(' param=SkeletonParameterInput ')' |
+	{MapReductionSkeleton} 'mapReduce' '(' mapFunction=SkeletonParameterInput ',' param=SkeletonParameterInput ')'
+;
+
+ZipSkeletonVariants:
+	{ZipSkeleton} 'zip' ('<' options+=ZipOption (',' options+=ZipOption)* '>')? '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipInPlaceSkeleton} 'zipInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipIndexSkeleton} 'zipIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipLocalIndexSkeleton} 'zipLocalIndex' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipIndexInPlaceSkeleton} 'zipIndexInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')' |
+	{ZipLocalIndexInPlaceSkeleton} 'zipLocalIndexInPlace' '(' zipWith=ObjectRef ',' param=SkeletonParameterInput ')'
+;
+
+enum MapOption:
+	index | localIndex | inPlace
+;
+
+enum FoldOption:
+	local
+;
+
+enum ZipOption:
+	index | localIndex | inPlace
+;
+
+ReductionOperation:
+	PlusReduction | MultiplyReduction | MaxReduction | MinReduction
+;
+
+PlusReduction:{PlusReduction}"plus";
+MultiplyReduction:{MultiplyReduction}"multiply";
+MaxReduction:{MaxReduction}"max";
+MinReduction:{MinReduction}"min";
+
+SkeletonParameterInput:
+	InternalFunctionCall |
+	LambdaFunction |
+	ReductionOperation
+;
+
+Statement:
+	Assignment |
+	ReturnStatement |
+	Variable |
+	FunctionCall
+;
+
+MusketStatement:
+	MusketAssignment | 
+	SkeletonExpression |
+	MusketVariable |
+	FunctionCall
+;
+
+Assignment:
+	var=ObjectRef operator=AssignmentOperator value=Expression
+;
+
+MusketAssignment:
+	var=ObjectRef OP_ASSIGN_EQUALS value=MusketExpression
+;
+
+Ref: ObjectRef | TailObjectRef; // synthetic parser rule
+
+ObjectRef:
+	value=[ReferableObject] CollectionRef? (tail=TailObjectRef)?
+;
+
+TailObjectRef:
+	'.' value=[ReferableObject] CollectionRef? (tail=TailObjectRef)?
+;
+
+fragment CollectionRef*:
+	COLL_GLOBAL_OPEN globalCollectionIndex+=Expression (',' globalCollectionIndex+=Expression)* COLL_GLOBAL_CLOSE | 
+	COLL_LOCAL_OPEN localCollectionIndex+=Expression (',' localCollectionIndex+=Expression)* COLL_LOCAL_CLOSE
+;
+
+ReturnStatement:
+	'return' value=Expression
+;
+
+FunctionCall:
+	InternalFunctionCall | ExternalFunctionCall | CollectionFunctionCall | MusketFunctionCall
+;
+
+InternalFunctionCall:
+	value=[Function] FunctionParameters
+;
+
+ExternalFunctionCall:
+	namespaces+=Namespace+ function=ID FunctionParameters
+;
+
+Namespace:
+	name=ID ('<' templateTypes+=Type (',' templateTypes+=Type)* '>')? '::'
+;
+
+CollectionFunctionCall:
+	var=[CollectionObject] '.' function=CollectionFunctionName '(' ')'
+;
+
+MusketFunctionCall:
+	'mkt::' value=MusketFunctionName FunctionParameters
+;
+
+fragment FunctionParameters*:
+	'(' (params+=Expression (',' params+=Expression)*)? ')'
+;
+
+enum CollectionFunctionName:
+	size | sizeLocal | show | showLocal | rows | rowsLocal | columns | columnsLocal | blocksInRow | blocksInColumn
+;
+
+enum MusketFunctionName:
+	print | rand | pow | sqrt | double_min | double_max | float_min | float_max | roi_start | roi_end | timer_start | timer_stop | timer_resume | timer_show 
+;
+
+// Expression tree
+Expression:
+	CompareExpression // any boolean or arithmetic expression 
+;
+
+// Boolean expressions
+CompareExpression returns Expression: // Top-level boolean expression
+	Condition {CompareExpression.eqLeft=current} (op = BooleanOperator eqRight = Condition)?
+;
+
+Condition returns Expression:
+	Or
+;
+
+Or returns Expression:
+	And ({Or.leftExpression=current} OP_CONDITION_OR rightExpression=And)*
+;
+
+And returns Expression:
+	BooleanExpression ({And.leftExpression=current} OP_CONDITION_AND rightExpression=BooleanExpression)*
+;
+
+BooleanExpression returns Expression:
+	{Not} OP_CONDITION_NOT expression = BooleanExpression |
+	BoolVal |
+	Shift |
+	StructVal |
+	CollectionInstantiation
+;
+
+// Arithmetic expressions
+Shift returns Expression:
+	AdditionSubtraction (({LeftShift.left=current} OP_MATH_LSHIFT | {RightShift.left=current} OP_MATH_RSHIFT) right=PrefixedExpression)*
+;
+
+AdditionSubtraction returns Expression: // Top-Level arithmetic expression
+	MultiplicationDivision (({Addition.left=current} OP_MATH_PLUS | {Subtraction.left=current} OP_MATH_MINUS) right=MultiplicationDivision)*
+;
+
+MultiplicationDivision returns Expression:
+	PrefixedExpression (({Multiplication.left=current} OP_MATH_MULT | {Division.left=current} OP_MATH_DIV | {Modulo.left=current} OP_MATH_MODULO) right=PrefixedExpression)*
+;
+
+PrefixedExpression returns Expression:
+	{SignedArithmetic} '-' expression=ArithmeticExpression |
+	{TypeCast} '(' targetType=Type ')' expression=ArithmeticExpression |
+	=> ArithmeticExpression
+;
+
+ArithmeticExpression returns Expression:
+	{PostIncrement} value = [IndividualObject] '++' |
+	{PostDecrement} value = [IndividualObject] '--' |
+	{PreIncrement} '++' value = [IndividualObject] |
+	{PreDecrement} '--' value = [IndividualObject] |
+	'(' Or ')' | // AdditionSubtraction
+	ObjectRef |
+	IntVal |
+	DoubleVal |
+	FloatVal |
+	StringVal |
+	FunctionCall
+;
+
+CollectionInstantiation:
+	type=CollectionType ArrayInstantiation
+;
+
+PrimitiveVal:
+	BoolVal | IntVal | DoubleVal | FloatVal | StringVal
+;
+
+BoolVal:
+	value=BOOL
+;
+
+IntVal:
+	value=SIGNED_INT
+;
+
+DoubleVal:
+	value=SIGNED_DOUBLE
+;
+
+FloatVal:
+	value=SIGNED_FLOAT
+;
+      
+StringVal:
+	value=STRING
+;
+
+StructVal:
+	{StructVal} '{' '}'
+;
+
+//-----------------------------------------------------------
+enum DistributionMode:
+	copy | dist | rowDist | columnDist | loc
+;
+
+enum PrimitiveTypeLiteral:
+	auto | int | double | float | bool | string
+;
+
+enum ViewNeccessary:
+	yes | no 
+;
+
+AssignmentOperator:
+	OP_ASSIGN_EQUALS | OP_ASSIGN_ADD | OP_ASSIGN_SUB | OP_ASSIGN_MULT | OP_ASSIGN_DIV 
+;
+
+OP_ASSIGN_EQUALS:
+	'='
+;
+
+OP_ASSIGN_ADD:
+	'+='
+;
+
+OP_ASSIGN_SUB:
+	'-='
+;
+
+OP_ASSIGN_MULT:
+	'*='
+;
+
+OP_ASSIGN_DIV:
+	'/='
+;
+
+BooleanOperator:
+	OP_BOOL_LT | OP_BOOL_LTE | OP_BOOL_EQUALS | OP_BOOL_UNEQUALS | OP_BOOL_GTE | OP_BOOL_GT
+;
+
+OP_BOOL_LT:
+	'<'
+;
+
+OP_BOOL_LTE:
+	'<='
+;
+
+OP_BOOL_EQUALS:
+	'=='
+;
+
+OP_BOOL_UNEQUALS:
+	'!='
+;
+
+OP_BOOL_GTE:
+	'>='
+;
+
+OP_BOOL_GT:
+	'>'
+;
+
+OP_MATH_PLUS:
+	'+'
+;
+
+OP_MATH_MINUS:
+	'-'
+;
+
+OP_MATH_MULT:
+	'*'
+;
+
+OP_MATH_DIV:
+	'/'
+;
+
+OP_MATH_MODULO:
+	'%'
+;
+
+OP_MATH_RSHIFT:
+	'lsr'
+;
+
+OP_MATH_LSHIFT:
+	'lsl'
+;
+
+OP_CONDITION_AND:
+	'&&'
+;
+
+OP_CONDITION_OR:
+	'||'
+;
+
+OP_CONDITION_NOT:
+	'!'
+;
+
+//-----------------------------------------------------------
+fragment SIGN: 
+	'+' | '-'
+;
+
+SIGNED_DOUBLE returns ecore::EDouble:
+	SIGN? INT '.' INT
+;
+
+SIGNED_FLOAT returns ecore::EFloat:
+	SIGN? INT '.' INT 'f'
+;
+
+SIGNED_INT returns ecore::ELong:
+	SIGN? INT
+;
+	
+BOOL returns ecore::EBoolean:
+	'true' | 'false'
+;
+
+HEADERFILE returns ecore::EString:
+	ID '.h'
+;
+
+terminal COLL_GLOBAL_OPEN: 
+	'['
+;
+
+terminal COLL_GLOBAL_CLOSE: 
+	']'
+;
+
+terminal COLL_LOCAL_OPEN: 
+	'[['
+;
+
+terminal COLL_LOCAL_CLOSE: 
+	']]'
+;

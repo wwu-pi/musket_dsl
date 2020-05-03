@@ -1,0 +1,23 @@
+#config PLATFORM CPU
+#config PROCESSES 2
+
+array<int,8,dist> a = {8, 8, 8, 8, 8, 8, 8, 8};
+
+int minus_index(int ind, int value_b){
+  return value_b - ind;
+}
+
+int min(int value_a, int value_b){
+  int result = value_a;
+  if(value_a > value_b){
+    result = value_b;
+  }
+  return result;
+}
+
+main{
+  a.mapIndexInPlace(minus_index());
+  int r = a.fold(mkt::int_max(), min());
+	
+  mkt::print("The result is %i!\n", r);
+}

@@ -1,0 +1,34 @@
+#config PLATFORM CPU CPU_MPMD
+#config PROCESSES 4
+#config CORES 24
+#config MODE release
+
+const int mdim = 32;
+
+matrix<float,mdim,mdim,dist,dist> as;
+
+float init(int x, int y, float a){
+	return (float) x * mdim + y;
+}
+
+float square(float a){
+	return a * a;
+}
+
+float sum(float a, float b){
+	return a + b;
+}
+
+main{
+	as.mapIndexInPlace(init());
+	
+	mkt::roi_start();
+	
+	as.mapInPlace(square());
+	float fn = as.fold(0.0f, sum());
+	fn = std::sqrt(fn);
+	
+	mkt::roi_end();
+	
+	mkt::print("Frobenius norm is %.5f.\n", fn);
+}

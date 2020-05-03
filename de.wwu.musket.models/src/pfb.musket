@@ -1,0 +1,88 @@
+#config PLATFORM GPU CUDA
+#config PROCESSES 1
+#config GPUS 1
+#config MODE release
+
+const double PI = 3.141592653589793;
+
+struct float2 {
+	float x;
+	float y;
+};
+
+array<float, 134225920, dist, yes, dist> input;
+array<float2, 134217728, dist, no, dist> c_input_double;
+array<float2, 134217728, dist, yes, dist> c_output;
+array<float, 512, dist, yes, copy> coeff;
+
+float init(float x){
+	return (float) mkt::rand(100, -100);
+}
+
+float FIR(int taps, int channels, int spectra, int Index, float a) {
+	float newa = 0.0f;
+	for (int j = 0; j < taps; j++) {
+		newa += input [ Index +(j* channels )] * coeff [ Index %( taps* channels )+(j*
+		channels )];
+	}
+	return newa;
+}
+
+float2 combine (int counter , int log2size , double pi , int Problemsize ,
+	int Index , float2 Ai) {
+	float2 newa;
+	newa.x = 0.0f;
+	newa.y = 0.0f;
+	int b = Index / (std :: pow (2, log2size -1- counter ));
+	int b2 = 0;
+	for (int l=0; l <= counter ; l++){
+		if (b == 1) {b2 = 2* b2 +1;}
+		else { b2 = 2* b2 ;}
+		b = b / (2);
+	}
+	float temp = 2.0f;//(2.0 * pi) / (Problemsize * (b2 * (std::pow(2, log2size-1-counter))));
+	float2 intermediateresult ;
+	intermediateresult.x = 1.0f; //cos(temp);
+	intermediateresult.y = 1.0f; //sin(temp);
+	if ( Index == (std::pow (2, log2size -1- counter ))) {
+		float2 mult_res;
+		mult_res.x = intermediateresult.x * Ai.x - ( intermediateresult.y *	Ai.y);
+		mult_res.y = intermediateresult.x * Ai.y + intermediateresult.y *Ai.x;
+		float2 add_res;
+		add_res.x = c_input_double[Index].x + mult_res.x;
+		add_res.y = c_input_double[Index].y + mult_res.y;
+		newa = add_res;
+	}
+	else {
+		float2 mult_res2 ;
+		mult_res2.x = intermediateresult.x * c_input_double[Index].x - (intermediateresult.y * c_input_double[Index].y);
+		mult_res2.y = intermediateresult.x * c_input_double[Index].y +	intermediateresult.y * c_input_double[Index].x;
+		float2 add_res2;
+		add_res2.x = Ai.x + mult_res2.x;
+		add_res2.y = Ai.y + mult_res2.y;
+		newa = add_res2 ;
+	}
+	return newa;
+}
+
+float2 fetch (int counter , int log2size , int i, float2 Ti){
+	return c_output[i * (int) std::pow (2, log2size-1-counter)];
+}
+
+main{
+	int ntaps = 32;
+	int nchans = 16;
+	int nspectra = 8388608;
+	int log2size = 4;
+	input.mapInPlace(init());
+	coeff.mapInPlace(init());
+	
+	mkt::roi_start();
+	//c_output.mapIndexInPlace(FIR(ntaps, nchans, nspectra));
+	
+	for (int j=0; j< log2size ; j++) {
+		c_input_double.mapIndexInPlace(fetch(j, log2size ));
+		c_output.mapIndexInPlace(combine(j, log2size, PI, 16));
+	}
+	mkt::roi_end();
+}

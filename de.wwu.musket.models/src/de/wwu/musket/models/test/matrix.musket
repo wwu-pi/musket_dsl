@@ -1,0 +1,42 @@
+#config PLATFORM GPU CPU_MPMD CUDA
+#config PROCESSES 1
+#config GPUS 1
+#config CORES 4
+#config MODE debug
+
+matrix<int,4,4,dist> ads = {7};
+matrix<int,4,4,dist> bds;
+//matrix<int,4,4,dist> cds = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+matrix<int,4,4,copy> acs = {7};
+matrix<int,4,4,copy> bcs;
+//matrix<int,4,4,copy> ccs = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+matrix<int,4,4,dist> r_ads;
+matrix<int,4,4,dist> r_bds;
+matrix<int,4,4,copy> r_acs;
+matrix<int,4,4,copy> r_bcs;
+
+int init(int row, int col, int x){
+	return row * 4 + col;
+}
+
+main{
+
+	ads.show();
+	bds.show();	
+	acs.show();
+	bcs.show();
+	
+	mkt::print("\n mapIndexInPlace \n");
+	
+	r_ads = ads.mapIndex(init());
+	r_bds = bds.mapIndex(init());
+	r_acs = acs.mapIndex(init());
+	r_bcs = bcs.mapIndex(init());
+	
+	r_ads.show();
+	r_bds.show();	
+	r_acs.show();
+	r_bcs.show();	
+}

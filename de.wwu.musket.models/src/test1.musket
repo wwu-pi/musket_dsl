@@ -1,0 +1,59 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+
+#include test.h
+
+const bool myConst = true;
+
+array<int,4,copy> a = {1 , 2, 3, 4};
+array<double,4,copy> b;
+array<bool,4,copy> c;
+double globalVar = 123.2;
+
+int fi(int i , int j){
+	double sum1 = 0;
+ 	double sum2 = 0;
+	if(1 + 2){
+		sum1 += (double) 333;
+		fi(2);
+	}
+	for(int k : a ){
+		a[j] = 42;
+	}
+	a.size();
+	sum1 += 333.0; 
+	sum1 /= std::pow(sum1, 2);
+	return i+1;
+}
+
+bool g(array<int,4,copy> bs, int p){
+	for(double x : b){
+		p = (int) x;
+	}
+	return p > 2;
+}
+
+main{
+	
+	a.mapInPlace(fi(a[2]));
+//	a.mapInPlace((int a) -> double {
+//		double sum1 = 0;
+//	 	if(1 + 2){
+//			f(2);
+//		}
+//	});
+	for(int i = 0; i < 42; i++){
+		b = a.map(fi(42));
+		b = a[[42 + 6]];
+		b[2] = 5;
+	}
+	
+	for(int i : a ){
+		a[0] = 42;
+	}
+	
+	if(2 < 5){
+		c = a.map(g(a));
+		a.fold(0, fi());
+	}
+}

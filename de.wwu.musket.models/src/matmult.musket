@@ -1,0 +1,61 @@
+#config PLATFORM CPU_MPMD GPU
+#config PROCESSES 4
+#config CORES 24
+#config GPUS 4
+#config MODE release
+
+matrix<double,16384,16384,dist> as = {1.0};
+matrix<double,16384,16384,dist> bs = {0.001};
+matrix<double,16384,16384,dist> cs = {0.0};
+
+double initA(int a, int b, double x){
+	x = (double) a * 4 + b;
+	return x;
+}
+
+double initB(int a, int b, double x){
+	x = (double) 16 + a * 4 + b;
+	return x;
+}
+
+int negate(int a){
+	return -a;
+}
+
+int identity(int a){
+	return a;
+}
+
+int minusOne(int a){
+	return -1;
+}
+
+double dotProduct(int i, int j, double Cij){
+
+	for (int k = 0; k < cs.columnsLocal(); k++) {
+		Cij += as[[i,k]] * bs[[k,j]]; // b transposed
+	}
+
+	return Cij;
+}
+
+main{
+	as.mapIndexInPlace(initA());
+	bs.mapIndexInPlace(initB());
+	
+	mkt::roi_start();
+	
+	as.shiftPartitionsHorizontally(negate());
+	bs.shiftPartitionsVertically(negate());
+	
+	for (int i = 0; i < as.blocksInRow(); ++i) {
+    	cs.mapLocalIndexInPlace(dotProduct());
+    	as.shiftPartitionsHorizontally(minusOne());
+    	bs.shiftPartitionsVertically(minusOne());
+	}
+
+	as.shiftPartitionsHorizontally(identity());
+	bs.shiftPartitionsVertically(identity());
+	
+	mkt::roi_end();
+}

@@ -1,0 +1,108 @@
+#config PLATFORM CPU CPU_MPMD
+#config PROCESSES 4
+#config CORES 24
+#config MODE release
+
+const int steps = 5;
+
+const double EPSILON = 0.0000000001;
+const double DT = 0.01;
+
+struct Particle{
+	double x;
+	double y;
+	double z;
+	double vx;
+	double vy;
+	double vz;
+	double mass;
+	double charge;
+};
+
+array<Particle,524288,dist> P;
+array<Particle,524288,copy> oldP;
+
+Particle init_particles(int i, Particle p){
+	p.x = mkt::rand(0.0,1.0);
+	p.y = mkt::rand(0.0,1.0);
+	p.z = mkt::rand(0.0,1.0);
+	p.vx = 0.0;
+	p.vy = 0.0;
+	p.vz = 0.0;
+	p.mass = 1.0;
+	p.charge = 1.0 - 2.0 * (double) (i % 2);
+	return p;
+}
+
+Particle calc_force(int curIndex, Particle curParticle) {
+	double ax = 0.0;
+	double ay = 0.0;
+	double az = 0.0;
+
+	// calculate forces for the current particle
+	for (int j = 0; j < oldP.size(); j++) {
+
+		// do not evaluate interaction with yourself.
+		if (j != curIndex) {
+
+			// Evaluate forces that j-particles exert on the i-particle.
+			double dx;
+			double dy;
+			double dz;
+			double r2;
+			double r;
+			double qj_by_r3;
+
+			// Here we absorb the minus sign by changing the order of i and j.
+			dx = curParticle.x - oldP[j].x;
+			dy = curParticle.y - oldP[j].y;
+			dz = curParticle.z - oldP[j].z;
+
+			r2 = dx * dx + dy * dy + dz * dz;
+			r = std::sqrt(r2);
+
+			// Quench the force if the particles are too close.
+			if (r < EPSILON){
+				qj_by_r3 = 0.0;
+			} else {
+				qj_by_r3 = oldP[j].charge / (r2 * r);
+			}
+
+			// accumulate the contribution from particle j.
+			ax += qj_by_r3 * dx;
+			ay += qj_by_r3 * dy;
+			az += qj_by_r3 * dz;
+		}
+	}
+
+	// advance current particle
+	double vx0 = curParticle.vx;
+	double vy0 = curParticle.vy;
+	double vz0 = curParticle.vz;
+
+	double qidt_by_m = curParticle.charge * DT / curParticle.mass;
+	curParticle.vx += ax * qidt_by_m;
+	curParticle.vy += ay * qidt_by_m;
+	curParticle.vz += az * qidt_by_m;
+
+	// Use average velocity in the interval to advance the particles' positions
+	curParticle.x += (vx0 + curParticle.vx) * DT * 0.5;
+	curParticle.y += (vy0 + curParticle.vy) * DT * 0.5;
+	curParticle.z += (vz0 + curParticle.vz) * DT * 0.5;
+
+	return curParticle;
+}
+
+main{
+	P.mapIndexInPlace(init_particles());
+	
+	oldP = P.gather();
+	
+	mkt::roi_start();
+	
+	for (int i = 0; i < steps; ++i) {
+		P.mapIndexInPlace(calc_force());	
+		oldP = P.gather();
+	}  
+  mkt::roi_end();
+}

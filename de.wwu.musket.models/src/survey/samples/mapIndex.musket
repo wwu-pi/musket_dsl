@@ -1,0 +1,16 @@
+#config PLATFORM CPU
+#config PROCESSES 2
+
+array<int,8,dist> a = {1, 1, 2, 2, 3, 3, 4, 4};
+array<int,8,dist> b;
+
+int plus_index(int ind, int value){
+  return ind + value;
+}
+
+main{
+  a.mapLocalIndexInPlace(plus_index());
+  b = a.mapIndex(plus_index());
+	
+  b.show();
+}

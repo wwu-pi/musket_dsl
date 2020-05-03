@@ -1,0 +1,45 @@
+#config PLATFORM CPU_MPMD
+#config PROCESSES 4
+#config CORES 8
+#config MODE debug
+
+array<int,16,dist> ad = {0};
+array<int,16,copy> ac = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+matrix<int,4,4,dist> md = {0};
+matrix<int,4,4,copy> mc = {0};
+
+main{
+
+// array
+	mkt::print("Array:\n");
+	ac.show();
+	ad.show();
+
+	ac.showLocal();
+	ad.showLocal();	
+
+	mkt::print("call scatter.\n");
+	ad = ac.scatter();	
+
+	ad.show();
+	ad.showLocal();
+
+// matrix
+	mkt::print("Matrix:\n");
+	
+	mc.mapIndexInPlace((int r, int c, int x) -> int { return r * 4 + c;});
+
+	mc.show();
+	md.show();
+
+	mc.showLocal();
+	md.showLocal();
+
+	
+	mkt::print("call scatter.\n");
+	md = mc.scatter();
+
+	md.show();
+	md.showLocal();
+}
