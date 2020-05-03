@@ -1,7 +1,7 @@
 # Musket
 #/src-gen/
 src-gen/**/build
-
+src-gen/*
 # JAVA
 
 # Compiled class file
