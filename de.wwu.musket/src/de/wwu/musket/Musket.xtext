@@ -259,7 +259,7 @@ FunctionStatement:
 ;
 
 ControlStructure:
-	ForLoop | IfClause;
+	ForLoop | IfClause | ConditionalWhileLoop;
 	
 ForLoop:
 	ConditionalForLoop | IteratorForLoop
@@ -276,6 +276,15 @@ IteratorForLoop:
 	( '{' statements+=FunctionStatement+ '}' | => statements+=FunctionStatement?)
 ;
 
+ConditionalWhileLoop:
+	{ConditionalWhileLoop} 
+	'while' '(' condition=CompareExpression moreconditions+=FurtherConditions*')'
+	( '{' statements+=FunctionStatement* '}' | => statements+=FunctionStatement?)
+;
+
+FurtherConditions:
+	connection=('and' | 'or') furtherconditions=CompareExpression;
+	
 IfClause:
 	ifClauses+=IfThen
 	('else' ifClauses+=IfThen)*
@@ -285,7 +294,7 @@ IfClause:
 ;
 
 IfThen:
-	'if' '(' condition=CompareExpression ')' '{'
+	'if' '(' condition=CompareExpression moreconditions+=FurtherConditions*')' '{'
 		statements+=FunctionStatement+
 	'}' 
 ;

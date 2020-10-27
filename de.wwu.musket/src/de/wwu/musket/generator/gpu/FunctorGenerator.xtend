@@ -62,6 +62,7 @@ import org.apache.log4j.Logger
 import java.util.List
 import java.util.Set
 import de.wwu.musket.musket.MusketFunctionName
+import de.wwu.musket.musket.ConditionalWhileLoop
 
 class FunctorGenerator {
 	
@@ -278,7 +279,15 @@ class FunctorGenerator {
 			«ENDFOR»
 		}
 	'''
-
+	def static dispatch generateControlStructure(ConditionalWhileLoop cfl, int processId) '''
+		while( «cfl.condition.generateExpression(processId)» «FOR condition : cfl.moreconditions»«condition.connection.generateConnection()» «condition.furtherconditions.generateExpression(processId)»«ENDFOR»){
+				«FOR statement : cfl.statements»
+					«statement.generateFunctionStatement(processId)»
+				«ENDFOR»
+		}
+	'''
+	def static generateConnection(String c) '''«IF c.equals('and')»	&&	«ENDIF»	«IF c.equals('or')» || «ENDIF»'''
+	
 	/**
 	 * Generates a iterator for loop.
 	 * 

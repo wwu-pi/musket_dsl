@@ -55,7 +55,7 @@ class LogicGenerator {
 			«ENDFOR»
 		}
 	'''
-
+	
 	def static dispatch generateStatement(MusketIteratorForLoop s, int processId) '''
 		// TODO: LogicGenerator: generateStatement(MusketIteratorForLoop)
 	'''

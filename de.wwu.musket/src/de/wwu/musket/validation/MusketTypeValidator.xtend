@@ -133,8 +133,10 @@ class MusketTypeValidator extends AbstractMusketValidator {
 					error('Referenced function requires at least ' + (indexParams+mapParamsOut) + ' parameters, ' + callFunction.params.size + ' given!', 
 						MusketPackage.eINSTANCE.skeleton_Param,
 						INVALID_PARAMS)
-				} else if(isFunctionCall && (skel.param as InternalFunctionCall).params.size !== callFunction.params.size-indexParams-mapParamsOut){
+				} else if(isFunctionCall && (skel.param as InternalFunctionCall).value.params.size-indexParams-mapParamsOut !== callFunction.params.size-indexParams-mapParamsOut){
 					// Check provided argument count matches target function parameter count
+					val check = (skel.param as InternalFunctionCall).value.params.size
+					val check2 = callFunction.params.size-indexParams-mapParamsOut
 					error('Skeleton function call requires ' + (callFunction.params.size-indexParams-mapParamsOut) + ' arguments, ' + (skel.param as InternalFunctionCall).params.size + ' given!', 
 						MusketPackage.eINSTANCE.skeleton_Param,
 						INVALID_PARAMS)
@@ -302,7 +304,7 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							INVALID_PARAMS)
 					}
 					// Check identity value parameter matches two last values
-					if(callFunction.params.size >= 2 && !callFunction.params.get(callFunction.params.size-2)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
+					if(callFunction.params.size >= 2 && !callFunction.params.get(callFunction.params.size-1)?.calculateType.equalsIgnoreDistribution(skel.identity.calculateType)){
 						error('Identity value of type ' + skel.identity.calculateType + ' does not match expected parameter type ' + callFunction.params.get(callFunction.params.size-2)?.calculateType + '!', 
 							MusketPackage.eINSTANCE.foldSkeletonVariants_Identity,
 							INVALID_PARAMS)
@@ -319,8 +321,8 @@ class MusketTypeValidator extends AbstractMusketValidator {
 							INVALID_PARAMS)
 					}
 					// Fold function needs to return same type as second but last value
-					if(callFunction.params.size >= 2 && !callFunction.calculateType.equalsIgnoreDistribution(callFunction.params.get(callFunction.params.size-2)?.calculateType)){
-						error('Return type ' + new MusketType(callFunction) + ' needs to match the second but last parameter type ' + callFunction.params.get(callFunction.params.size-2)?.calculateType + ' for fold skeletons!', 
+					if(callFunction.params.size >= 2 && !callFunction.calculateType.equalsIgnoreDistribution(callFunction.params.get(callFunction.params.size-1)?.calculateType)){
+						error('Return type ' + new MusketType(callFunction) + ' needs to match the second but last parameter type ' + callFunction.params.get(callFunction.params.size-1)?.calculateType + ' for fold skeletons!', 
 							MusketPackage.eINSTANCE.skeleton_Param,
 							INVALID_PARAMS)
 					}

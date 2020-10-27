@@ -65,6 +65,7 @@ import de.wwu.musket.musket.MusketFunctionName
 import de.wwu.musket.musket.Skeleton
 import de.wwu.musket.musket.ShiftPartitionsHorizontallySkeleton
 import de.wwu.musket.musket.ShiftPartitionsVerticallySkeleton
+import de.wwu.musket.musket.ConditionalWhileLoop
 
 class FunctorGenerator {
 	
@@ -258,7 +259,27 @@ class FunctorGenerator {
 			«ENDFOR»
 		}
 	'''
-
+	
+	// ControlStructures	
+	/**
+	 * Generates a conditional for loop.
+	 *  
+	 * @param cfl the for loop
+	 * @param skeleton the skeleton in which the function is used
+	 * @param a the collection object on which the skeleton is used
+	 * @param param_map the param_map
+	 * @return the generated conditional while loop
+	 */
+	 // «FOR condition : cfl.moreconditions»«condition.connection» «condition.furtherconditions.generateExpression(processId)»«ENDFOR»
+	def static dispatch generateControlStructure(ConditionalWhileLoop cfl, int processId) '''
+		while( «cfl.condition.generateExpression(processId)»«FOR condition : cfl.moreconditions»«condition.connection.generateConnection()»«condition.furtherconditions.generateExpression(processId)»«ENDFOR»){
+			«FOR statement : cfl.statements»
+				«statement.generateFunctionStatement(processId)»
+			«ENDFOR»
+		}
+	'''
+	
+	def static generateConnection(String c) '''«IF c.equals('and')» && «ENDIF»«IF c.equals('or')» || «ENDIF»'''
 	/**
 	 * Generates a iterator for loop.
 	 * 
@@ -284,9 +305,8 @@ class FunctorGenerator {
 	 * @return the generated if clause
 	 */
 	def static dispatch generateControlStructure(IfClause ic, int processId) '''
-		
 		«FOR ifs : ic.ifClauses SEPARATOR "\n} else " AFTER "}"»
-			if(«ifs.condition.generateExpression(processId)»){
+			if(«ifs.condition.generateExpression(processId)»«FOR condition : ifs.moreconditions»«condition.connection.generateConnection()»«condition.furtherconditions.generateExpression(processId)»«ENDFOR»){
 			«FOR statement: ifs.statements»
 				«statement.generateFunctionStatement(processId)»
 			«ENDFOR»
